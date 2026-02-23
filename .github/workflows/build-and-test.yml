@@ -1,0 +1,18 @@
+name: Module - Build & Test
+on: workflow_call
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - name: Install dependencies
+        run: if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; else echo "No package.json, skipping"; fi
+      - name: Build (Vite/React)
+        run: if [ -f package.json ]; then npm run build --if-present; fi
+      - name: Run tests
+        run: if [ -f package.json ]; then npm run test --if-present; fi
