@@ -1,69 +1,39 @@
-# React + TypeScript + Vite
+# 🎛️ Aegis AI - SaaS Dashboard (Private Console)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Project ID:** AEGIS-CORE-2026
 
-Currently, two official plugins are available:
+## 🏗️ System Architecture & Role
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The **Aegis SaaS Dashboard** (`app.aegis.ai`) serves as the central hub for DevSecOps users and SOC Analysts. This sophisticated Single Page Application (SPA) relies on heavy client-side functionality.
 
-## Expanding the ESLint configuration
+- **Tech Stack:** React 18 + Vite (SPA).
+- **Key Features:**
+  - **Mission Control (Home):** WebGL-powered Live Attack Map utilizing React-Three-Fiber to display realtime client infrastructure topologies.
+  - **The Vault:** Provides an immutable timeline view of pentest reports leveraging secure in-memory streaming PDFs.
+  - **Remediation Center:** Git Diff viewers for remediated Terraform code and PR automation.
+- **UX Density:** Keyboard-first navigation (Command Palettes), high-density data tables, and default Dark Mode tailored for SOC environments.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🔐 Security & Dual-Interface Strategy
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+- **Domain Separation:** Completely disconnected from the public marketing site (`www.aegis.ai`) to strictly limit the attack surface.
+- **Authentication:** Handled solely via OIDC (OpenID Connect) Authorization Code Flow with PKCE via Keycloak/Auth0. No unauthenticated data exists here.
+- **No Plain-Text Secrets:** All API coordinates injected at build via Infisical.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🐳 Docker Deployment
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+The Dashboard is built statically and served by a high-performance web server container.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+```bash
+docker pull ghcr.io/aegis-ai/aegis-dashboard:latest
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+# Running as a fully read-only static file server container
+infisical run --env=prod -- docker run -d \
+  --name aegis-dashboard \
+  --read-only \
+  --cap-drop=ALL \
+  --security-opt no-new-privileges:true \
+  --user 10001:10001 \
+  -p 80:80 \
+  -e INFISICAL_TOKEN=$INFISICAL_TOKEN \
+  ghcr.io/aegis-ai/aegis-dashboard:latest
 ```
