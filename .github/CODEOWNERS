@@ -1,1 +1,20 @@
-* @enzogaggiotti
+.dockerignore @enzogaggiotti
+Dockerfile @enzogaggiotti
+
+.github @enzogaggiotti
+pre-commit-config.yaml @enzogaggiotti
+
+LICENSE @enzogaggiotti
+README.md @enzogaggiotti
+docs @enzogaggiotti
+
+package.json @enzogaggiotti
+package-lock.json @enzogaggiotti
+public @enzogaggiotti
+eslint.config.js @enzogaggiotti
+index.html @enzogaggiotti
+tscconfig.json @enzogaggiotti
+tscconfig.app.json @enzogaggiotti
+tscconfig.node.json @enzogaggiotti
+vite.config.ts @enzogaggiotti
+src @enzogaggiotti
