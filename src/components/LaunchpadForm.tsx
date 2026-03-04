@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 // import { useNavigate } from "react-router-dom";
 import { Play, Loader2, AlertCircle } from "lucide-react";
+import { config } from "../config";
 
 export interface CreateScanRequest {
   target_image: string;
@@ -34,16 +35,13 @@ export const LaunchpadForm: React.FC = () => {
     };
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_GATEWAY_URL}/scans`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
+      const response = await fetch(`${config.apiGatewayUrl}/scans`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(payload),
+      });
 
       if (response.status === 201) {
         const data: CreateScanResponse = await response.json();

@@ -5,13 +5,14 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci || npm install
 COPY . .
-ARG VITE_API_GATEWAY_URL=http://api.aegis.pre-alpha.local:32564
-ENV VITE_API_GATEWAY_URL=$VITE_API_GATEWAY_URL
 RUN npm run build || true
 
 # Stage 2: Serve via Nginx
 FROM nginx:alpine-slim
 # Assumes build directory is 'dist' for Vite. For CRA, use 'build'
 COPY --from=builder /app/dist /usr/share/nginx/html
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# L'entrypoint génère /env-config.js à partir des env vars Kubernetes au démarrage du pod
+ENTRYPOINT ["/entrypoint.sh"]
