@@ -1,0 +1,57 @@
+import React from "react";
+import { Search, Bell, ChevronDown } from "lucide-react";
+
+export const Topbar: React.FC = () => {
+  return (
+    <header className="h-16 flex items-center justify-between px-6 bg-[#0B0D13] border-b border-gray-800/60">
+      <div className="flex items-center">
+        <h1 className="text-white font-medium text-base hidden sm:block">
+          Vulnerability Report{" "}
+          <span className="text-gray-500 ml-1 font-normal">
+            - Project Template
+          </span>
+        </h1>
+        {/* Mobile Logo display when sidebar is hidden */}
+        <div className="sm:hidden flex items-center gap-2">
+          <div className="w-6 h-6 rounded bg-blue-950/50 flex flex-col items-center justify-center border border-blue-500/20">
+            {/* Simplified micro logo */}
+            <div className="w-2 h-2 bg-cyan-400 rounded-sm"></div>
+          </div>
+          <span className="text-white font-semibold">Aegis AI</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 sm:gap-6">
+        <div className="relative group hidden sm:block">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="w-4 h-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search..."
+            className="w-48 lg:w-64 bg-[#13151A] border border-gray-800 text-sm rounded-lg pl-10 pr-10 py-1.5 text-gray-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder-gray-600"
+          />
+          <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
+            <span className="text-xs text-gray-600 font-medium bg-[#1A1D24] px-1.5 py-0.5 rounded border border-gray-800">
+              K
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-[#0B0D13] rounded-full"></span>
+          </button>
+
+          <div className="flex items-center gap-2 cursor-pointer group">
+            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner">
+              AS
+            </div>
+            <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors" />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};

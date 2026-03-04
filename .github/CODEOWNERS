@@ -5,16 +5,16 @@ Dockerfile @enzogaggiotti
 pre-commit-config.yaml @enzogaggiotti
 
 LICENSE @enzogaggiotti
-README.md @enzogaggiotti
-docs @enzogaggiotti
+README.md @Dev2Noe
+docs @Dev2Noe
 
-package.json @enzogaggiotti
-package-lock.json @enzogaggiotti
-public @enzogaggiotti
-eslint.config.js @enzogaggiotti
-index.html @enzogaggiotti
-tscconfig.json @enzogaggiotti
-tscconfig.app.json @enzogaggiotti
-tscconfig.node.json @enzogaggiotti
-vite.config.ts @enzogaggiotti
-src @enzogaggiotti
+package.json @Dev2Noe
+package-lock.json @Dev2Noe
+public @Dev2Noe
+eslint.config.js @Dev2Noe
+index.html @Dev2Noe
+tscconfig.json @Dev2Noe
+tscconfig.app.json @Dev2Noe
+tscconfig.node.json @Dev2Noe
+vite.config.ts @Dev2Noe
+src @Dev2Noe
