@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cyan-400: #00F2FF;
-  --color-cyan-500: #00D9E6;
-  --color-cyan-900: #00484C;
-  --color-purple-400: #8E33FF;
-  --color-purple-500: #7000FF;
-  --color-purple-600: #5700CC;
+  --color-cyan-400: #00f2ff;
+  --color-cyan-500: #00d9e6;
+  --color-cyan-900: #00484c;
+  --color-purple-400: #8e33ff;
+  --color-purple-500: #7000ff;
+  --color-purple-600: #5700cc;
   --color-indigo-500: #6366f1;
 
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-orbitron: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-orbitron: "Orbitron", ui-sans-serif, system-ui, sans-serif;
 }
 
 body {

@@ -1,9 +1,9 @@
-import { Routes, Route } from 'react-router-dom';
-import { AdminLayout } from './components/layout/AdminLayout';
-import { Dashboard } from './pages/Dashboard';
-import { Vulnerabilities } from './pages/Vulnerabilities';
-import { Users } from './pages/Users';
-import { Settings } from './pages/Settings';
+import { Routes, Route } from "react-router-dom";
+import { AdminLayout } from "./components/layout/AdminLayout";
+import { Dashboard } from "./pages/Dashboard";
+import { Vulnerabilities } from "./pages/Vulnerabilities";
+import { Users } from "./pages/Users";
+import { Settings } from "./pages/Settings";
 
 function App() {
   return (
