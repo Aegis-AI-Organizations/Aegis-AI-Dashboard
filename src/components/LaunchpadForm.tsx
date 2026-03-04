@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { Play, Loader2, AlertCircle } from "lucide-react";
 
 export interface CreateScanRequest {
