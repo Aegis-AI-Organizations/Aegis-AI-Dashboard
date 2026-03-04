@@ -34,13 +34,16 @@ export const LaunchpadForm: React.FC = () => {
     };
 
     try {
-      const response = await fetch(`${import.meta.env.API_GATEWAY_URL}/scans`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_GATEWAY_URL}/scans`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       if (response.status === 201) {
         const data: CreateScanResponse = await response.json();
