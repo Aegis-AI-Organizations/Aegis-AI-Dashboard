@@ -5,8 +5,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci || npm install
 COPY . .
-ARG VITE_API_URL=http://api.aegis.pre-alpha.local:32564
-ENV VITE_API_URL=$VITE_API_URL
+ARG API_GATEWAY_URL=http://api.aegis.pre-alpha.local:32564
+ENV API_GATEWAY_URL=$API_GATEWAY_URL
 RUN npm run build || true
 
 # Stage 2: Serve via Nginx
