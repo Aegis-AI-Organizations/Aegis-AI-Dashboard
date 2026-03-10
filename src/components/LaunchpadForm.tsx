@@ -38,21 +38,14 @@ export const LaunchpadForm: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#111318] border border-gray-800/60 rounded-xl p-6 shadow-xl max-w-md w-full font-sans text-gray-200">
-      <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-white mb-2">Ready to scan?</h2>
-        <p className="text-sm text-gray-400">
-          Entrez une image Docker pour lancer un pentest automatisé.
-        </p>
-      </div>
-
+    <div className="w-full font-sans text-gray-200">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="target_image"
             className="block text-sm font-medium text-gray-300 mb-1.5"
           >
-            Docker Image
+            Image Docker
           </label>
           <input
             id="target_image"
@@ -82,7 +75,7 @@ export const LaunchpadForm: React.FC = () => {
           ) : (
             <Play className="w-5 h-5 mr-2 fill-current" />
           )}
-          {isLoading ? "Lancement..." : "Launch Pentest"}
+          {isLoading ? "Lancement..." : "Lancer le Scan"}
         </button>
       </form>
     </div>

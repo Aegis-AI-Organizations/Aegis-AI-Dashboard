@@ -6,10 +6,8 @@ export const Topbar: React.FC = () => {
     <header className="h-16 flex items-center justify-between px-6 bg-[#0B0D13] border-b border-gray-800/60">
       <div className="flex items-center">
         <h1 className="text-white font-medium text-base hidden sm:block">
-          Vulnerability Report{" "}
-          <span className="text-gray-500 ml-1 font-normal">
-            - Project Template
-          </span>
+          Rapport de Vulnérabilités{" "}
+          <span className="text-gray-500 ml-1 font-normal">- Projet Aegis</span>
         </h1>
         {/* Mobile Logo display when sidebar is hidden */}
         <div className="sm:hidden flex items-center gap-2">
@@ -28,7 +26,7 @@ export const Topbar: React.FC = () => {
           </div>
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Rechercher..."
             className="w-48 lg:w-64 bg-[#13151A] border border-gray-800 text-sm rounded-lg pl-10 pr-10 py-1.5 text-gray-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder-gray-600"
           />
           <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
