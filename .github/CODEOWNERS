@@ -18,3 +18,4 @@ tscconfig.app.json @Dev2Noe
 tscconfig.node.json @Dev2Noe
 vite.config.ts @Dev2Noe
 src @Dev2Noe
+nginx.conf @Dev2Noe
