@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { ScanStatusResponse } from "../types/scan";
 
 export const useScans = () => {
@@ -14,7 +14,7 @@ export const useScans = () => {
     );
   };
 
-  const fetchScans = async () => {
+  const fetchScans = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -37,11 +37,11 @@ export const useScans = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchScans();
-  }, []);
+  }, [fetchScans]);
 
   return { scans, isLoading, error, refetch: fetchScans };
 };

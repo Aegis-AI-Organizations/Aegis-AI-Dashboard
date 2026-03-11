@@ -3,7 +3,13 @@ import { Play, Loader2, AlertCircle } from "lucide-react";
 import { useCreateScan } from "../hooks/useCreateScan";
 import { ScanProgressTracker } from "./ScanProgressTracker";
 
-export const LaunchpadForm: React.FC = () => {
+interface LaunchpadFormProps {
+  onScanUpdate?: () => void;
+}
+
+export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
+  onScanUpdate,
+}) => {
   const [targetImage, setTargetImage] = useState("");
   const [activeScanId, setActiveScanId] = useState<string | null>(null);
   const [initialStatus, setInitialStatus] = useState<string>("PENDING");
@@ -17,6 +23,9 @@ export const LaunchpadForm: React.FC = () => {
     if (data) {
       setActiveScanId(data.scan_id);
       setInitialStatus(data.status || "PENDING");
+      if (onScanUpdate) {
+        onScanUpdate();
+      }
     }
   };
 
@@ -33,6 +42,7 @@ export const LaunchpadForm: React.FC = () => {
         targetImage={targetImage}
         initialStatus={initialStatus}
         onReset={handleReset}
+        onScanUpdate={onScanUpdate}
       />
     );
   }

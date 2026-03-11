@@ -5,7 +5,7 @@ import { ShieldAlert, ChevronRight, Clock, Box } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const Dashboard: React.FC = () => {
-  const { scans, isLoading, error } = useScans();
+  const { scans, isLoading, error, refetch } = useScans();
   const navigate = useNavigate();
 
   // Take the top 3 most recent scans
@@ -64,7 +64,7 @@ export const Dashboard: React.FC = () => {
               Entrez l'image Docker cible pour démarrer l'analyse de
               vulnérabilités.
             </p>
-            <LaunchpadForm />
+            <LaunchpadForm onScanUpdate={refetch} />
           </div>
         </div>
 
