@@ -8,6 +8,7 @@ interface ScanProgressTrackerProps {
   targetImage: string;
   initialStatus?: string;
   onReset: () => void;
+  onScanUpdate?: () => void;
 }
 
 export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
@@ -15,12 +16,19 @@ export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
   targetImage,
   initialStatus = "PENDING",
   onReset,
+  onScanUpdate,
 }) => {
   const { scanStatus } = useScanPolling(scanId, initialStatus);
 
   const currentStatusDetail =
     STATUS_DETAILS[scanStatus] || STATUS_DETAILS.PENDING;
   const isFinished = ["COMPLETED", "FAILED", "CANCELED"].includes(scanStatus);
+
+  React.useEffect(() => {
+    if (onScanUpdate) {
+      onScanUpdate();
+    }
+  }, [scanStatus, onScanUpdate]);
 
   return (
     <div className="bg-[#111318] border border-gray-800/60 rounded-xl p-6 shadow-xl max-w-md w-full font-sans text-gray-200">
