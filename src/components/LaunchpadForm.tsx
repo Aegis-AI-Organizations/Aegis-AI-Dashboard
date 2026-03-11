@@ -1,82 +1,61 @@
 import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
 import { Play, Loader2, AlertCircle } from "lucide-react";
-import { config } from "../config";
+import { useCreateScan } from "../hooks/useCreateScan";
+import { ScanProgressTracker } from "./ScanProgressTracker";
 
-export interface CreateScanRequest {
-  target_image: string;
+interface LaunchpadFormProps {
+  onScanUpdate?: () => void;
 }
 
-export interface CreateScanResponse {
-  scan_id: string;
-  temporal_workflow_id: string;
-  status: string;
-}
-
-export const LaunchpadForm: React.FC = () => {
+export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
+  onScanUpdate,
+}) => {
   const [targetImage, setTargetImage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  //   const navigate = useNavigate();
+  const [activeScanId, setActiveScanId] = useState<string | null>(null);
+  const [initialStatus, setInitialStatus] = useState<string>("PENDING");
+
+  const { createScan, isLoading, error } = useCreateScan();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const data = await createScan(targetImage);
 
-    if (!targetImage.trim()) {
-      setError("L'image Docker est requise.");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    const payload: CreateScanRequest = {
-      target_image: targetImage.trim(),
-    };
-
-    try {
-      const response = await fetch(`${config.apiGatewayUrl}/scans`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.status === 201) {
-        const data: CreateScanResponse = await response.json();
-        // navigate(`/monitoring/${data.scan_id}`);
-        console.log(data);
-      } else {
-        const errorData = await response.json().catch(() => null);
-        setError(
-          errorData?.message ||
-            `Erreur: ${response.status} ${response.statusText}`,
-        );
+    if (data) {
+      setActiveScanId(data.scan_id);
+      setInitialStatus(data.status || "PENDING");
+      if (onScanUpdate) {
+        onScanUpdate();
       }
-    } catch (err) {
-      setError("Erreur réseau. Impossible de contacter le serveur.");
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="bg-[#111318] border border-gray-800/60 rounded-xl p-6 shadow-xl max-w-md w-full font-sans text-gray-200">
-      <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-white mb-2">Ready to scan?</h2>
-        <p className="text-sm text-gray-400">
-          Entrez une image Docker pour lancer un pentest automatisé.
-        </p>
-      </div>
+  const handleReset = () => {
+    setActiveScanId(null);
+    setTargetImage("");
+    setInitialStatus("PENDING");
+  };
 
+  if (activeScanId) {
+    return (
+      <ScanProgressTracker
+        scanId={activeScanId}
+        targetImage={targetImage}
+        initialStatus={initialStatus}
+        onReset={handleReset}
+        onScanUpdate={onScanUpdate}
+      />
+    );
+  }
+
+  return (
+    <div className="w-full font-sans text-gray-200">
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="target_image"
             className="block text-sm font-medium text-gray-300 mb-1.5"
           >
-            Docker Image
+            Image Docker
           </label>
           <input
             id="target_image"
@@ -106,7 +85,7 @@ export const LaunchpadForm: React.FC = () => {
           ) : (
             <Play className="w-5 h-5 mr-2 fill-current" />
           )}
-          {isLoading ? "Lancement..." : "Launch Pentest"}
+          {isLoading ? "Lancement..." : "Lancer le Scan"}
         </button>
       </form>
     </div>

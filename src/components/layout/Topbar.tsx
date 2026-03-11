@@ -5,16 +5,15 @@ export const Topbar: React.FC = () => {
   return (
     <header className="h-16 flex items-center justify-between px-6 bg-[#0B0D13] border-b border-gray-800/60">
       <div className="flex items-center">
-        <h1 className="text-white font-medium text-base hidden sm:block">
-          Vulnerability Report{" "}
-          <span className="text-gray-500 ml-1 font-normal">
-            - Project Template
+        <h1 className="text-white font-medium text-base hidden sm:flex items-center gap-3">
+          Admin Panel
+          <span className="px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold tracking-wide">
+            PROJET AEGIS
           </span>
         </h1>
         {/* Mobile Logo display when sidebar is hidden */}
         <div className="sm:hidden flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-blue-950/50 flex flex-col items-center justify-center border border-blue-500/20">
-            {/* Simplified micro logo */}
             <div className="w-2 h-2 bg-cyan-400 rounded-sm"></div>
           </div>
           <span className="text-white font-semibold">Aegis AI</span>
@@ -28,7 +27,7 @@ export const Topbar: React.FC = () => {
           </div>
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Rechercher..."
             className="w-48 lg:w-64 bg-[#13151A] border border-gray-800 text-sm rounded-lg pl-10 pr-10 py-1.5 text-gray-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder-gray-600"
           />
           <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">

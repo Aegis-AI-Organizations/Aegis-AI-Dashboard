@@ -5,11 +5,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci || npm install
 COPY . .
+
+COPY .env .env
 RUN npm run build || true
 
-# Stage 2: Serve via Nginx
 FROM nginx:alpine-slim
-# Assumes build directory is 'dist' for Vite. For CRA, use 'build'
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
