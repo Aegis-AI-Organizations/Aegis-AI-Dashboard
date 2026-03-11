@@ -33,3 +33,25 @@ Le cycle de vie d'un scan est strictement défini par ces statuts, traités visu
 8. `COMPLETED` : Terminé avec succès (Fin du polling).
 
 - _Failure states_: `FAILED` (erreur critique), `CANCELED` (action manuelle) -> Stoppent également le polling.
+
+## Composants Principaux (Dashboard v2)
+
+L'interface de l'application a été structurée autour de plusieurs vues clés permettant aux utilisateurs de gérer leurs pentests :
+
+### 1. Launchpad & Suivi de Scan (`LaunchpadForm` & `ScanProgressTracker`)
+
+Le composant **LaunchpadForm** permet de soumettre une cible (Image Docker) à l'API. Dès qu'un scan est initié, l'interface bascule sur le **ScanProgressTracker**.
+Ce composant offre un retour visuel en temps réel grâce à une jauge de progression circulaire (SVG) qui se remplit au fur et à mesure que le scan avance, guidée par la machine à états de l'API.
+
+### 2. Historique des Pentests Auto-Rafraîchi (`useScans`)
+
+La page d'accueil affiche les 3 derniers pentests exécutés. Grâce au passage de la fonction de rafraîchissement (`refetch`) depuis le Hook `useScans` vers le formulaire de lancement et le tracker de progression, la liste s'actualise automatiquement dès qu'un nouveau scan est créé ou que le statut du scan actif change, éliminant le besoin de rechargement manuel.
+
+### 3. Vue Détaillée des Vulnérabilités (`Vulnerabilities.tsx`)
+
+Une interface dédiée permet d'inspecter les résultats d'un scan spécifique :
+
+- **VulnerabilityList** : Liste les failles découvertes avec leurs sévérités (CRITICAL, HIGH, MEDIUM, LOW) et leurs statuts.
+- **PentestAccordion** : Regroupe les actions menées par l'agent IA par phase (RECONNAISSANCE, EXPLOITATION, etc.) pour une analyse granulaire.
+- **VulnerabilityDetailsDrawer** : Un panneau latéral s'ouvrant pour afficher le détail complet d'une vulnérabilité (Description, Solution, Preuves d'exploitation / Logs).
+- **Téléchargement de Rapport** : Un hook dédié (`useDownloadReport`) gère la récupération sécurisée (via Blob URL) du rapport final au format Markdown ou PDF généré par le backend.

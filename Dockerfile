@@ -6,7 +6,6 @@ COPY package*.json ./
 RUN npm ci || npm install
 COPY . .
 
-COPY .env .env
 RUN npm run build || true
 
 FROM nginx:alpine-slim
