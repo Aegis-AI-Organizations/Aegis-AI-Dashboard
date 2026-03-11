@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { config } from "../config";
 import type { ScanStatusResponse } from "../types/scan";
 
 export const useScans = () => {
@@ -6,19 +7,11 @@ export const useScans = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getApiUrl = () => {
-    return (
-      import.meta.env.VITE_API_GATEWAY_URL ||
-      import.meta.env.API_GATEWAY_URL ||
-      ""
-    );
-  };
-
   const fetchScans = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${getApiUrl()}/scans`);
+      const response = await fetch(`${config.apiGatewayUrl}/scans`);
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`);
       }

@@ -1,17 +1,10 @@
 import { useState } from "react";
+import { config } from "../config";
 import type { CreateScanRequest, CreateScanResponse } from "../types/scan";
 
 export const useCreateScan = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const getApiUrl = () => {
-    return (
-      import.meta.env.VITE_API_GATEWAY_URL ||
-      import.meta.env.API_GATEWAY_URL ||
-      ""
-    );
-  };
 
   const createScan = async (
     targetImage: string,
@@ -29,7 +22,7 @@ export const useCreateScan = () => {
     };
 
     try {
-      const response = await fetch(`${getApiUrl()}/scans`, {
+      const response = await fetch(`${config.apiGatewayUrl}/scans`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { config } from "../config";
 import type { ScanStatusResponse } from "../types/scan";
 
 export const useScanPolling = (
@@ -6,14 +7,6 @@ export const useScanPolling = (
   initialStatus: string = "PENDING",
 ) => {
   const [scanStatus, setScanStatus] = useState<string>(initialStatus);
-
-  const getApiUrl = () => {
-    return (
-      import.meta.env.VITE_API_GATEWAY_URL ||
-      import.meta.env.API_GATEWAY_URL ||
-      ""
-    );
-  };
 
   useEffect(() => {
     if (activeScanId) {
@@ -30,7 +23,9 @@ export const useScanPolling = (
     ) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(`${getApiUrl()}/scans/${activeScanId}`);
+          const res = await fetch(
+            `${config.apiGatewayUrl}/scans/${activeScanId}`,
+          );
           if (res.ok) {
             const data: ScanStatusResponse = await res.json();
             if (data.status) {
