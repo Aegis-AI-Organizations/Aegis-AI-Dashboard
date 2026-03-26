@@ -1,3 +1,3 @@
-# [FR] # Telemetry | Aegis-AI-Dashboard
+# Telemetry | Aegis-AI-Dashboard
 
 Document initialisé pour les tests de récupération Docusaurus par le plugin remote-content.

@@ -8,4 +8,7 @@ window.__RUNTIME_CONFIG__ = {
 };
 EOF
 
+# Remplace l'URL de l'API Gateway interne dynamiquement dans la config Nginx
+sed -i "s|INTERNAL_API_URL_PLACEHOLDER|${INTERNAL_API_URL:-http://api-gateway-mvp:8080/}|g" /etc/nginx/conf.d/default.conf
+
 exec nginx -g "daemon off;"
