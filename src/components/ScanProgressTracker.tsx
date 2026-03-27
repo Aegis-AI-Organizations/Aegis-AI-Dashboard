@@ -1,6 +1,7 @@
 import React from "react";
 import { Loader2, HelpCircle, CheckCircle, XCircle } from "lucide-react";
 import { useScanPolling } from "../hooks/useScanPolling";
+import { useScanStream } from "../hooks/useScanStream";
 import { STATUS_DETAILS } from "../constants/scan";
 
 interface ScanProgressTrackerProps {
@@ -18,8 +19,24 @@ export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
   onReset,
   onScanUpdate,
 }) => {
-  const { scanStatus } = useScanPolling(scanId, initialStatus);
+  const { scanStatus: pollingStatus } = useScanPolling(scanId, initialStatus);
+  const streamUpdate = useScanStream(scanId);
 
+  const [activeStatus, setActiveStatus] = React.useState(initialStatus);
+
+  React.useEffect(() => {
+    if (streamUpdate && streamUpdate.scan_id === scanId) {
+      setActiveStatus(streamUpdate.status);
+    }
+  }, [streamUpdate, scanId]);
+
+  React.useEffect(() => {
+    if (pollingStatus && !streamUpdate) {
+      setActiveStatus(pollingStatus);
+    }
+  }, [pollingStatus, streamUpdate]);
+
+  const scanStatus = activeStatus;
   const currentStatusDetail =
     STATUS_DETAILS[scanStatus] || STATUS_DETAILS.PENDING;
   const isFinished = ["COMPLETED", "FAILED", "CANCELED"].includes(scanStatus);
