@@ -13,6 +13,7 @@ describe("dashboard hooks", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", fetchMock);
     fetchMock.mockReset();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -45,6 +46,52 @@ describe("dashboard hooks", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.error).toBeNull();
     expect(result.current.scans.map((scan) => scan.id)).toEqual(["new", "old"]);
+  });
+
+  it("updates scan status real-time via SSE", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          id: "scan-1",
+          status: "RUNNING",
+          started_at: "2025-01-01T10:00:00.000Z",
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useScans());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // Simulate an SSE update
+    const eventSourceInstance = (window.EventSource as any).mock.results.at(
+      -1,
+    ).value;
+
+    await act(async () => {
+      eventSourceInstance.onmessage({
+        data: JSON.stringify({ scan_id: "scan-1", status: "COMPLETED" }),
+      } as MessageEvent);
+    });
+
+    await waitFor(() =>
+      expect(result.current.scans[0].status).toBe("COMPLETED"),
+    );
+
+    // Simulate an error to cover onerror
+    await act(async () => {
+      eventSourceInstance.onerror(new Error("sse error"));
+    });
+    // onerror should just log and not crash
+
+    // Simulate a message for an unknown scan to cover refetch branch
+    await act(async () => {
+      eventSourceInstance.onmessage({
+        data: JSON.stringify({ scan_id: "unknown", status: "RUNNING" }),
+      });
+    });
+    // This should trigger a refetch - we can check fetchMock calls
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("exposes a friendly scans error message on fetch failure", async () => {
