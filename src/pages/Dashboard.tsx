@@ -13,13 +13,20 @@ export const Dashboard: React.FC = () => {
   const lastUpdate = useScanStream();
 
   React.useEffect(() => {
-    if (lastUpdate) {
+    if (!lastUpdate) return;
+
+    // Debounce refetch to avoid bursty network calls on rapid SSE updates
+    const timeoutId = window.setTimeout(() => {
       console.log(
         "🔄 Real-time update received, refetching scans...",
         lastUpdate,
       );
       refetch();
-    }
+    }, 500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [lastUpdate, refetch]);
 
   // Take the top 3 most recent scans

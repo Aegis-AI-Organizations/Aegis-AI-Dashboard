@@ -14,6 +14,14 @@ export const useScanStream = (scanId?: string) => {
       ? `${config.apiGatewayUrl}/scans/${scanId}/stream`
       : `${config.apiGatewayUrl}/scans/stream`;
 
+    // Guard against environments (e.g., jsdom in tests) where EventSource is not available.
+    if (typeof EventSource === "undefined") {
+      console.warn(
+        "EventSource is not available in this environment; scan status stream disabled.",
+      );
+      return;
+    }
+
     console.log(`🔌 Connecting to status stream: ${url}`);
     const eventSource = new EventSource(url);
 
@@ -27,8 +35,7 @@ export const useScanStream = (scanId?: string) => {
     };
 
     eventSource.onerror = (err) => {
-      console.error("SSE Error (likely connection closed):", err);
-      eventSource.close();
+      console.error("SSE Error (letting browser auto-reconnect):", err);
     };
 
     return () => {

@@ -19,3 +19,13 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => false,
   }),
 });
+
+// Mock EventSource for Vitest/jsdom
+if (typeof window !== "undefined" && !(window as any).EventSource) {
+  (window as any).EventSource = class {
+    onmessage: any = null;
+    onerror: any = null;
+    close = vi.fn();
+    constructor(_url: string) {}
+  };
+}
