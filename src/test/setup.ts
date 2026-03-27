@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterEach, vi } from "vitest";
 
 afterEach(() => {
   cleanup();
@@ -19,3 +19,13 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => false,
   }),
 });
+
+// Mock EventSource for Vitest/jsdom
+if (typeof window !== "undefined" && !(window as any).EventSource) {
+  (window as any).EventSource = class {
+    onmessage: any = null;
+    onerror: any = null;
+    close = vi.fn();
+    constructor(_url: string) {}
+  };
+}

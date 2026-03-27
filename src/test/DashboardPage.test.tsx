@@ -21,6 +21,10 @@ vi.mock("../hooks/useScans", () => ({
   useScans: () => useScans(),
 }));
 
+vi.mock("../hooks/useScanStream", () => ({
+  useScanStream: vi.fn(),
+}));
+
 vi.mock("../components/LaunchpadForm", () => ({
   LaunchpadForm: () => <div>launchpad-form</div>,
 }));
