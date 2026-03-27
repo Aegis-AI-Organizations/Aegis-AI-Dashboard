@@ -3,47 +3,23 @@ import { LaunchpadForm } from "../components/LaunchpadForm";
 import { useScans } from "../hooks/useScans";
 import { ShieldAlert, ChevronRight, Clock, Box } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useScanStream } from "../hooks/useScanStream";
+
+import { STATUS_DETAILS } from "../constants/scan";
 
 export const Dashboard: React.FC = () => {
   const { scans, isLoading, error, refetch } = useScans();
   const navigate = useNavigate();
 
-  // SSE for real-time updates
-  const lastUpdate = useScanStream();
-
-  React.useEffect(() => {
-    if (!lastUpdate) return;
-
-    // Debounce refetch to avoid bursty network calls on rapid SSE updates
-    const timeoutId = window.setTimeout(() => {
-      console.log(
-        "🔄 Real-time update received, refetching scans...",
-        lastUpdate,
-      );
-      refetch();
-    }, 500);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [lastUpdate, refetch]);
+  // SSE for real-time updates is now handled centrally in useScans hook.
+  // This component will automatically re-render when useScans updates.
 
   // Take the top 3 most recent scans
   const recentScans = scans.slice(0, 3);
 
   const getStatusStyle = (status: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return "text-green-400 bg-green-500/10 border-green-500/20";
-      case "FAILED":
-        return "text-red-400 bg-red-500/10 border-red-500/20";
-      case "PENDING":
-      case "RUNNING":
-        return "text-cyan-400 bg-cyan-500/10 border-cyan-500/20";
-      default:
-        return "text-gray-400 bg-gray-500/10 border-gray-500/20";
-    }
+    const detail = STATUS_DETAILS[status] || STATUS_DETAILS.PENDING;
+    const colorClass = detail.color.replace("text-", "");
+    return `text-${colorClass} bg-${colorClass}/10 border-${colorClass}/20`;
   };
 
   const formatDate = (dateString?: string) => {
@@ -142,13 +118,7 @@ export const Dashboard: React.FC = () => {
                             scan.status,
                           )}`}
                         >
-                          {scan.status === "RUNNING"
-                            ? "EN COURS"
-                            : scan.status === "COMPLETED"
-                              ? "TERMINÉ"
-                              : scan.status === "FAILED"
-                                ? "ÉCHEC"
-                                : scan.status}
+                          {STATUS_DETAILS[scan.status]?.label || scan.status}
                         </span>
                         <div className="flex items-center text-[10px] text-gray-500">
                           <Clock className="w-3 h-3 mr-1" />
