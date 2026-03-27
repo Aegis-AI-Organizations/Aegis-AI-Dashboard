@@ -14,5 +14,12 @@ jobs:
         run: if [ -f package-lock.json ]; then npm ci; elif [ -f package.json ]; then npm install; else echo "No package.json, skipping"; fi
       - name: Build (Vite/React)
         run: if [ -f package.json ]; then npm run build --if-present; fi
-      - name: Run tests
-        run: if [ -f package.json ]; then npm run test --if-present; fi
+      - name: Run coverage
+        run: if [ -f package.json ]; then npm run coverage --if-present; fi
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-coverage
+          path: coverage
+          if-no-files-found: ignore

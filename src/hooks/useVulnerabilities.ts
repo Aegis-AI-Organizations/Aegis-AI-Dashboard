@@ -1,18 +1,11 @@
 import { useState, useEffect } from "react";
+import { config } from "../config";
 import type { Vulnerability } from "../types/vulnerability";
 
 export const useVulnerabilities = (scanId: string | undefined) => {
   const [vulnerabilities, setVulnerabilities] = useState<Vulnerability[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  const getApiUrl = () => {
-    return (
-      import.meta.env.VITE_API_GATEWAY_URL ||
-      import.meta.env.API_GATEWAY_URL ||
-      ""
-    );
-  };
 
   useEffect(() => {
     if (!scanId) {
@@ -26,7 +19,7 @@ export const useVulnerabilities = (scanId: string | undefined) => {
 
       try {
         const response = await fetch(
-          `${getApiUrl()}/scans/${scanId}/vulnerabilities`,
+          `${config.apiGatewayUrl}/scans/${scanId}/vulnerabilities`,
         );
 
         if (!response.ok) {
