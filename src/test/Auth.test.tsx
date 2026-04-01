@@ -97,14 +97,16 @@ describe("Authentication Infrastructure", () => {
         .rejected;
 
       // We need to mock the 'api' instance call inside the interceptor
-      const apiSpy = vi.spyOn(api, "request").mockResolvedValue({ data: "success" } as any);
+      const apiSpy = vi
+        .spyOn(api, "request")
+        .mockResolvedValue({ data: "success" } as any);
 
       await interceptor(failedResponse);
 
       expect(axios.post).toHaveBeenCalledWith(
         expect.stringContaining("/auth/refresh"),
         {},
-        expect.any(Object)
+        expect.any(Object),
       );
       expect(useAuthStore.getState().accessToken).toBe(newToken);
       apiSpy.mockRestore();

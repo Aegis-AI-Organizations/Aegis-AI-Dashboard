@@ -54,7 +54,7 @@ api.interceptors.request.use(
   },
   (error: AxiosError) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -101,7 +101,7 @@ api.interceptors.response.use(
       const { data } = await axios.post(
         `${config.apiGatewayUrl}/auth/refresh`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       const { access_token } = data;
@@ -130,5 +130,5 @@ api.interceptors.response.use(
     } finally {
       isRefreshing = false;
     }
-  }
+  },
 );
