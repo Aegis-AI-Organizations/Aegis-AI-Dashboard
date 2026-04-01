@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, History, Users, Settings } from "lucide-react";
+import { useAuthStore } from "../../store/AuthStore";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Tableau de Bord", path: "/" },
@@ -11,6 +12,7 @@ const navItems = [
 
 export const Sidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const user = useAuthStore((s) => s.user);
 
   return (
     <aside
@@ -72,12 +74,16 @@ export const Sidebar: React.FC = () => {
           isExpanded ? "opacity-100" : "opacity-0 h-0 hidden"
         }`}
       >
-        <div className="w-8 h-8 rounded-full bg-cyan-900/50 flex items-center justify-center shrink-0 border border-cyan-500/30">
-          <span className="text-cyan-400 text-xs font-bold">AS</span>
+        <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner">
+          {user?.email ? user.email.substring(0, 2).toUpperCase() : "AS"}
         </div>
         <div className="flex flex-col whitespace-nowrap">
-          <span className="text-sm font-medium text-white">Admin Sys</span>
-          <span className="text-xs text-gray-500">Premium Plan</span>
+          <span className="text-sm font-medium text-white">
+            {user?.email.split("@")[0] || "Admin Sys"}
+          </span>
+          <span className="text-xs text-gray-500">
+            {user?.role === "admin" ? "Premium Plan" : "Standard Plan"}
+          </span>
         </div>
       </div>
     </aside>

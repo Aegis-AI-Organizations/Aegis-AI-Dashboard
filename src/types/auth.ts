@@ -9,6 +9,8 @@ export interface AuthState {
   accessToken: string | null;
   user: User | null;
   isAuthenticated: boolean;
+  isHydrating: boolean;
   setAuth: (token: string, user: User) => void;
   clearAuth: () => void;
+  setHydrating: (isHydrating: boolean) => void;
 }

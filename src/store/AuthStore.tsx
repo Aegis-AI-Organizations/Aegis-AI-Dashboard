@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { AuthState, User } from "../types/auth";
+import type { AuthState, User } from "../types/auth";
 
 /**
  * Global Authentication Store (Zustand)
@@ -13,6 +13,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   user: null,
   isAuthenticated: false,
+  isHydrating: true,
 
   setAuth: (accessToken: string, user: User) =>
     set({
@@ -27,4 +28,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       user: null,
       isAuthenticated: false,
     }),
+
+  setHydrating: (isHydrating: boolean) => set({ isHydrating }),
 }));
