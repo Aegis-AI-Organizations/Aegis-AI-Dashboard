@@ -75,11 +75,11 @@ export const Sidebar: React.FC = () => {
         }`}
       >
         <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner">
-          {user?.email ? user.email.substring(0, 2).toUpperCase() : "AS"}
+          {user?.email ? user.email.substring(0, 2).toUpperCase() : "AD"}
         </div>
         <div className="flex flex-col whitespace-nowrap">
           <span className="text-sm font-medium text-white">
-            {user?.email.split("@")[0] || "Admin Sys"}
+            {user?.email?.split("@")[0] || "Administrateur"}
           </span>
           <span className="text-xs text-gray-500">
             {user?.role === "admin" ? "Premium Plan" : "Standard Plan"}
