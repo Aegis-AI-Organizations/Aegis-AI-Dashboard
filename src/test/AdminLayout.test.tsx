@@ -22,6 +22,6 @@ describe("AdminLayout", () => {
     const aside = screen.getByRole("complementary");
     fireEvent.mouseEnter(aside);
     expect(screen.getByText("Tableau de Bord")).toBeInTheDocument();
-    expect(screen.getByText("Admin Sys")).toBeInTheDocument();
+    expect(screen.getByText("Administrateur")).toBeInTheDocument();
   });
 });
