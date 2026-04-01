@@ -37,7 +37,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -54,5 +54,5 @@ api.interceptors.response.use(
       // Future: Trigger silent refresh or redirect to login.
     }
     return Promise.reject(error);
-  }
+  },
 );
