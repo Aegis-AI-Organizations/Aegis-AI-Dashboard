@@ -1,27 +1,29 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import axios from "axios";
 import { useAuthStore } from "../store/AuthStore";
-import { api } from "../api/Axios";
+import {
+  api,
+  requestInterceptor,
+  responseErrorInterceptor,
+} from "../api/Axios";
 
 describe("Authentication Infrastructure", () => {
-  const originalLocation = window.location;
-
   beforeEach(() => {
     useAuthStore.getState().clearAuth();
     vi.clearAllMocks();
 
-    // Mock window.location
-    // @ts-ignore
-    delete window.location;
-    window.location = { ...originalLocation, href: "" } as any;
+    // Properly mock window.location using Vitest global stubbing
+    vi.stubGlobal("location", {
+      ...window.location,
+      assign: vi.fn(),
+    });
 
     // Spy on axios.post for the refresh call
     vi.spyOn(axios, "post");
   });
 
   afterEach(() => {
-    // @ts-ignore
-    window.location = originalLocation;
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -62,16 +64,15 @@ describe("Authentication Infrastructure", () => {
     const mockToken = "secret-jwt";
     useAuthStore.getState().setAuth(mockToken, { id: "1" } as any);
 
-    // Mock the axios request to see the config
-    const interceptor = (api.interceptors.request as any).handlers[0].fulfilled;
-    const config = await interceptor({ headers: {} });
+    // Test the request interceptor directly via the exported function
+    const config = await requestInterceptor({ headers: {} } as any);
 
     expect(config.headers.Authorization).toBe(`Bearer ${mockToken}`);
   });
 
   it("should NOT inject Authorization header when no token exists", async () => {
-    const interceptor = (api.interceptors.request as any).handlers[0].fulfilled;
-    const config = await interceptor({ headers: {} });
+    // Test the request interceptor directly via the exported function
+    const config = await requestInterceptor({ headers: {} } as any);
 
     expect(config.headers.Authorization).toBeUndefined();
   });
@@ -91,17 +92,15 @@ describe("Authentication Infrastructure", () => {
       const failedResponse = {
         config: { url: "/test", headers: {} },
         response: { status: 401 },
-      };
-
-      const interceptor = (api.interceptors.response as any).handlers[0]
-        .rejected;
+      } as any;
 
       // We need to mock the 'api' instance call inside the interceptor
       const apiSpy = vi
         .spyOn(api, "request")
         .mockResolvedValue({ data: "success" } as any);
 
-      await interceptor(failedResponse);
+      // Call the exported interceptor handler directly
+      await responseErrorInterceptor(failedResponse);
 
       expect(axios.post).toHaveBeenCalledWith(
         expect.stringContaining("/auth/refresh"),
@@ -122,20 +121,13 @@ describe("Authentication Infrastructure", () => {
       const failedResponse = {
         config: { url: "/test", headers: {} },
         response: { status: 401 },
-      };
+      } as any;
 
-      const interceptor = (api.interceptors.response as any).handlers[0]
-        .rejected;
-
-      await expect(interceptor(failedResponse)).rejects.toThrow();
+      // Call the exported interceptor handler directly
+      await expect(responseErrorInterceptor(failedResponse)).rejects.toThrow();
 
       expect(useAuthStore.getState().isAuthenticated).toBe(false);
-      expect(window.location.href).toBe("/login");
+      expect(window.location.assign).toHaveBeenCalledWith("/login");
     });
-  });
-
-  afterEach(() => {
-    // @ts-ignore
-    window.location = originalLocation;
   });
 });
