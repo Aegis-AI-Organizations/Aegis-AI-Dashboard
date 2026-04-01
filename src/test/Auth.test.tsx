@@ -1,10 +1,28 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { useAuthStore } from "../store/authStore";
-import { api } from "../api/axios";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import axios from "axios";
+import { useAuthStore } from "../store/AuthStore";
+import { api } from "../api/Axios";
 
 describe("Authentication Infrastructure", () => {
+  const originalLocation = window.location;
+
   beforeEach(() => {
     useAuthStore.getState().clearAuth();
+    vi.clearAllMocks();
+
+    // Mock window.location
+    // @ts-ignore
+    delete window.location;
+    window.location = { ...originalLocation, href: "" } as any;
+
+    // Spy on axios.post for the refresh call
+    vi.spyOn(axios, "post");
+  });
+
+  afterEach(() => {
+    // @ts-ignore
+    window.location = originalLocation;
+    vi.restoreAllMocks();
   });
 
   it("should initialize with no authentication", () => {
@@ -56,5 +74,66 @@ describe("Authentication Infrastructure", () => {
     const config = await interceptor({ headers: {} });
 
     expect(config.headers.Authorization).toBeUndefined();
+  });
+
+  describe("Silent Refresh", () => {
+    it("should attempt to refresh token on 401 error", async () => {
+      const mockToken = "old-token";
+      const newToken = "new-token";
+      useAuthStore.getState().setAuth(mockToken, { id: "1" } as any);
+
+      // Mock refresh call success
+      vi.mocked(axios.post).mockResolvedValueOnce({
+        data: { access_token: newToken },
+      });
+
+      // Mock the original failed request
+      const failedResponse = {
+        config: { url: "/test", headers: {} },
+        response: { status: 401 },
+      };
+
+      const interceptor = (api.interceptors.response as any).handlers[0]
+        .rejected;
+
+      // We need to mock the 'api' instance call inside the interceptor
+      const apiSpy = vi.spyOn(api, "request").mockResolvedValue({ data: "success" } as any);
+
+      await interceptor(failedResponse);
+
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.stringContaining("/auth/refresh"),
+        {},
+        expect.any(Object)
+      );
+      expect(useAuthStore.getState().accessToken).toBe(newToken);
+      apiSpy.mockRestore();
+    });
+
+    it("should redirect to login when refresh fails", async () => {
+      const mockToken = "old-token";
+      useAuthStore.getState().setAuth(mockToken, { id: "1" } as any);
+
+      // Mock refresh call failure
+      vi.mocked(axios.post).mockRejectedValueOnce(new Error("Refresh failed"));
+
+      const failedResponse = {
+        config: { url: "/test", headers: {} },
+        response: { status: 401 },
+      };
+
+      const interceptor = (api.interceptors.response as any).handlers[0]
+        .rejected;
+
+      await expect(interceptor(failedResponse)).rejects.toThrow();
+
+      expect(useAuthStore.getState().isAuthenticated).toBe(false);
+      expect(window.location.href).toBe("/login");
+    });
+  });
+
+  afterEach(() => {
+    // @ts-ignore
+    window.location = originalLocation;
   });
 });
