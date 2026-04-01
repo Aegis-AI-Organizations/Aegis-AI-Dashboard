@@ -65,6 +65,10 @@ api.interceptors.request.use(requestInterceptor, (error: AxiosError) => {
  * during the refresh process to prevent race conditions.
  */
 export const responseErrorInterceptor = async (error: AxiosError) => {
+  if (!error.config) {
+    return Promise.reject(error);
+  }
+
   const originalRequest = error.config as InternalAxiosRequestConfig & {
     _retry?: boolean;
   };
