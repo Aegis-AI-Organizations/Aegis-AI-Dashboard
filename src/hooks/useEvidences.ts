@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { config } from "../config";
+import { api } from "../api/Axios";
 import type { Evidence } from "../types/vulnerability";
 
 export const useEvidences = (vulnerabilityId: string | null) => {
@@ -18,16 +18,11 @@ export const useEvidences = (vulnerabilityId: string | null) => {
       setError(null);
 
       try {
-        const response = await fetch(
-          `${config.apiGatewayUrl}/vulnerabilities/${vulnerabilityId}/evidences`,
+        const response = await api.get<Evidence[]>(
+          `/vulnerabilities/${vulnerabilityId}/evidences`,
         );
 
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-
-        const data: Evidence[] = await response.json();
-        setEvidences(data);
+        setEvidences(response.data);
       } catch (err: any) {
         console.error("Erreur lors de la récupération des évidences :", err);
         setError("Impossible de charger les détails techniques.");

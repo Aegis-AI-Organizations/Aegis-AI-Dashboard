@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { config } from "../config";
+import { api } from "../api/Axios";
+import { useAuthStore } from "../store/AuthStore";
 
 export interface ScanStatusUpdate {
   scan_id: string;
@@ -8,11 +9,19 @@ export interface ScanStatusUpdate {
 
 export const useScanStream = (scanId?: string) => {
   const [lastUpdate, setLastUpdate] = useState<ScanStatusUpdate | null>(null);
+  const token = useAuthStore((s) => s.accessToken);
 
   useEffect(() => {
-    const url = scanId
-      ? `${config.apiGatewayUrl}/scans/${scanId}/stream`
-      : `${config.apiGatewayUrl}/scans/stream`;
+    // Pass token as query param since native EventSource doesn't support headers
+    const sseUrl = new URL(
+      scanId
+        ? `${api.defaults.baseURL}/scans/${scanId}/stream`
+        : `${api.defaults.baseURL}/scans/stream`,
+    );
+
+    if (token) {
+      sseUrl.searchParams.append("token", token);
+    }
 
     // Guard against environments (e.g., jsdom in tests) where EventSource is not available.
     if (typeof EventSource === "undefined") {
@@ -22,8 +31,8 @@ export const useScanStream = (scanId?: string) => {
       return;
     }
 
-    console.log(`🔌 Connecting to status stream: ${url}`);
-    const eventSource = new EventSource(url);
+    console.log(`🔌 Connecting to status stream: ${sseUrl.toString()}`);
+    const eventSource = new EventSource(sseUrl.toString());
 
     eventSource.onmessage = (event) => {
       try {
@@ -42,7 +51,7 @@ export const useScanStream = (scanId?: string) => {
       console.log("🔌 Closing status stream");
       eventSource.close();
     };
-  }, [scanId]);
+  }, [scanId, token]);
 
   return lastUpdate;
 };

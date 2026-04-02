@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { AlertCircle, X } from "lucide-react";
 
 interface ConfirmationModalProps {
@@ -13,6 +14,7 @@ interface ConfirmationModalProps {
 
 /**
  * ConfirmationModal with full Accessibility (ARIA, Focus management, Keyboard support)
+ * Uses React Portal to avoid being trapped in sub-layouts.
  */
 export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
@@ -63,9 +65,9 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
@@ -128,4 +130,6 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };

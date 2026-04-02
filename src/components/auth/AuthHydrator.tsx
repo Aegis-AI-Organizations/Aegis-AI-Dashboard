@@ -26,15 +26,29 @@ export const AuthHydrator: React.FC<AuthHydratorProps> = ({ children }) => {
     const hydrate = async () => {
       try {
         // Attempt to refresh the token using the HTTP-only cookie.
-        // If the cookie is missing or expired, this will naturally fail.
         const { data } = await api.post("/auth/refresh");
 
-        if (data.access_token && data.user) {
-          setAuth(data.access_token, data.user);
+        if (data.access_token) {
+          // If we got a token but no user, try to get the user context
+          if (!data.user) {
+            try {
+              const userResponse = await api.get("/auth/me", {
+                headers: { Authorization: `Bearer ${data.access_token}` },
+              });
+              setAuth(data.access_token, userResponse.data);
+            } catch (userErr) {
+              // Fallback to basic auth state if /me fails but refresh worked
+              useAuthStore.setState({
+                accessToken: data.access_token,
+                isAuthenticated: true,
+              });
+            }
+          } else {
+            setAuth(data.access_token, data.user);
+          }
         }
       } catch (err) {
-        // We suppress the error log here because a 401/404 is EXPECTED
-        // if the user is simply not logged in yet.
+        // Suppress expected 401s during hydration
       } finally {
         setHydrating(false);
       }

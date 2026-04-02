@@ -1,21 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
-import { config } from "../config";
+import { api } from "../api/Axios";
+import { useAuthStore } from "../store/AuthStore";
 import type { ScanStatusResponse } from "../types/scan";
 
 export const useScans = () => {
   const [scans, setScans] = useState<ScanStatusResponse[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const token = useAuthStore((s) => s.accessToken);
 
   const fetchScans = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${config.apiGatewayUrl}/scans`);
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      const data: ScanStatusResponse[] = await response.json();
+      const response = await api.get<ScanStatusResponse[]>("/scans");
+      const data = response.data;
 
       data.sort((a, b) => {
         const timeA = a.started_at ? new Date(a.started_at).getTime() : 0;
@@ -42,9 +41,16 @@ export const useScans = () => {
       return;
     }
 
-    const url = `${config.apiGatewayUrl}/scans/stream`;
-    console.log(`🔌 Listening to global scan status stream: ${url}`);
-    const eventSource = new EventSource(url);
+    // Pass token as query param since native EventSource doesn't support headers
+    const sseUrl = new URL(`${api.defaults.baseURL}/scans/stream`);
+    if (token) {
+      sseUrl.searchParams.append("token", token);
+    }
+
+    console.log(
+      `🔌 Listening to global scan status stream: ${sseUrl.toString()}`,
+    );
+    const eventSource = new EventSource(sseUrl.toString());
 
     eventSource.onmessage = (event) => {
       try {
@@ -54,13 +60,10 @@ export const useScans = () => {
         setScans((prevScans) => {
           const index = prevScans.findIndex((s) => s.id === scan_id);
           if (index === -1) {
-            // New scan started? Maybe refetch to be sure of all fields or just wait for natural refetch
-            // For now, let's trigger a refetch if it's a new scan ID we don't know
             fetchScans();
             return prevScans;
           }
 
-          // If status is the same, ignore
           if (prevScans[index].status === status) {
             return prevScans;
           }
@@ -82,7 +85,7 @@ export const useScans = () => {
       console.log("🔌 Closing global scan status stream");
       eventSource.close();
     };
-  }, [fetchScans]);
+  }, [fetchScans, token]);
 
   return { scans, isLoading, error, refetch: fetchScans };
 };

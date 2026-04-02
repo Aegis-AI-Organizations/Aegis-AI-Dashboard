@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { config } from "../config";
+import { api } from "../api/Axios";
 import type { ScanStatusResponse } from "../types/scan";
 
 export const useScanPolling = (
@@ -23,14 +23,12 @@ export const useScanPolling = (
     ) {
       interval = setInterval(async () => {
         try {
-          const res = await fetch(
-            `${config.apiGatewayUrl}/scans/${activeScanId}`,
+          const res = await api.get<ScanStatusResponse>(
+            `/scans/${activeScanId}`,
           );
-          if (res.ok) {
-            const data: ScanStatusResponse = await res.json();
-            if (data.status) {
-              setScanStatus(data.status);
-            }
+          const data = res.data;
+          if (data.status) {
+            setScanStatus(data.status);
           }
         } catch (err) {
           console.error("Erreur lors de la récupération du statut:", err);

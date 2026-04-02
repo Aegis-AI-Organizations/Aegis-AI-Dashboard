@@ -7,13 +7,20 @@ import { useScanPolling } from "../hooks/useScanPolling";
 import { useScans } from "../hooks/useScans";
 import { useScanStream } from "../hooks/useScanStream";
 import { useVulnerabilities } from "../hooks/useVulnerabilities";
+import { api } from "../api/Axios";
 
-const fetchMock = vi.fn();
+vi.mock("../api/Axios", () => ({
+  api: {
+    get: vi.fn(),
+    post: vi.fn(),
+    defaults: {
+      baseURL: "http://api.aegis.pre-alpha.local:32564",
+    },
+  },
+}));
 
 describe("dashboard hooks", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", fetchMock);
-    fetchMock.mockReset();
     vi.clearAllMocks();
   });
 
@@ -22,9 +29,8 @@ describe("dashboard hooks", () => {
   });
 
   it("loads scans sorted by most recent first", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => [
+    (api.get as any).mockResolvedValue({
+      data: [
         {
           id: "old",
           temporal_workflow_id: "wf-old",
@@ -50,9 +56,8 @@ describe("dashboard hooks", () => {
   });
 
   it("updates scan status real-time via SSE", async () => {
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => [
+    (api.get as any).mockResolvedValue({
+      data: [
         {
           id: "scan-1",
           status: "RUNNING",
@@ -91,12 +96,12 @@ describe("dashboard hooks", () => {
         data: JSON.stringify({ scan_id: "unknown", status: "RUNNING" }),
       });
     });
-    // This should trigger a refetch - we can check fetchMock calls
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    // This should trigger a refetch - we can check api.get calls
+    expect(api.get).toHaveBeenCalledTimes(2);
   });
 
   it("exposes a friendly scans error message on fetch failure", async () => {
-    fetchMock.mockRejectedValue(new Error("boom"));
+    (api.get as any).mockRejectedValue(new Error("boom"));
 
     const { result } = renderHook(() => useScans());
 
@@ -116,13 +121,12 @@ describe("dashboard hooks", () => {
     });
     expect(result.current.error).toBe("L'image Docker est requise.");
 
-    fetchMock.mockResolvedValueOnce({
-      status: 201,
-      json: async () => ({
+    (api.post as any).mockResolvedValueOnce({
+      data: {
         scan_id: "scan-1",
         temporal_workflow_id: "wf-1",
         status: "PENDING",
-      }),
+      },
     });
 
     await act(async () => {
@@ -130,10 +134,11 @@ describe("dashboard hooks", () => {
       expect(response?.scan_id).toBe("scan-1");
     });
 
-    fetchMock.mockResolvedValueOnce({
-      status: 500,
-      statusText: "Server Error",
-      json: async () => ({ message: "API failure" }),
+    (api.post as any).mockRejectedValueOnce({
+      response: {
+        status: 500,
+        data: { message: "API failure" },
+      },
     });
 
     await act(async () => {
@@ -143,7 +148,15 @@ describe("dashboard hooks", () => {
     expect(result.current.error).toBe("API failure");
   });
 
-  it("downloads the report through a temporary anchor element", () => {
+  it("downloads the report through a temporary anchor element", async () => {
+    (api.get as any).mockResolvedValue({
+      data: new Blob(["pdf content"], { type: "application/pdf" }),
+    });
+
+    // Mock window.URL methods which are not available in JSDOM
+    window.URL.createObjectURL = vi.fn(() => "blob:test");
+    window.URL.revokeObjectURL = vi.fn();
+
     const appendChild = vi.spyOn(document.body, "appendChild");
     const removeChild = vi.spyOn(document.body, "removeChild");
     const click = vi.fn();
@@ -160,28 +173,30 @@ describe("dashboard hooks", () => {
 
     const { result } = renderHook(() => useDownloadReport());
 
-    act(() => {
-      result.current.downloadReport("scan-42");
+    await act(async () => {
+      await result.current.downloadReport("scan-42");
     });
 
-    expect(click).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
     expect(appendChild).toHaveBeenCalled();
     expect(removeChild).toHaveBeenCalled();
     expect(result.current.error).toBeNull();
+    expect(window.URL.revokeObjectURL).toHaveBeenCalledWith("blob:test");
 
     createElement.mockRestore();
+    (window.URL.createObjectURL as any).mockRestore?.();
+    (window.URL.revokeObjectURL as any).mockRestore?.();
   });
 
   it("polls an active scan until a terminal status is returned", async () => {
     vi.useFakeTimers();
-    fetchMock.mockResolvedValue({
-      ok: true,
-      json: async () => ({
+    (api.get as any).mockResolvedValue({
+      data: {
         id: "scan-42",
         temporal_workflow_id: "wf-42",
         target_image: "nginx:latest",
         status: "COMPLETED",
-      }),
+      },
     });
 
     const { result } = renderHook(() => useScanPolling("scan-42", "RUNNING"));
@@ -195,10 +210,9 @@ describe("dashboard hooks", () => {
   });
 
   it("loads vulnerabilities and evidences, then resets when ids are missing", async () => {
-    fetchMock
+    (api.get as any)
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => [
+        data: [
           {
             id: "vuln-1",
             vuln_type: "SQLi",
@@ -210,8 +224,7 @@ describe("dashboard hooks", () => {
         ],
       })
       .mockResolvedValueOnce({
-        ok: true,
-        json: async () => [
+        data: [
           {
             id: "evidence-1",
             vulnerability_id: "vuln-1",

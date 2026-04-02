@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - 'docs/**'
-      - 'README.md'
+      - "docs/**"
+      - "README.md"
 
 jobs:
   trigger-docs:

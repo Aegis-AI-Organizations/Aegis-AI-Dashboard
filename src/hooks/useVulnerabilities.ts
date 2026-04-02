@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { config } from "../config";
+import { api } from "../api/Axios";
 import type { Vulnerability } from "../types/vulnerability";
 
 export const useVulnerabilities = (scanId: string | undefined) => {
@@ -18,16 +18,11 @@ export const useVulnerabilities = (scanId: string | undefined) => {
       setError(null);
 
       try {
-        const response = await fetch(
-          `${config.apiGatewayUrl}/scans/${scanId}/vulnerabilities`,
+        const response = await api.get<Vulnerability[]>(
+          `/scans/${scanId}/vulnerabilities`,
         );
 
-        if (!response.ok) {
-          throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-
-        const data: Vulnerability[] = await response.json();
-        setVulnerabilities(data);
+        setVulnerabilities(response.data);
       } catch (err: any) {
         console.error(
           "Erreur lors de la récupération des vulnérabilités :",

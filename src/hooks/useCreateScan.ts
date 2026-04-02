@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { config } from "../config";
+import { api } from "../api/Axios";
 import type { CreateScanRequest, CreateScanResponse } from "../types/scan";
 
 export const useCreateScan = () => {
@@ -22,27 +22,14 @@ export const useCreateScan = () => {
     };
 
     try {
-      const response = await fetch(`${config.apiGatewayUrl}/scans`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (response.status === 201 || response.status === 200) {
-        const data: CreateScanResponse = await response.json();
-        return data;
-      } else {
-        const errorData = await response.json().catch(() => null);
-        setError(
-          errorData?.message ||
-            `Erreur: ${response.status} ${response.statusText}`,
-        );
-        return null;
-      }
-    } catch (err) {
-      setError("Erreur réseau. Impossible de contacter le serveur.");
+      const response = await api.post<CreateScanResponse>("/scans", payload);
+      return response.data;
+    } catch (err: any) {
+      const errorData = err.response?.data;
+      setError(
+        errorData?.message ||
+          "Erreur réseau. Impossible de contacter le serveur.",
+      );
       return null;
     } finally {
       setIsLoading(false);
