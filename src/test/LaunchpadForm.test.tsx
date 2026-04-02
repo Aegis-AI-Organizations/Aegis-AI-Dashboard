@@ -4,17 +4,29 @@ import { LaunchpadForm } from "../components/LaunchpadForm";
 
 const createScan = vi.fn();
 
+let mockIsLoading = false;
+let mockError: string | null = null;
+
 vi.mock("../hooks/useCreateScan", () => ({
   useCreateScan: () => ({
     createScan,
-    isLoading: false,
-    error: null,
+    isLoading: mockIsLoading,
+    error: mockError,
   }),
 }));
 
 vi.mock("../components/ScanProgressTracker", () => ({
-  ScanProgressTracker: ({ scanId }: { scanId: string }) => (
-    <div>tracker-{scanId}</div>
+  ScanProgressTracker: ({
+    scanId,
+    onReset,
+  }: {
+    scanId: string;
+    onReset: () => void;
+  }) => (
+    <div>
+      tracker-{scanId}
+      <button onClick={onReset}>reset-btn</button>
+    </div>
   ),
 }));
 
@@ -39,5 +51,42 @@ describe("LaunchpadForm", () => {
     );
     expect(createScan).toHaveBeenCalledWith("nginx:latest");
     expect(onScanUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles reset", async () => {
+    createScan.mockResolvedValueOnce({
+      scan_id: "scan-123",
+      status: "PENDING",
+    });
+    render(<LaunchpadForm />);
+
+    const input = screen.getByPlaceholderText("ex: nginx:latest");
+    fireEvent.change(input, { target: { value: "nginx:latest" } });
+    fireEvent.click(screen.getByRole("button", { name: /Lancer le Scan/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText("tracker-scan-123")).toBeInTheDocument(),
+    );
+
+    const resetButton = screen.getByText("reset-btn");
+    fireEvent.click(resetButton);
+
+    expect(screen.getByPlaceholderText("ex: nginx:latest")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("ex: nginx:latest")).toHaveValue("");
+  });
+
+  it("displays error message", () => {
+    mockError = "Validation failed";
+    render(<LaunchpadForm />);
+    expect(screen.getByText("Validation failed")).toBeInTheDocument();
+    mockError = null; // reset for other tests
+  });
+
+  it("shows loading state when submitting", () => {
+    mockIsLoading = true;
+    render(<LaunchpadForm />);
+    expect(screen.getByText("Lancement...")).toBeInTheDocument();
+    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+    mockIsLoading = false; // reset
   });
 });

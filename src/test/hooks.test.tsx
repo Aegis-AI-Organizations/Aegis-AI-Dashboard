@@ -5,6 +5,7 @@ import { useDownloadReport } from "../hooks/useDownloadReport";
 import { useEvidences } from "../hooks/useEvidences";
 import { useScanPolling } from "../hooks/useScanPolling";
 import { useScans } from "../hooks/useScans";
+import { useScanStream } from "../hooks/useScanStream";
 import { useVulnerabilities } from "../hooks/useVulnerabilities";
 
 const fetchMock = vi.fn();
@@ -238,5 +239,101 @@ describe("dashboard hooks", () => {
 
     expect(emptyVulnerabilities.current.vulnerabilities).toEqual([]);
     expect(emptyEvidences.current.evidences).toEqual([]);
+  });
+
+  describe("useScanStream", () => {
+    it("connects to a specific scan stream when scanId is provided", () => {
+      const { result } = renderHook(() => useScanStream("scan-123"));
+      expect(window.EventSource).toHaveBeenCalledWith(
+        expect.stringContaining("/scans/scan-123/stream"),
+      );
+      expect(result.current).toBeNull();
+    });
+
+    it("connects to the global stream when scanId is omitted", () => {
+      renderHook(() => useScanStream());
+      expect(window.EventSource).toHaveBeenCalledWith(
+        expect.stringContaining("/scans/stream"),
+      );
+    });
+
+    it("updates state when receiving a message", async () => {
+      const { result } = renderHook(() => useScanStream("scan-123"));
+      const eventSourceInstance = (window.EventSource as any).mock.results[0]
+        .value;
+
+      await act(async () => {
+        eventSourceInstance.onmessage({
+          data: JSON.stringify({ scan_id: "scan-123", status: "RUNNING" }),
+        });
+      });
+
+      expect(result.current).toEqual({
+        scan_id: "scan-123",
+        status: "RUNNING",
+      });
+    });
+
+    it("handles malformed JSON messages gracefully", async () => {
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      renderHook(() => useScanStream("scan-123"));
+      const eventSourceInstance = (window.EventSource as any).mock.results[0]
+        .value;
+
+      await act(async () => {
+        eventSourceInstance.onmessage({ data: "invalid-json" });
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Failed to parse SSE data:",
+        expect.any(Error),
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it("logs errors from the event source", async () => {
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+      renderHook(() => useScanStream("scan-123"));
+      const eventSourceInstance = (window.EventSource as any).mock.results[0]
+        .value;
+
+      await act(async () => {
+        eventSourceInstance.onerror(new Error("network error"));
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "SSE Error (letting browser auto-reconnect):",
+        expect.any(Error),
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it("closes the connection on unmount", () => {
+      const { unmount } = renderHook(() => useScanStream("scan-123"));
+      const eventSourceInstance = (window.EventSource as any).mock.results[0]
+        .value;
+
+      unmount();
+      expect(eventSourceInstance.close).toHaveBeenCalled();
+    });
+
+    it("handles missing EventSource in the environment", () => {
+      const originalEventSource = window.EventSource;
+      delete (window as any).EventSource;
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      renderHook(() => useScanStream("scan-123"));
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "EventSource is not available in this environment; scan status stream disabled.",
+      );
+
+      (window as any).EventSource = originalEventSource;
+      consoleSpy.mockRestore();
+    });
   });
 });

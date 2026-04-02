@@ -77,4 +77,36 @@ describe("Vulnerabilities page", () => {
     fireEvent.click(screen.getByRole("button", { name: "Précédent" }));
     expect(screen.getByText("accordion-scan-1-false")).toBeInTheDocument();
   });
+
+  it("renders error state", () => {
+    useScans.mockReturnValue({
+      scans: [],
+      isLoading: false,
+      error: "Ouch! Something went wrong",
+    });
+
+    render(
+      <MemoryRouter>
+        <Vulnerabilities />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("Ouch! Something went wrong")).toBeInTheDocument();
+  });
+
+  it("shows the first scan as open by default on the first page", () => {
+    useScans.mockReturnValue({
+      isLoading: false,
+      error: null,
+      scans: [{ id: "scan-1", started_at: "2025-01-01" }],
+    });
+
+    render(
+      <MemoryRouter>
+        <Vulnerabilities />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("accordion-scan-1-true")).toBeInTheDocument();
+  });
 });
