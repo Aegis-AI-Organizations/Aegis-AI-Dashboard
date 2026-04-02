@@ -42,7 +42,13 @@ export const useScans = () => {
     }
 
     // Pass token as query param since native EventSource doesn't support headers
-    const sseUrl = new URL(`${api.defaults.baseURL}/scans/stream`);
+    // Construct the URL safely, handling both absolute and relative baseURLs
+    const baseUrl = api.defaults.baseURL || "";
+    const fullBase = baseUrl.startsWith("http")
+      ? baseUrl
+      : window.location.origin + baseUrl;
+
+    const sseUrl = new URL(`${fullBase}/scans/stream`);
     if (token) {
       sseUrl.searchParams.append("token", token);
     }

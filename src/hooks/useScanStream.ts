@@ -13,10 +13,16 @@ export const useScanStream = (scanId?: string) => {
 
   useEffect(() => {
     // Pass token as query param since native EventSource doesn't support headers
+    // Construct the URL safely, handling both absolute and relative baseURLs
+    const baseUrl = api.defaults.baseURL || "";
+    const fullBase = baseUrl.startsWith("http")
+      ? baseUrl
+      : window.location.origin + baseUrl;
+
     const sseUrl = new URL(
       scanId
-        ? `${api.defaults.baseURL}/scans/${scanId}/stream`
-        : `${api.defaults.baseURL}/scans/stream`,
+        ? `${fullBase}/scans/${scanId}/stream`
+        : `${fullBase}/scans/stream`,
     );
 
     if (token) {
