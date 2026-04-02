@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, History, Users, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  History,
+  Users,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
+import { ConfirmationModal } from "../ui/ConfirmationModal";
+import { useNavigate } from "react-router-dom";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Tableau de Bord", path: "/" },
@@ -12,7 +20,15 @@ const navItems = [
 
 export const Sidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate("/login");
+  };
 
   return (
     <aside
@@ -85,7 +101,36 @@ export const Sidebar: React.FC = () => {
             {user?.role === "admin" ? "Premium Plan" : "Standard Plan"}
           </span>
         </div>
+        <button
+          onClick={() => setIsLogoutModalOpen(true)}
+          className="ml-auto p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+          title="Déconnexion"
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
       </div>
+
+      {!isExpanded && (
+        <div className="mt-auto p-4 flex justify-center border-t border-gray-800/60">
+          <button
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+            title="Déconnexion"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      <ConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Déconnexion"
+        message="Êtes-vous sûr de vouloir vous déconnecter ? Votre session sera terminée."
+        confirmText="Se déconnecter"
+        cancelText="Annuler"
+      />
     </aside>
   );
 };
