@@ -15,9 +15,8 @@ describe("AdminLayout", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Admin Panel")).toBeInTheDocument();
+    expect(screen.getAllByText("Dashboard")[0]).toBeInTheDocument();
     expect(screen.getByText("nested-dashboard")).toBeInTheDocument();
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
 
     const aside = screen.getByRole("complementary");
     fireEvent.mouseEnter(aside);

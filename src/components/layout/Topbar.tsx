@@ -19,9 +19,9 @@ export const Topbar: React.FC = () => {
     <header className="h-16 flex items-center justify-between px-6 bg-[#0B0D13] border-b border-gray-800/60">
       <div className="flex items-center">
         <h1 className="text-white font-medium text-base hidden sm:flex items-center gap-3">
-          Admin Panel
+          Dashboard
           <span className="px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold tracking-wide">
-            PROJET AEGIS
+            AEGIS
           </span>
         </h1>
         {/* Mobile Logo display when sidebar is hidden */}
