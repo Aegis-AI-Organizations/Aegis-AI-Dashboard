@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useAuthStore } from "../../store/AuthStore";
 import { api } from "../../api/Axios";
+import { LoadingPage } from "../ui/LoadingPage";
 
 interface AuthHydratorProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface AuthHydratorProps {
  * Uses the shared 'api' instance for consistent baseURL and withCredentials.
  */
 export const AuthHydrator: React.FC<AuthHydratorProps> = ({ children }) => {
+  const isHydrating = useAuthStore((s) => s.isHydrating);
   const setAuth = useAuthStore((s) => s.setAuth);
   const setHydrating = useAuthStore((s) => s.setHydrating);
   const hasAttempted = useRef(false);
@@ -40,6 +42,10 @@ export const AuthHydrator: React.FC<AuthHydratorProps> = ({ children }) => {
 
     hydrate();
   }, [setAuth, setHydrating]);
+
+  if (isHydrating) {
+    return <LoadingPage />;
+  }
 
   return <>{children}</>;
 };

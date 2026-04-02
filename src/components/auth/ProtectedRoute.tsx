@@ -11,15 +11,7 @@ import { useAuthStore } from "../../store/AuthStore";
  */
 export const ProtectedRoute = () => {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const isHydrating = useAuthStore((s) => s.isHydrating);
   const location = useLocation();
-
-  // Show nothing while the session is still being restored.
-  // This prevents the 'flicker' where a user is briefly shown the login page
-  // before being authenticated.
-  if (isHydrating) {
-    return null; // Or a full-page loading spinner
-  }
 
   if (!isAuthenticated) {
     // Redirect to login, but keep the current location in state

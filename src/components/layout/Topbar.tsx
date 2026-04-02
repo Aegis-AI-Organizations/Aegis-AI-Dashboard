@@ -1,7 +1,20 @@
-import React from "react";
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { Search, Bell, LogOut } from "lucide-react";
+import { useAuthStore } from "../../store/AuthStore";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { ConfirmationModal } from "../ui/ConfirmationModal";
 
 export const Topbar: React.FC = () => {
+  const user = useAuthStore((s) => s.user);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const navigate = useNavigate();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const handleLogout = () => {
+    clearAuth();
+    navigate("/login");
+  };
+
   return (
     <header className="h-16 flex items-center justify-between px-6 bg-[#0B0D13] border-b border-gray-800/60">
       <div className="flex items-center">
@@ -45,12 +58,28 @@ export const Topbar: React.FC = () => {
 
           <div className="flex items-center gap-2 cursor-pointer group">
             <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner">
-              AS
+              {user?.email ? user.email.substring(0, 2).toUpperCase() : "AD"}
             </div>
-            <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-300 transition-colors" />
+            <button
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+              title="Déconnexion"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogout}
+        title="Déconnexion"
+        message="Êtes-vous sûr de vouloir vous déconnecter ? Votre session sera terminée."
+        confirmText="Se déconnecter"
+        cancelText="Annuler"
+      />
     </header>
   );
 };
