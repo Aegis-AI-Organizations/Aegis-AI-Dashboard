@@ -16,9 +16,7 @@ describe("static pages", () => {
   it("renders settings page", () => {
     render(<Settings />);
     expect(
-      screen.getByText(
-        "Gérez vos informations personnelles et la sécurité de votre compte.",
-      ),
+      screen.getByText("Gérez votre compte et vos préférences de sécurité."),
     ).toBeInTheDocument();
   });
 });
