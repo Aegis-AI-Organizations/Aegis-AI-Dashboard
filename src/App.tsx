@@ -7,6 +7,7 @@ import { Settings } from "./pages/Settings";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleRoute } from "./components/auth/RoleRoute";
+import { AuthHydrator } from "./components/auth/AuthHydrator";
 
 function App() {
   return (

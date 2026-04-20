@@ -5,6 +5,7 @@ import {
   History,
   Users,
   Settings,
+  Shield,
   LogOut,
 } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
