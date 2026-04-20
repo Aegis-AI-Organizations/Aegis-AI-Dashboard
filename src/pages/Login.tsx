@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Shield, Mail, Lock, Loader2, AlertCircle, Info } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
-import { getPasswordError } from "../utils/validation";
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -24,14 +23,6 @@ export const Login: React.FC = () => {
     setError(null);
 
     try {
-      // Basic format validation for consistent security feedback
-      const complexityError = getPasswordError(password);
-      if (complexityError) {
-        setError(complexityError);
-        setIsLoading(false);
-        return;
-      }
-
       const { data } = await api.post("/auth/login", { email, password });
       setAuth(data.access_token, data.user);
       navigate(from, { replace: true });
