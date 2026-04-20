@@ -9,7 +9,6 @@ import {
   Loader2,
   Bell,
   CreditCard,
-  ChevronRight,
   ArrowRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
