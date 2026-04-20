@@ -57,7 +57,7 @@ describe("Login Page", () => {
       target: { value: "test@aegis.ai" },
     });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
-      target: { value: "password" },
+      target: { value: "AegisSecur1ty!" },
     });
 
     await act(async () => {
@@ -70,7 +70,7 @@ describe("Login Page", () => {
 
     expect(api.post).toHaveBeenCalledWith("/auth/login", {
       email: "test@aegis.ai",
-      password: "password",
+      password: "AegisSecur1ty!",
     });
   });
 
@@ -89,7 +89,7 @@ describe("Login Page", () => {
       target: { value: "test@aegis.ai" },
     });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
-      target: { value: "password" },
+      target: { value: "AegisSecur1ty!" },
     });
 
     await act(async () => {
@@ -116,7 +116,7 @@ describe("Login Page", () => {
       target: { value: "test@aegis.ai" },
     });
     fireEvent.change(screen.getByLabelText("Mot de passe"), {
-      target: { value: "password" },
+      target: { value: "AegisSecur1ty!" },
     });
 
     await act(async () => {
