@@ -1,5 +1,5 @@
 import React from "react";
-import { Users as UsersIcon, ShieldCheck, Mail, Search } from "lucide-react";
+import { Users as UsersIcon } from "lucide-react";
 
 export const Users: React.FC = () => {
   return (
