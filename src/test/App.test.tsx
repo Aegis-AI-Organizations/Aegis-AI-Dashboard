@@ -50,7 +50,7 @@ describe("App routes", () => {
     // Set authenticated state
     useAuthStore
       .getState()
-      .setAuth("fake-token", { email: "test@aegis.ai" } as any);
+      .setAuth("fake-token", { email: "test@aegis.ai", role: "admin" } as any);
 
     render(
       <MemoryRouter initialEntries={[entry]}>

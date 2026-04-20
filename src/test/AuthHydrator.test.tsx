@@ -18,7 +18,7 @@ describe("AuthHydrator", () => {
   });
 
   it("should attempt to hydrate session on mount", async () => {
-    const mockUser = { id: "1", email: "test@aegis.ai" };
+    const mockUser = { id: "1", email: "test@aegis.ai", role: "admin" };
     vi.mocked(api.post).mockResolvedValueOnce({
       data: { access_token: "fake-jwt", user: mockUser },
     });
