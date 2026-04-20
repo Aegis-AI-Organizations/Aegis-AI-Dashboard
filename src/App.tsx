@@ -6,7 +6,7 @@ import { Users } from "./pages/Users";
 import { Settings } from "./pages/Settings";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { AuthHydrator } from "./components/auth/AuthHydrator";
+import { RoleRoute } from "./components/auth/RoleRoute";
 
 function App() {
   return (
@@ -20,9 +20,23 @@ function App() {
           <Route element={<AdminLayout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/vulnerabilities" element={<Vulnerabilities />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/settings" element={<Settings />} />
             <Route path="/monitoring/:scanId" element={<Dashboard />} />
+
+            {/* Admin & SuperAdmin Only */}
+            <Route
+              element={<RoleRoute allowedRoles={["admin", "superadmin"]} />}
+            >
+              <Route path="/users" element={<Users />} />
+            </Route>
+
+            {/* All except Viewer for Settings */}
+            <Route
+              element={
+                <RoleRoute allowedRoles={["admin", "superadmin", "operator"]} />
+              }
+            >
+              <Route path="/settings" element={<Settings />} />
+            </Route>
 
             {/* Fallback for AUTHENTICATED users inside the layout */}
             <Route path="*" element={<Navigate to="/" replace />} />

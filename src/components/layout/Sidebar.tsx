@@ -12,10 +12,36 @@ import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { useNavigate } from "react-router-dom";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Tableau de Bord", path: "/" },
-  { icon: History, label: "Historique des Scans", path: "/vulnerabilities" },
-  { icon: Users, label: "Utilisateurs", path: "/users" },
-  { icon: Settings, label: "Paramètres", path: "/settings" },
+  {
+    icon: LayoutDashboard,
+    label: "Tableau de Bord",
+    path: "/",
+    roles: ["admin", "superadmin", "operator", "viewer"],
+  },
+  {
+    icon: History,
+    label: "Historique des Scans",
+    path: "/vulnerabilities",
+    roles: ["admin", "superadmin", "operator", "viewer"],
+  },
+  {
+    icon: Users,
+    label: "Équipe",
+    path: "/users",
+    roles: ["admin", "superadmin"],
+  },
+  {
+    icon: Shield,
+    label: "Facturation",
+    path: "/billing",
+    roles: ["admin", "superadmin"],
+  },
+  {
+    icon: Settings,
+    label: "Paramètres",
+    path: "/settings",
+    roles: ["admin", "superadmin", "operator"],
+  },
 ];
 
 export const Sidebar: React.FC = () => {
@@ -57,31 +83,33 @@ export const Sidebar: React.FC = () => {
       </div>
 
       <nav className="flex-1 py-6 flex flex-col gap-1.5 px-3">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `group flex items-center gap-0 rounded-lg p-3 text-sm font-medium transition-all duration-200 overflow-hidden ${
-                isActive
-                  ? "bg-cyan-950/30 text-cyan-400 shadow-[inset_2px_0_0_0_rgba(34,211,238,1)]"
-                  : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/40"
-              }`
-            }
-            title={!isExpanded ? item.label : undefined}
-          >
-            <div className="w-8 flex justify-center items-center shrink-0">
-              <item.icon className="w-5 h-5 transition-transform duration-200" />
-            </div>
-            <span
-              className={`whitespace-nowrap transition-all duration-300 ease-in-out pl-2 ${
-                isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 hidden"
-              }`}
+        {navItems
+          .filter((item) => !user || item.roles.includes(user.role))
+          .map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `group flex items-center gap-0 rounded-lg p-3 text-sm font-medium transition-all duration-200 overflow-hidden ${
+                  isActive
+                    ? "bg-cyan-950/30 text-cyan-400 shadow-[inset_2px_0_0_0_rgba(34,211,238,1)]"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/40"
+                }`
+              }
+              title={!isExpanded ? item.label : undefined}
             >
-              {item.label}
-            </span>
-          </NavLink>
-        ))}
+              <div className="w-8 flex justify-center items-center shrink-0">
+                <item.icon className="w-5 h-5 transition-transform duration-200" />
+              </div>
+              <span
+                className={`whitespace-nowrap transition-all duration-300 ease-in-out pl-2 ${
+                  isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 hidden"
+                }`}
+              >
+                {item.label}
+              </span>
+            </NavLink>
+          ))}
       </nav>
 
       {/* User Profile Mini preview */}
