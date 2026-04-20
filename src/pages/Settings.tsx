@@ -125,22 +125,29 @@ export const Settings: React.FC = () => {
         <form onSubmit={handleUpdateProfile} className="p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 ml-1">
+              <label
+                htmlFor="fullname"
+                className="text-sm font-medium text-gray-400 ml-1 cursor-pointer"
+              >
                 Nom Complet
               </label>
               <div className="relative">
                 <input
+                  id="fullname"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                  className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-gray-600"
                   placeholder="Jean Dupont"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 ml-1">
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-400 ml-1 cursor-pointer"
+              >
                 Email
               </label>
               <div className="relative">
@@ -148,10 +155,11 @@ export const Settings: React.FC = () => {
                   <Mail className="w-4 h-4 text-gray-600" />
                 </div>
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                  className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-gray-600"
                   placeholder="jean@example.com"
                 />
               </div>
@@ -199,7 +207,10 @@ export const Settings: React.FC = () => {
 
         <form onSubmit={handleUpdatePassword} className="p-8 space-y-6">
           <div className="space-y-2 max-w-md">
-            <label className="text-sm font-medium text-gray-400 ml-1">
+            <label
+              htmlFor="old_password"
+              className="text-sm font-medium text-gray-400 ml-1 cursor-pointer"
+            >
               Ancien Mot de Passe
             </label>
             <div className="relative">
@@ -207,11 +218,12 @@ export const Settings: React.FC = () => {
                 <Lock className="w-4 h-4 text-gray-600" />
               </div>
               <input
+                id="old_password"
                 type="password"
                 required
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-gray-600"
                 placeholder="••••••••"
               />
             </div>
@@ -219,7 +231,10 @@ export const Settings: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 ml-1">
+              <label
+                htmlFor="new_password"
+                className="text-sm font-medium text-gray-400 ml-1 cursor-pointer"
+              >
                 Nouveau Mot de Passe
               </label>
               <div className="relative">
@@ -227,18 +242,22 @@ export const Settings: React.FC = () => {
                   <Lock className="w-4 h-4 text-gray-600" />
                 </div>
                 <input
+                  id="new_password"
                   type="password"
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                  className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-gray-600"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 ml-1">
+              <label
+                htmlFor="confirm_password"
+                className="text-sm font-medium text-gray-400 ml-1 cursor-pointer"
+              >
                 Confirmer le Mot de Passe
               </label>
               <div className="relative">
@@ -246,11 +265,12 @@ export const Settings: React.FC = () => {
                   <Lock className="w-4 h-4 text-gray-600" />
                 </div>
                 <input
+                  id="confirm_password"
                   type="password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
+                  className="w-full bg-[#13151A] border border-gray-800 text-white rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-gray-600"
                   placeholder="••••••••"
                 />
               </div>

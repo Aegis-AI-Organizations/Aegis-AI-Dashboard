@@ -39,7 +39,9 @@ describe("ProtectedRoute", () => {
   });
 
   it("should allow access when authenticated", () => {
-    useAuthStore.getState().setAuth("token", { email: "test@aegis.ai" } as any);
+    useAuthStore
+      .getState()
+      .setAuth("token", { email: "test@aegis.ai", role: "admin" } as any);
     render(
       <MemoryRouter initialEntries={["/dashboard"]}>
         <Routes>

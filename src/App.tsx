@@ -4,6 +4,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Vulnerabilities } from "./pages/Vulnerabilities";
 import { Users } from "./pages/Users";
 import { Settings } from "./pages/Settings";
+import { Billing } from "./pages/Billing";
 import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleRoute } from "./components/auth/RoleRoute";
@@ -28,6 +29,7 @@ function App() {
               element={<RoleRoute allowedRoles={["admin", "superadmin"]} />}
             >
               <Route path="/users" element={<Users />} />
+              <Route path="/billing" element={<Billing />} />
             </Route>
 
             {/* All except Viewer for Settings */}

@@ -7,7 +7,9 @@ describe("static pages", () => {
   it("renders users page", () => {
     render(<Users />);
     expect(
-      screen.getByText("Manage platform access, roles, and user permissions."),
+      screen.getByText(
+        "Gérez les accès à la plateforme, les rôles et les permissions des utilisateurs.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -15,7 +17,7 @@ describe("static pages", () => {
     render(<Settings />);
     expect(
       screen.getByText(
-        "Configure application preferences and global configurations.",
+        "Gérez vos informations personnelles et la sécurité de votre compte.",
       ),
     ).toBeInTheDocument();
   });
