@@ -151,7 +151,7 @@ describe("Login Page", () => {
 
     // The first button in the DOM is the password toggle, the second is submit
     const toggleButton = screen.getAllByRole("button")[0];
-    
+
     // Toggle to text
     fireEvent.click(toggleButton);
     expect(passwordInput).toHaveAttribute("type", "text");
