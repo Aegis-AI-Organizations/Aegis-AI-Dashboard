@@ -139,4 +139,25 @@ describe("Login Page", () => {
     const link = screen.getByText("SUPPORT: HELP@AEGIS-AI.COM");
     expect(link).toHaveAttribute("href", "mailto:help@aegis-ai.com");
   });
+  it("should toggle password visibility", () => {
+    render(
+      <MemoryRouter>
+        <Login />
+      </MemoryRouter>,
+    );
+
+    const passwordInput = screen.getByLabelText("Mot de passe");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    // The first button in the DOM is the password toggle, the second is submit
+    const toggleButton = screen.getAllByRole("button")[0];
+    
+    // Toggle to text
+    fireEvent.click(toggleButton);
+    expect(passwordInput).toHaveAttribute("type", "text");
+
+    // Toggle back to password
+    fireEvent.click(toggleButton);
+    expect(passwordInput).toHaveAttribute("type", "password");
+  });
 });
