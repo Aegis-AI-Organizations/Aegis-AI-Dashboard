@@ -158,6 +158,7 @@ describe("Settings Page", () => {
   });
 
   it("handles name update failure", async () => {
+    vi.mocked(api.post).mockResolvedValueOnce({ data: {} });
     vi.mocked(api.put).mockRejectedValueOnce({
       response: { data: { error: "Update failed" } },
     });
@@ -168,7 +169,13 @@ describe("Settings Page", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText("Enregistrer les modifications"));
+    const nameInput = screen.getByLabelText(/Nouveau nom/i);
+    fireEvent.change(nameInput, { target: { value: "New Name" } });
+
+    const pwdInputs = screen.getAllByLabelText(/Mot de passe actuel/i);
+    fireEvent.change(pwdInputs[0], { target: { value: "mypassword" } });
+
+    fireEvent.click(screen.getByText("Enregistrer le nom"));
 
     await waitFor(() => {
       expect(screen.getByText("Update failed")).toBeInTheDocument();
