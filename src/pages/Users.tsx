@@ -18,12 +18,14 @@ import {
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { RoleBadge } from "../components/ui/RoleBadge";
+import { ProfileCircle } from "../components/ui/ProfileCircle";
 
 interface Company {
   id: string;
   name: string;
   deployment_token: string;
   owner_email: string;
+  avatar_url?: string;
   members?: User[];
   isExpanded?: boolean;
 }
@@ -34,6 +36,7 @@ interface User {
   email: string;
   role: string;
   company_id: string;
+  avatar_url?: string;
 }
 
 export const Users: React.FC = () => {
@@ -183,15 +186,24 @@ export const Users: React.FC = () => {
                 className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer group"
               >
                 <div className="flex items-center gap-6">
-                  <div
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                      company.name === "Aegis AI"
-                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-400/30"
-                        : "bg-gray-900 text-gray-400 border border-gray-800"
-                    }`}
-                  >
-                    <Building2 className="w-6 h-6" />
-                  </div>
+                  {company.avatar_url ? (
+                    <ProfileCircle
+                      size="md"
+                      avatarUrl={company.avatar_url}
+                      name={company.name}
+                      className="rounded-2xl"
+                    />
+                  ) : (
+                    <div
+                      className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                        company.name === "Aegis AI"
+                          ? "bg-cyan-500/10 text-cyan-400 border border-cyan-400/30"
+                          : "bg-gray-900 text-gray-400 border border-gray-800"
+                      }`}
+                    >
+                      <Building2 className="w-6 h-6" />
+                    </div>
+                  )}
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <h3 className="text-xl font-black text-white tracking-tight group-hover:text-cyan-400 transition-colors">
@@ -260,9 +272,14 @@ export const Users: React.FC = () => {
                       company.members.map((member) => (
                         <div
                           key={member.id}
-                          className="bg-gray-900/40 border border-gray-800/40 p-5 rounded-2xl flex items-start justify-between group/user hover:border-cyan-500/30 transition-all"
+                          className="bg-gray-900/40 border border-gray-800/40 p-5 rounded-2xl flex items-center gap-4 group/user hover:border-cyan-500/30 transition-all"
                         >
-                          <div className="space-y-1.5 flex-1 min-w-0">
+                          <ProfileCircle
+                            size="sm"
+                            avatarUrl={member.avatar_url}
+                            name={member.name}
+                          />
+                          <div className="space-y-1 my-auto flex-1 min-w-0">
                             <div className="flex items-center gap-3">
                               <span className="text-sm font-black text-white truncate">
                                 {member.name}

@@ -46,6 +46,7 @@ function App() {
                     "commercial",
                     "owner",
                     "operateur",
+                    "viewer",
                   ]}
                 />
               }
