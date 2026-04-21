@@ -123,7 +123,7 @@ describe("Settings Page", () => {
 
     await waitFor(() => {
       expect(api.put).toHaveBeenCalledWith("/users/me/email", {
-        new_email: "new@aegis.ai",
+        email: "new@aegis.ai",
       });
       expect(mockSetAuth).toHaveBeenCalledWith(
         "fake-jwt",

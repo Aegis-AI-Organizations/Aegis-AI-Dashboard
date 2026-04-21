@@ -21,6 +21,7 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { getPasswordError } from "../utils/validation";
+import { getInitials } from "../utils/user";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
@@ -87,7 +88,7 @@ export const Settings: React.FC = () => {
     setEmailMessage(null);
 
     try {
-      await api.put("/users/me/email", { new_email: email });
+      await api.put("/users/me/email", { email });
       if (user && accessToken) {
         setAuth(accessToken, { ...user, email });
       }
@@ -144,16 +145,6 @@ export const Settings: React.FC = () => {
     } finally {
       setPasswordLoading(false);
     }
-  };
-
-  const getInitials = (n: string) => {
-    if (!n) return "??";
-    return n
-      .split(" ")
-      .map((p) => p[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
   };
 
   const tabs: { id: SettingsTab; label: string; icon: any }[] = [
@@ -243,7 +234,7 @@ export const Settings: React.FC = () => {
                     <div className="flex flex-col md:flex-row items-end gap-6 -mt-12 mb-10">
                       <div className="relative group/avatar">
                         <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-cyan-500 to-indigo-600 border-4 border-[#0A0C12] shadow-2xl flex items-center justify-center text-3xl font-black text-white relative z-10">
-                          {getInitials(name)}
+                          {getInitials(name, user?.email)}
                         </div>
                         <div className="absolute inset-0 rounded-3xl bg-cyan-400 blur-xl opacity-0 group-hover/avatar:opacity-20 transition-opacity duration-500" />
                       </div>

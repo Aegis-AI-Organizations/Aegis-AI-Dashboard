@@ -3,6 +3,7 @@ import { useAuthStore } from "../../store/AuthStore";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
+import { getInitials } from "../../utils/user";
 
 export const Topbar: React.FC = () => {
   const user = useAuthStore((s) => s.user);
@@ -58,7 +59,7 @@ export const Topbar: React.FC = () => {
 
           <div className="flex items-center gap-2 cursor-pointer group">
             <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner">
-              {user?.email ? user.email.substring(0, 2).toUpperCase() : "AD"}
+              {getInitials(user?.name, user?.email)}
             </div>
             <button
               onClick={() => setIsLogoutModalOpen(true)}
