@@ -86,7 +86,9 @@ export const Users: React.FC = () => {
 
   const fetchMembers = async (companyId: string) => {
     try {
-      const { data } = await api.get(`/admin/users?company_id=${companyId}`);
+      const { data } = await api.get(
+        `/admin/users?company_id=${companyId}&search=${searchQuery}`,
+      );
       setCompanies((prev) =>
         prev.map((c) => (c.id === companyId ? { ...c, members: data } : c)),
       );

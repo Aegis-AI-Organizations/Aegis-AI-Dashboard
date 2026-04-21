@@ -136,9 +136,16 @@ export const Dashboard: React.FC = () => {
                       <p className="text-sm font-medium text-white truncate group-hover:text-cyan-100 transition-colors mb-0.5">
                         {scan.target_image}
                       </p>
-                      <p className="font-mono text-[10px] text-gray-500 truncate">
-                        ID: {scan.id.split("-")[0]}...
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-mono text-[10px] text-gray-500 truncate">
+                          ID: {scan.id.split("-")[0]}...
+                        </p>
+                        {scan.company_name && (
+                          <span className="text-[10px] text-cyan-500/80 font-black uppercase tracking-tighter">
+                            • {scan.company_name}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-cyan-400 self-center transition-colors transform group-hover:translate-x-1" />
                   </button>

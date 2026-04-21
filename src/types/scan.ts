@@ -15,4 +15,5 @@ export interface ScanStatusResponse {
   status: string;
   started_at?: string;
   completed_at?: string;
+  company_name: string;
 }
