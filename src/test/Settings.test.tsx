@@ -55,9 +55,7 @@ describe("Settings Page", () => {
 
     expect(screen.getByText("Paramètres")).toBeInTheDocument();
     expect(screen.getByText("Enzo Gaggiotti")).toBeInTheDocument();
-    expect(screen.getByLabelText(/Nom & Prénom/i)).toHaveValue(
-      "Enzo Gaggiotti",
-    );
+    expect(screen.getByLabelText(/Nouveau nom/i)).toHaveValue("");
   });
 
   it("switches tabs correctly", () => {
@@ -81,6 +79,7 @@ describe("Settings Page", () => {
   });
 
   it("handles name update successfully", async () => {
+    vi.mocked(api.post).mockResolvedValueOnce({ data: {} }); // Mock /auth/login for password
     vi.mocked(api.put).mockResolvedValueOnce({ data: {} });
 
     render(
@@ -89,12 +88,19 @@ describe("Settings Page", () => {
       </MemoryRouter>,
     );
 
-    const nameInput = screen.getByLabelText(/Nom & Prénom/i);
+    const nameInput = screen.getByLabelText(/Nouveau nom/i);
     fireEvent.change(nameInput, { target: { value: "New Name" } });
 
-    fireEvent.click(screen.getByText("Enregistrer les modifications"));
+    const pwdInputs = screen.getAllByLabelText(/Mot de passe actuel/i);
+    fireEvent.change(pwdInputs[0], { target: { value: "mypassword" } }); // First one is under Name form
+
+    fireEvent.click(screen.getByText("Enregistrer le nom"));
 
     await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith("/auth/login", {
+        email: "enzo.gaggiotti@outlook.com",
+        password: "mypassword",
+      });
       expect(api.put).toHaveBeenCalledWith("/users/me/profile", {
         name: "New Name",
         avatar_url: "",
@@ -108,6 +114,7 @@ describe("Settings Page", () => {
   });
 
   it("handles email update successfully", async () => {
+    vi.mocked(api.post).mockResolvedValueOnce({ data: {} }); // Mock /auth/login for password
     vi.mocked(api.put).mockResolvedValueOnce({ data: {} });
     vi.mocked(api.get).mockResolvedValueOnce({
       data: {
@@ -124,12 +131,19 @@ describe("Settings Page", () => {
       </MemoryRouter>,
     );
 
-    const emailInput = screen.getByLabelText(/Adresse Email/i);
+    const emailInput = screen.getByLabelText(/Nouvelle adresse email/i);
+    const pwdInputs = screen.getAllByLabelText(/Mot de passe actuel/i);
+
     fireEvent.change(emailInput, { target: { value: "new@aegis.ai" } });
+    fireEvent.change(pwdInputs[1], { target: { value: "mypassword" } }); // Second one is under Email form
 
     fireEvent.click(screen.getByText("Mettre à jour l'identifiant"));
 
     await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith("/auth/login", {
+        email: "enzo.gaggiotti@outlook.com",
+        password: "mypassword",
+      });
       expect(api.put).toHaveBeenCalledWith("/users/me/email", {
         email: "new@aegis.ai",
       });

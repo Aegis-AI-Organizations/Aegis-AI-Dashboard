@@ -25,17 +25,19 @@ export const Settings: React.FC = () => {
   const { user, setAuth, accessToken } = useAuthStore();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profil");
 
-  // Local Form States
-  const [name, setName] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || "");
+  // Local Form States - Starting empty as requested
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync local state when user object in store changes (Reactivity fix)
+  // Separate password states for confirming changes
+  const [currentPasswordName, setCurrentPasswordName] = useState("");
+  const [currentPasswordEmail, setCurrentPasswordEmail] = useState("");
+
+  // Sync avatar only (name and email are only for new inputs now)
   useEffect(() => {
     if (user) {
-      setName(user.name || "");
-      setEmail(user.email || "");
       setAvatarUrl(user.avatar_url || "");
     }
   }, [user]);
@@ -67,7 +69,6 @@ export const Settings: React.FC = () => {
     if (!file) return;
 
     if (file.size > 20 * 1024 * 1024) {
-      // 20MB limit (infrastructure will support 50MB)
       setNameMessage({ type: "error", text: "Image trop lourde (max 20MB)" });
       return;
     }
@@ -76,61 +77,113 @@ export const Settings: React.FC = () => {
     reader.onloadend = async () => {
       const base64String = reader.result as string;
       setAvatarUrl(base64String);
-      // Auto-save on photo change for better UX
-      await saveProfile(name, base64String);
+      try {
+        await api.put("/users/me/profile", {
+          name: user?.name || "",
+          avatar_url: base64String,
+        });
+        if (accessToken && user) {
+          setAuth(accessToken, { ...user, avatar_url: base64String });
+        }
+      } catch (err) {
+        console.error("Avatar save failed", err);
+      }
     };
     reader.readAsDataURL(file);
   };
 
-  const saveProfile = async (newName: string, newAvatar: string) => {
+  const handleUpdateName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setNameMessage({ type: "error", text: "Le nom ne peut pas être vide" });
+      return;
+    }
+
     setNameLoading(true);
     setNameMessage(null);
     try {
+      // 1. Verify password independently
+      await api.post("/auth/login", {
+        email: user?.email,
+        password: currentPasswordName,
+      });
+
+      // 2. Perform strictly the profile update
       await api.put("/users/me/profile", {
-        name: newName,
-        avatar_url: newAvatar,
+        name,
+        avatar_url: avatarUrl,
       });
-      if (accessToken && user) {
-        setAuth(accessToken, { ...user, name: newName, avatar_url: newAvatar });
+
+      // 3. Refresh user data
+      try {
+        const { data: freshUser } = await api.get("/auth/me");
+        if (accessToken) setAuth(accessToken, freshUser);
+      } catch {
+        if (accessToken && user)
+          setAuth(accessToken, { ...user, name, avatar_url: avatarUrl });
       }
+
       setNameMessage({ type: "success", text: "Profil mis à jour" });
+      setName("");
+      setCurrentPasswordName("");
     } catch (err: any) {
-      setNameMessage({
-        type: "error",
-        text: err.response?.data?.error || "Erreur de sauvegarde",
-      });
+      if (err.response?.status === 401) {
+        setNameMessage({ type: "error", text: "Mot de passe incorrect" });
+      } else {
+        setNameMessage({
+          type: "error",
+          text: err.response?.data?.error || "Erreur de sauvegarde",
+        });
+      }
     } finally {
       setNameLoading(false);
     }
   };
 
-  const handleUpdateName = (e: React.FormEvent) => {
-    e.preventDefault();
-    saveProfile(name, avatarUrl);
-  };
-
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email.trim() || email === user?.email) {
+      setEmailMessage({
+        type: "error",
+        text: "Veuillez entrer une adresse différente",
+      });
+      return;
+    }
+
     setEmailLoading(true);
+    setEmailMessage(null);
     try {
+      // 1. Verify password independently
+      await api.post("/auth/login", {
+        email: user?.email,
+        password: currentPasswordEmail,
+      });
+
+      // 2. Perform the update
       await api.put("/users/me/email", { email });
-      // Refresh user data from the server to ensure the displayed email is accurate
-      // and the store stays consistent with the database
+
+      // 3. Refresh user data
       try {
         const { data: freshUser } = await api.get("/auth/me");
         if (accessToken) setAuth(accessToken, freshUser);
       } catch {
-        // Fallback: update store locally if /auth/me fails
         if (accessToken && user) setAuth(accessToken, { ...user, email });
       }
+
       setEmailMessage({ type: "success", text: "Email mis à jour" });
+      setEmail("");
+      setCurrentPasswordEmail("");
     } catch (err: any) {
-      setEmailMessage({
-        type: "error",
-        text:
-          err.response?.data?.error ||
-          "Erreur lors de la mise à jour de l'email",
-      });
+      if (err.response?.status === 401) {
+        setEmailMessage({ type: "error", text: "Mot de passe incorrect" });
+      } else {
+        setEmailMessage({
+          type: "error",
+          text:
+            err.response?.data?.error ||
+            "Erreur lors de la mise à jour de l'email",
+        });
+      }
     } finally {
       setEmailLoading(false);
     }
@@ -278,25 +331,52 @@ export const Settings: React.FC = () => {
                 </div>
 
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12">
-                  {/* Unified Input Boxes */}
-                  <form onSubmit={handleUpdateName} className="space-y-8">
-                    <div className="space-y-3">
-                      <label
-                        htmlFor="name"
-                        className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
-                      >
-                        <User className="w-3.5 h-3.5 text-cyan-500" /> Nom &
-                        Prénom
-                      </label>
-                      <input
-                        id="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Votre nom complet"
-                        className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
-                      />
+                  {/* Name Update Form */}
+                  <form
+                    onSubmit={handleUpdateName}
+                    className="space-y-6 bg-gray-900/20 p-8 rounded-[2rem] border border-gray-800/40 shadow-inner"
+                  >
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <label
+                          htmlFor="name"
+                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                        >
+                          <User className="w-3.5 h-3.5 text-cyan-500" /> Nouveau
+                          nom
+                        </label>
+                        <input
+                          id="name"
+                          type="text"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="Votre nouveau nom complet"
+                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <label
+                          htmlFor="currentPasswordName"
+                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                        >
+                          <Lock className="w-3.5 h-3.5 text-cyan-500" /> Mot de
+                          passe actuel
+                        </label>
+                        <input
+                          id="currentPasswordName"
+                          type="password"
+                          required
+                          value={currentPasswordName}
+                          onChange={(e) =>
+                            setCurrentPasswordName(e.target.value)
+                          }
+                          placeholder="Obligatoire pour valider"
+                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
+                        />
+                      </div>
                     </div>
+
                     {nameMessage && (
                       <div
                         className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold ${
@@ -306,9 +386,9 @@ export const Settings: React.FC = () => {
                         }`}
                       >
                         {nameMessage.type === "success" ? (
-                          <CheckCircle2 className="w-4 h-4" />
+                          <CheckCircle2 className="w-4 h-4 shrink-0" />
                         ) : (
-                          <AlertCircle className="w-4 h-4" />
+                          <AlertCircle className="w-4 h-4 shrink-0" />
                         )}{" "}
                         {nameMessage.text}
                       </div>
@@ -316,37 +396,65 @@ export const Settings: React.FC = () => {
                     <button
                       type="submit"
                       disabled={nameLoading}
-                      className="relative w-full py-5 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-500 hover:text-white font-black rounded-2xl transition-all group overflow-hidden uppercase tracking-widest text-xs"
+                      className="relative w-full py-5 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-500 hover:text-white font-black rounded-2xl transition-all group overflow-hidden uppercase tracking-widest text-xs mt-2"
                     >
                       <div className="relative z-10 flex items-center justify-center gap-3">
                         {nameLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                         ) : (
-                          <Zap className="w-4 h-4" />
+                          <Zap className="w-4 h-4 shrink-0" />
                         )}
-                        Enregistrer les modifications
+                        Enregistrer le nom
                       </div>
                     </button>
                   </form>
 
-                  <form onSubmit={handleUpdateEmail} className="space-y-8">
-                    <div className="space-y-3">
-                      <label
-                        htmlFor="email"
-                        className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
-                      >
-                        <Mail className="w-3.5 h-3.5 text-cyan-500" /> Adresse
-                        Email
-                      </label>
-                      <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="exemple@aegis.com"
-                        className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
-                      />
+                  {/* Email Update Form */}
+                  <form
+                    onSubmit={handleUpdateEmail}
+                    className="space-y-6 bg-gray-900/20 p-8 rounded-[2rem] border border-gray-800/40 shadow-inner"
+                  >
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <label
+                          htmlFor="email"
+                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                        >
+                          <Mail className="w-3.5 h-3.5 text-cyan-500" />{" "}
+                          Nouvelle adresse email
+                        </label>
+                        <input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="nouvelle.adresse@aegis.com"
+                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <label
+                          htmlFor="currentPasswordEmail"
+                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                        >
+                          <Lock className="w-3.5 h-3.5 text-cyan-500" /> Mot de
+                          passe actuel
+                        </label>
+                        <input
+                          id="currentPasswordEmail"
+                          type="password"
+                          required
+                          value={currentPasswordEmail}
+                          onChange={(e) =>
+                            setCurrentPasswordEmail(e.target.value)
+                          }
+                          placeholder="Obligatoire pour valider"
+                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
+                        />
+                      </div>
                     </div>
+
                     {emailMessage && (
                       <div
                         className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold ${
@@ -356,9 +464,9 @@ export const Settings: React.FC = () => {
                         }`}
                       >
                         {emailMessage.type === "success" ? (
-                          <CheckCircle2 className="w-4 h-4" />
+                          <CheckCircle2 className="w-4 h-4 shrink-0" />
                         ) : (
-                          <AlertCircle className="w-4 h-4" />
+                          <AlertCircle className="w-4 h-4 shrink-0" />
                         )}{" "}
                         {emailMessage.text}
                       </div>
@@ -366,13 +474,13 @@ export const Settings: React.FC = () => {
                     <button
                       type="submit"
                       disabled={emailLoading}
-                      className="w-full py-5 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-500 hover:text-white font-black rounded-2xl transition-all uppercase tracking-widest text-xs"
+                      className="w-full py-5 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-500 hover:text-white font-black rounded-2xl transition-all uppercase tracking-widest text-xs mt-2"
                     >
                       <div className="flex items-center justify-center gap-3">
                         {emailLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                         ) : (
-                          <Zap className="w-4 h-4" />
+                          <Zap className="w-4 h-4 shrink-0" />
                         )}
                         Mettre à jour l'identifiant
                       </div>

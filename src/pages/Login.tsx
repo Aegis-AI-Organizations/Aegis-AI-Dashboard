@@ -34,7 +34,18 @@ export const Login: React.FC = () => {
 
     try {
       const { data } = await api.post("/auth/login", { email, password });
-      setAuth(data.access_token, data.user);
+
+      // Le backend API Gateway ne renvoie pas toujours 'user' lors du login,
+      // uniquement l'access_token. Nous devons explicitement charger l'identité ici.
+      let userProfile = data.user;
+      if (!userProfile) {
+        const meResponse = await api.get("/auth/me", {
+          headers: { Authorization: `Bearer ${data.access_token}` },
+        });
+        userProfile = meResponse.data;
+      }
+
+      setAuth(data.access_token, userProfile);
       navigate(from, { replace: true });
     } catch (err: any) {
       if (err.response?.status === 401) {
