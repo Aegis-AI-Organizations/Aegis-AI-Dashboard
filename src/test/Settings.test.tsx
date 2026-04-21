@@ -9,6 +9,7 @@ vi.mock("../api/Axios", () => ({
   api: {
     put: vi.fn(),
     get: vi.fn(),
+    post: vi.fn(),
   },
 }));
 
@@ -98,7 +99,7 @@ describe("Settings Page", () => {
 
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith("/auth/login", {
-        email: "enzo.gaggiotti@outlook.com",
+        email: "enzo@aegis.ai",
         password: "mypassword",
       });
       expect(api.put).toHaveBeenCalledWith("/users/me/profile", {
@@ -141,7 +142,7 @@ describe("Settings Page", () => {
 
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith("/auth/login", {
-        email: "enzo.gaggiotti@outlook.com",
+        email: "enzo@aegis.ai",
         password: "mypassword",
       });
       expect(api.put).toHaveBeenCalledWith("/users/me/email", {
