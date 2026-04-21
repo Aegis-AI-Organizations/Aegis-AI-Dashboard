@@ -84,6 +84,15 @@ describe("Administration Page", () => {
     fireEvent.change(screen.getByPlaceholderText("ex: Global CyberSec Inc."), {
       target: { value: "Aegis AI" },
     });
+    fireEvent.change(screen.getByPlaceholderText("Jean Dupont"), {
+      target: { value: "John Doe" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("client@entreprise.com"), {
+      target: { value: "john@aegis.ai" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("••••••••••••"), {
+      target: { value: "password123" },
+    });
 
     await act(async () => {
       fireEvent.click(

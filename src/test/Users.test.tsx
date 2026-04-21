@@ -5,7 +5,7 @@ import {
   waitFor,
   act,
 } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Users } from "../pages/Users";
 import { api } from "../api/Axios";
 import { useAuthStore } from "../store/AuthStore";
@@ -46,7 +46,6 @@ const mockUsers = [
 describe("Users Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
     useAuthStore
       .getState()
       .setAuth("token", { id: "su-1", role: "superadmin" } as any);
@@ -61,10 +60,6 @@ describe("Users Page", () => {
     });
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it("renders the company list after debounce", async () => {
     render(
       <MemoryRouter>
@@ -72,15 +67,13 @@ describe("Users Page", () => {
       </MemoryRouter>,
     );
 
-    // Initial load debounce
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("Aegis AI")).toBeInTheDocument();
-      expect(screen.getByText("Client Corp")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Aegis AI")).toBeInTheDocument();
+        expect(screen.getByText("Client Corp")).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
   });
 
   it("filters companies via search", async () => {
@@ -90,26 +83,22 @@ describe("Users Page", () => {
       </MemoryRouter>,
     );
 
-    // Initial load
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    // Wait for initial load
+    await waitFor(() => screen.getByText("Aegis AI"), { timeout: 1000 });
 
     const searchInput = screen.getByPlaceholderText(
       /Rechercher une entreprise/i,
     );
     fireEvent.change(searchInput, { target: { value: "Aegis" } });
 
-    // Search debounce
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
-
-    await waitFor(() => {
-      expect(api.get).toHaveBeenCalledWith(
-        expect.stringContaining("search=Aegis"),
-      );
-    });
+    await waitFor(
+      () => {
+        expect(api.get).toHaveBeenCalledWith(
+          expect.stringContaining("search=Aegis"),
+        );
+      },
+      { timeout: 1000 },
+    );
   });
 
   it("expands a company to show members", async () => {
@@ -119,24 +108,22 @@ describe("Users Page", () => {
       </MemoryRouter>,
     );
 
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    await waitFor(() => screen.getByText("Client Corp"), { timeout: 1000 });
 
-    await waitFor(() => screen.getByText("Client Corp"));
-
-    // Click on the company card to toggle
     fireEvent.click(screen.getByText("Client Corp"));
 
-    await waitFor(() => {
-      expect(api.get).toHaveBeenCalledWith(
-        expect.stringContaining("/admin/users?company_id=comp-2"),
-      );
-      expect(screen.getByText("John Doe")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(api.get).toHaveBeenCalledWith(
+          expect.stringContaining("/admin/users?company_id=comp-2"),
+        );
+        expect(screen.getByText("John Doe")).toBeInTheDocument();
+      },
+      { timeout: 1000 },
+    );
   });
 
-  it("shows creation buttons for superadmin", async () => {
+  it("shows creation buttons for superadmin", () => {
     render(
       <MemoryRouter>
         <Users />
@@ -146,7 +133,7 @@ describe("Users Page", () => {
     expect(screen.getByText("Nouvelle Entreprise")).toBeInTheDocument();
   });
 
-  it("hides company creation for owner", async () => {
+  it("hides company creation for owner", () => {
     useAuthStore
       .getState()
       .setAuth("token", { id: "o-1", role: "owner" } as any);
@@ -207,24 +194,17 @@ describe("Users Page", () => {
       </MemoryRouter>,
     );
 
-    // Initial load for companies
-    await act(async () => {
-      vi.advanceTimersByTime(300);
-    });
+    // Wait for companies to load first
+    await waitFor(() => screen.getByText("Client Corp"), { timeout: 1000 });
 
     fireEvent.click(screen.getByText("Créer un Utilisateur"));
 
     expect(screen.getByText("Nouveau Collaborateur")).toBeInTheDocument();
 
-    // Fill the select (need to wait for companies to be loaded for options to appear)
-    await waitFor(
-      () => expect(screen.getByText("Client Corp")).toBeInTheDocument(),
-      { timeout: 2000 },
-    );
-
-    const companySelect = screen.getByLabelText(
-      "Choix de l'Entreprise",
-    ) as HTMLSelectElement;
+    // Get the first combobox (company selection)
+    const companySelect = screen.getAllByRole(
+      "combobox",
+    )[0] as HTMLSelectElement;
     fireEvent.change(companySelect, { target: { value: "comp-2" } });
 
     fireEvent.change(screen.getByPlaceholderText("Prénom Nom"), {
