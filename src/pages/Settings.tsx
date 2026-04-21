@@ -11,8 +11,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Camera,
-  History,
-  Database,
 } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
