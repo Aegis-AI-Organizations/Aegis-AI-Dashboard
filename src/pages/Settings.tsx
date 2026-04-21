@@ -11,7 +11,6 @@ import {
   CreditCard,
   ArrowRight,
   Settings as SettingsIcon,
-  ChevronRight,
   Smartphone,
   Globe,
   Database,
@@ -188,33 +187,42 @@ export const Settings: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+      <div className="grid grid-cols-[auto_1fr] lg:grid-cols-12 gap-5 lg:gap-10">
         {/* Navigation - Ultra Modern Glass Sidebar */}
         <aside className="lg:col-span-3">
-          <nav className="flex lg:flex-col gap-2 p-1 bg-gray-950/20 border border-gray-800/40 rounded-3xl backdrop-blur-md sticky top-24">
+          <nav className="flex flex-col gap-3 p-1 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-3xl sticky top-24 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)]">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group relative ${
+                className={`flex items-center gap-4 px-4 py-3 md:px-5 md:py-4 rounded-2xl transition-all duration-500 group relative ${
                   activeTab === tab.id
-                    ? "bg-cyan-500/10 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.05)]"
+                    ? "bg-cyan-500/10 text-cyan-400"
                     : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
                 }`}
               >
                 <tab.icon
-                  className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${
-                    activeTab === tab.id ? "text-cyan-400" : "text-gray-500"
+                  className={`w-6 h-6 md:w-5 md:h-5 transition-all duration-500 ${
+                    activeTab === tab.id
+                      ? "text-cyan-400 scale-110"
+                      : "text-gray-500 group-hover:text-gray-300"
                   }`}
                 />
-                <span className="font-semibold tracking-wide">{tab.label}</span>
+                <span
+                  className={`text-sm font-black tracking-widest transition-all duration-500 hidden md:block uppercase ${
+                    activeTab === tab.id
+                      ? "opacity-100"
+                      : "opacity-60 group-hover:opacity-100"
+                  }`}
+                >
+                  {tab.label}
+                </span>
+
                 {activeTab === tab.id && (
-                  <div className="ml-auto">
-                    <ChevronRight className="w-4 h-4 text-cyan-500" />
-                  </div>
-                )}
-                {activeTab === tab.id && (
-                  <div className="absolute left-0 w-1 h-6 bg-cyan-500 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.5)]" />
+                  <>
+                    <div className="absolute left-0 w-1 h-2/3 bg-gradient-to-b from-cyan-400 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
+                    <div className="absolute inset-0 bg-cyan-400/5 rounded-2xl blur-xl" />
+                  </>
                 )}
               </button>
             ))}
@@ -222,7 +230,7 @@ export const Settings: React.FC = () => {
         </aside>
 
         {/* Content Area */}
-        <main className="lg:col-span-9 min-h-[600px]">
+        <main className="min-w-0 lg:col-span-9 min-h-[600px]">
           <div className="transition-all duration-500 ease-out">
             {activeTab === "profil" && (
               <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-500">
