@@ -92,10 +92,14 @@ describe("Settings Page", () => {
     const nameInput = screen.getByLabelText(/Nouveau nom/i);
     fireEvent.change(nameInput, { target: { value: "New Name" } });
 
-    const pwdInputs = screen.getAllByLabelText(/Mot de passe actuel/i);
-    fireEvent.change(pwdInputs[0], { target: { value: "mypassword" } }); // First one is under Name form
-
     fireEvent.click(screen.getByText("Enregistrer le nom"));
+
+    // Modal appears, type password
+    const pwdInput = await screen.findByPlaceholderText(
+      "Votre mot de passe actuel",
+    );
+    fireEvent.change(pwdInput, { target: { value: "mypassword" } });
+    fireEvent.click(screen.getByRole("button", { name: "Valider" }));
 
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith("/auth/login", {
@@ -133,12 +137,16 @@ describe("Settings Page", () => {
     );
 
     const emailInput = screen.getByLabelText(/Nouvelle adresse email/i);
-    const pwdInputs = screen.getAllByLabelText(/Mot de passe actuel/i);
-
     fireEvent.change(emailInput, { target: { value: "new@aegis.ai" } });
-    fireEvent.change(pwdInputs[1], { target: { value: "mypassword" } }); // Second one is under Email form
 
     fireEvent.click(screen.getByText("Mettre à jour l'identifiant"));
+
+    // Modal appears, type password
+    const pwdInput = await screen.findByPlaceholderText(
+      "Votre mot de passe actuel",
+    );
+    fireEvent.change(pwdInput, { target: { value: "mypassword" } });
+    fireEvent.click(screen.getByRole("button", { name: "Valider" }));
 
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith("/auth/login", {
@@ -172,10 +180,14 @@ describe("Settings Page", () => {
     const nameInput = screen.getByLabelText(/Nouveau nom/i);
     fireEvent.change(nameInput, { target: { value: "New Name" } });
 
-    const pwdInputs = screen.getAllByLabelText(/Mot de passe actuel/i);
-    fireEvent.change(pwdInputs[0], { target: { value: "mypassword" } });
-
     fireEvent.click(screen.getByText("Enregistrer le nom"));
+
+    // Modal appears
+    const pwdInput = await screen.findByPlaceholderText(
+      "Votre mot de passe actuel",
+    );
+    fireEvent.change(pwdInput, { target: { value: "mypassword" } });
+    fireEvent.click(screen.getByRole("button", { name: "Valider" }));
 
     await waitFor(() => {
       expect(screen.getByText("Update failed")).toBeInTheDocument();

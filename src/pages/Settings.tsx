@@ -18,6 +18,7 @@ import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { getPasswordError } from "../utils/validation";
 import { ProfileCircle } from "../components/ui/ProfileCircle";
+import { PasswordPromptModal } from "../components/ui/PasswordPromptModal";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
@@ -64,6 +65,11 @@ export const Settings: React.FC = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"name" | "email" | null>(
+    null,
+  );
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -92,29 +98,43 @@ export const Settings: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleUpdateName = async (e: React.FormEvent) => {
+  const handleUpdateNameInit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setNameMessage({ type: "error", text: "Le nom ne peut pas être vide" });
       return;
     }
+    setPendingAction("name");
+    setIsPasswordModalOpen(true);
+  };
 
+  const handleUpdateEmailInit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || email === user?.email) {
+      setEmailMessage({
+        type: "error",
+        text: "Veuillez entrer une adresse différente",
+      });
+      return;
+    }
+    setPendingAction("email");
+    setIsPasswordModalOpen(true);
+  };
+
+  const loadUpdateName = async (password: string) => {
     setNameLoading(true);
     setNameMessage(null);
     try {
-      // 1. Verify password independently
       await api.post("/auth/login", {
         email: user?.email,
-        password: currentPasswordName,
+        password: password,
       });
 
-      // 2. Perform strictly the profile update
       await api.put("/users/me/profile", {
         name,
         avatar_url: avatarUrl,
       });
 
-      // 3. Refresh user data
       try {
         const { data: freshUser } = await api.get("/auth/me");
         if (accessToken) setAuth(accessToken, freshUser);
@@ -125,7 +145,6 @@ export const Settings: React.FC = () => {
 
       setNameMessage({ type: "success", text: "Profil mis à jour" });
       setName("");
-      setCurrentPasswordName("");
     } catch (err: any) {
       if (err.response?.status === 401) {
         setNameMessage({ type: "error", text: "Mot de passe incorrect" });
@@ -140,29 +159,17 @@ export const Settings: React.FC = () => {
     }
   };
 
-  const handleUpdateEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || email === user?.email) {
-      setEmailMessage({
-        type: "error",
-        text: "Veuillez entrer une adresse différente",
-      });
-      return;
-    }
-
+  const loadUpdateEmail = async (password: string) => {
     setEmailLoading(true);
     setEmailMessage(null);
     try {
-      // 1. Verify password independently
       await api.post("/auth/login", {
         email: user?.email,
-        password: currentPasswordEmail,
+        password: password,
       });
 
-      // 2. Perform the update
       await api.put("/users/me/email", { email });
 
-      // 3. Refresh user data
       try {
         const { data: freshUser } = await api.get("/auth/me");
         if (accessToken) setAuth(accessToken, freshUser);
@@ -172,7 +179,6 @@ export const Settings: React.FC = () => {
 
       setEmailMessage({ type: "success", text: "Email mis à jour" });
       setEmail("");
-      setCurrentPasswordEmail("");
     } catch (err: any) {
       if (err.response?.status === 401) {
         setEmailMessage({ type: "error", text: "Mot de passe incorrect" });
@@ -186,6 +192,15 @@ export const Settings: React.FC = () => {
       }
     } finally {
       setEmailLoading(false);
+    }
+  };
+
+  const handleModalSubmit = (password: string) => {
+    setIsPasswordModalOpen(false);
+    if (pendingAction === "name") {
+      loadUpdateName(password);
+    } else if (pendingAction === "email") {
+      loadUpdateEmail(password);
     }
   };
 
@@ -333,7 +348,7 @@ export const Settings: React.FC = () => {
                 <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12">
                   {/* Name Update Form */}
                   <form
-                    onSubmit={handleUpdateName}
+                    onSubmit={handleUpdateNameInit}
                     className="space-y-6 bg-gray-900/20 p-8 rounded-[2rem] border border-gray-800/40 shadow-inner"
                   >
                     <div className="space-y-6">
@@ -351,27 +366,6 @@ export const Settings: React.FC = () => {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder="Votre nouveau nom complet"
-                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
-                        />
-                      </div>
-
-                      <div className="space-y-3">
-                        <label
-                          htmlFor="currentPasswordName"
-                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
-                        >
-                          <Lock className="w-3.5 h-3.5 text-cyan-500" /> Mot de
-                          passe actuel
-                        </label>
-                        <input
-                          id="currentPasswordName"
-                          type="password"
-                          required
-                          value={currentPasswordName}
-                          onChange={(e) =>
-                            setCurrentPasswordName(e.target.value)
-                          }
-                          placeholder="Obligatoire pour valider"
                           className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
                         />
                       </div>
@@ -411,7 +405,7 @@ export const Settings: React.FC = () => {
 
                   {/* Email Update Form */}
                   <form
-                    onSubmit={handleUpdateEmail}
+                    onSubmit={handleUpdateEmailInit}
                     className="space-y-6 bg-gray-900/20 p-8 rounded-[2rem] border border-gray-800/40 shadow-inner"
                   >
                     <div className="space-y-6">
@@ -429,27 +423,6 @@ export const Settings: React.FC = () => {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="nouvelle.adresse@aegis.com"
-                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
-                        />
-                      </div>
-
-                      <div className="space-y-3">
-                        <label
-                          htmlFor="currentPasswordEmail"
-                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
-                        >
-                          <Lock className="w-3.5 h-3.5 text-cyan-500" /> Mot de
-                          passe actuel
-                        </label>
-                        <input
-                          id="currentPasswordEmail"
-                          type="password"
-                          required
-                          value={currentPasswordEmail}
-                          onChange={(e) =>
-                            setCurrentPasswordEmail(e.target.value)
-                          }
-                          placeholder="Obligatoire pour valider"
                           className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
                         />
                       </div>
@@ -699,6 +672,17 @@ export const Settings: React.FC = () => {
           )}
         </main>
       </div>
+
+      <PasswordPromptModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => {
+          setIsPasswordModalOpen(false);
+          setPendingAction(null);
+        }}
+        onSubmit={handleModalSubmit}
+        title="Vérification requise"
+        message="Veuillez entrer votre mot de passe actuel pour autoriser cette modification sensible."
+      />
     </div>
   );
 };
