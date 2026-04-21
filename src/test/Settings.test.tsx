@@ -79,7 +79,7 @@ describe("Settings Page", () => {
     expect(screen.getByText("Plan & Facturation")).toBeInTheDocument();
   });
 
-  it("handles profile update successfully", async () => {
+  it("handles name update successfully", async () => {
     vi.mocked(api.put).mockResolvedValueOnce({ data: {} });
 
     render(
@@ -91,7 +91,7 @@ describe("Settings Page", () => {
     const nameInput = screen.getByLabelText(/NOM & PRÉNOM/i);
     fireEvent.change(nameInput, { target: { value: "New Name" } });
 
-    fireEvent.click(screen.getByText("Enregistrer les modifications"));
+    fireEvent.click(screen.getByText("Mettre à jour le nom"));
 
     await waitFor(() => {
       expect(api.put).toHaveBeenCalledWith("/users/me/profile", {
@@ -102,12 +102,40 @@ describe("Settings Page", () => {
         expect.objectContaining({ name: "New Name" }),
       );
       expect(
-        screen.getByText("Profil mis à jour avec succès."),
+        screen.getByText("Nom mis à jour avec succès."),
       ).toBeInTheDocument();
     });
   });
 
-  it("handles profile update failure", async () => {
+  it("handles email update successfully", async () => {
+    vi.mocked(api.put).mockResolvedValueOnce({ data: {} });
+
+    render(
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>,
+    );
+
+    const emailInput = screen.getByLabelText(/ADRESSE EMAIL/i);
+    fireEvent.change(emailInput, { target: { value: "new@aegis.ai" } });
+
+    fireEvent.click(screen.getByText("Mettre à jour l'email"));
+
+    await waitFor(() => {
+      expect(api.put).toHaveBeenCalledWith("/users/me/email", {
+        new_email: "new@aegis.ai",
+      });
+      expect(mockSetAuth).toHaveBeenCalledWith(
+        "fake-jwt",
+        expect.objectContaining({ email: "new@aegis.ai" }),
+      );
+      expect(
+        screen.getByText("Adresse e-mail mise à jour avec succès."),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("handles name update failure", async () => {
     vi.mocked(api.put).mockRejectedValueOnce({
       response: { data: { error: "Update failed" } },
     });
@@ -118,7 +146,7 @@ describe("Settings Page", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText("Enregistrer les modifications"));
+    fireEvent.click(screen.getByText("Mettre à jour le nom"));
 
     await waitFor(() => {
       expect(screen.getByText("Update failed")).toBeInTheDocument();

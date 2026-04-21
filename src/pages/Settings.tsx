@@ -33,8 +33,17 @@ export const Settings: React.FC = () => {
   // Profile Form State
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileMessage, setProfileMessage] = useState<{
+
+  // Name Update State
+  const [nameLoading, setNameLoading] = useState(false);
+  const [nameMessage, setNameMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  // Email Update State
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailMessage, setEmailMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
@@ -49,30 +58,51 @@ export const Settings: React.FC = () => {
     text: string;
   } | null>(null);
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
+  const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfileLoading(true);
-    setProfileMessage(null);
+    setNameLoading(true);
+    setNameMessage(null);
 
     try {
       await api.put("/users/me/profile", { name });
-      if (email !== user?.email) {
-        await api.put("/users/me/email", { new_email: email });
-      }
       if (user && accessToken) {
-        setAuth(accessToken, { ...user, name, email });
+        setAuth(accessToken, { ...user, name });
       }
-      setProfileMessage({
+      setNameMessage({
         type: "success",
-        text: "Profil mis à jour avec succès.",
+        text: "Nom mis à jour avec succès.",
       });
     } catch (err: any) {
-      setProfileMessage({
+      setNameMessage({
         type: "error",
         text: err.response?.data?.error || "Erreur lors de la mise à jour.",
       });
     } finally {
-      setProfileLoading(false);
+      setNameLoading(false);
+    }
+  };
+
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailLoading(true);
+    setEmailMessage(null);
+
+    try {
+      await api.put("/users/me/email", { new_email: email });
+      if (user && accessToken) {
+        setAuth(accessToken, { ...user, email });
+      }
+      setEmailMessage({
+        type: "success",
+        text: "Adresse e-mail mise à jour avec succès.",
+      });
+    } catch (err: any) {
+      setEmailMessage({
+        type: "error",
+        text: err.response?.data?.error || "Erreur lors de la mise à jour.",
+      });
+    } finally {
+      setEmailLoading(false);
     }
   };
 
@@ -220,8 +250,9 @@ export const Settings: React.FC = () => {
                       </div>
                     </div>
 
-                    <form onSubmit={handleUpdateProfile} className="space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                      {/* Name Update Section */}
+                      <form onSubmit={handleUpdateName} className="space-y-6">
                         <div className="space-y-3">
                           <label
                             htmlFor="fullname"
@@ -239,6 +270,44 @@ export const Settings: React.FC = () => {
                             placeholder="Ex: Jean Dupont"
                           />
                         </div>
+
+                        {nameMessage && (
+                          <div
+                            className={`p-4 rounded-xl flex items-center gap-3 animate-in zoom-in-95 duration-300 text-sm ${
+                              nameMessage.type === "success"
+                                ? "bg-emerald-500/5 border border-emerald-500/20 text-emerald-400"
+                                : "bg-red-500/5 border border-red-500/20 text-red-400"
+                            }`}
+                          >
+                            {nameMessage.type === "success" ? (
+                              <CheckCircle2 className="w-4 h-4" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4" />
+                            )}
+                            <span className="font-semibold">
+                              {nameMessage.text}
+                            </span>
+                          </div>
+                        )}
+
+                        <button
+                          type="submit"
+                          disabled={nameLoading}
+                          className="w-full group relative px-6 py-4 bg-cyan-600/20 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-400 hover:text-white font-bold rounded-2xl transition-all duration-300 overflow-hidden"
+                        >
+                          <div className="relative z-10 flex items-center justify-center gap-3">
+                            {nameLoading ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                              <Zap className="w-5 h-5" />
+                            )}
+                            Mettre à jour le nom
+                          </div>
+                        </button>
+                      </form>
+
+                      {/* Email Update Section */}
+                      <form onSubmit={handleUpdateEmail} className="space-y-6">
                         <div className="space-y-3">
                           <label
                             htmlFor="email"
@@ -256,45 +325,42 @@ export const Settings: React.FC = () => {
                             placeholder="jean@example.com"
                           />
                         </div>
-                      </div>
 
-                      {profileMessage && (
-                        <div
-                          className={`p-5 rounded-2xl flex items-center gap-4 animate-in zoom-in-95 duration-300 ${
-                            profileMessage.type === "success"
-                              ? "bg-emerald-500/5 border border-emerald-500/20 text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.05)]"
-                              : "bg-red-500/5 border border-red-500/20 text-red-400"
-                          }`}
-                        >
-                          {profileMessage.type === "success" ? (
-                            <CheckCircle2 className="w-6 h-6" />
-                          ) : (
-                            <AlertCircle className="w-6 h-6" />
-                          )}
-                          <span className="font-semibold">
-                            {profileMessage.text}
-                          </span>
-                        </div>
-                      )}
+                        {emailMessage && (
+                          <div
+                            className={`p-4 rounded-xl flex items-center gap-3 animate-in zoom-in-95 duration-300 text-sm ${
+                              emailMessage.type === "success"
+                                ? "bg-emerald-500/5 border border-emerald-500/20 text-emerald-400"
+                                : "bg-red-500/5 border border-red-500/20 text-red-400"
+                            }`}
+                          >
+                            {emailMessage.type === "success" ? (
+                              <CheckCircle2 className="w-4 h-4" />
+                            ) : (
+                              <AlertCircle className="w-4 h-4" />
+                            )}
+                            <span className="font-semibold">
+                              {emailMessage.text}
+                            </span>
+                          </div>
+                        )}
 
-                      <div className="pt-4 flex justify-end">
                         <button
                           type="submit"
-                          disabled={profileLoading}
-                          className="group relative px-10 py-4 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all duration-300 shadow-xl shadow-cyan-900/20 overflow-hidden"
+                          disabled={emailLoading}
+                          className="w-full group relative px-6 py-4 bg-gray-800/40 hover:bg-white text-gray-400 hover:text-gray-950 border border-gray-700 hover:border-white font-bold rounded-2xl transition-all duration-300"
                         >
-                          <div className="relative z-10 flex items-center gap-3">
-                            {profileLoading ? (
+                          <div className="relative z-10 flex items-center justify-center gap-3">
+                            {emailLoading ? (
                               <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
-                              <Zap className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                              <ArrowRight className="w-5 h-5" />
                             )}
-                            Enregistrer les modifications
+                            Mettre à jour l'email
                           </div>
-                          <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                         </button>
-                      </div>
-                    </form>
+                      </form>
+                    </div>
                   </div>
                 </section>
 
