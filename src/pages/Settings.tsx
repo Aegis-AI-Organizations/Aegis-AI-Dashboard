@@ -16,12 +16,15 @@ import {
   Database,
   History,
   Zap,
+  Camera,
+  Upload,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { getPasswordError } from "../utils/validation";
 import { getInitials, getAvatarContent } from "../utils/user";
+import { useRef } from "react";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
@@ -34,6 +37,7 @@ export const Settings: React.FC = () => {
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Name Update State
   const [nameLoading, setNameLoading] = useState(false);
@@ -58,6 +62,31 @@ export const Settings: React.FC = () => {
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Optional: Size check (e.g., 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setNameMessage({
+        type: "error",
+        text: "L'image est trop volumineuse (max 2MB).",
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setAvatarUrl(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,6 +279,12 @@ export const Settings: React.FC = () => {
                             getInitials(name, email)
                           )}
                         </div>
+                        <button
+                          onClick={triggerFileInput}
+                          className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-3xl backdrop-blur-sm"
+                        >
+                          <Camera className="w-8 h-8 text-white scale-75 group-hover/avatar:scale-100 transition-transform duration-300" />
+                        </button>
                         <div className="absolute inset-0 rounded-3xl bg-cyan-400 blur-xl opacity-0 group-hover/avatar:opacity-20 transition-opacity duration-500" />
                       </div>
                       <div className="flex-1 pb-2">
@@ -264,9 +299,18 @@ export const Settings: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-500 font-medium">
-                          <Mail className="w-4 h-4" />
-                          {email}
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 text-gray-500 font-medium">
+                            <Mail className="w-4 h-4" />
+                            {email}
+                          </div>
+                          <button
+                            onClick={triggerFileInput}
+                            className="text-[10px] font-black text-cyan-500 hover:text-cyan-400 uppercase tracking-widest flex items-center gap-2 transition-colors"
+                          >
+                            <span className="w-1 h-1 rounded-full bg-cyan-500" />
+                            Modifier la photo
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -298,15 +342,32 @@ export const Settings: React.FC = () => {
                             className="text-sm font-bold text-gray-400 flex items-center gap-2 px-1"
                           >
                             <Globe className="w-4 h-4 text-cyan-500" />
-                            PHOTO DE PROFIL (URL)
+                            PHOTO DE PROFIL (URL OU IMPORT)
                           </label>
+                          <div className="flex gap-4">
+                            <input
+                              id="avatar"
+                              type="text"
+                              value={avatarUrl}
+                              onChange={(e) => setAvatarUrl(e.target.value)}
+                              className="flex-1 bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-300 placeholder:text-gray-700 text-xs"
+                              placeholder="https://images.com/photo.jpg"
+                            />
+                            <button
+                              type="button"
+                              onClick={triggerFileInput}
+                              className="px-6 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-2xl border border-gray-700 transition-all flex items-center gap-2 shrink-0 text-xs"
+                            >
+                              <Upload className="w-4 h-4" />
+                              Importer
+                            </button>
+                          </div>
                           <input
-                            id="avatar"
-                            type="text"
-                            value={avatarUrl}
-                            onChange={(e) => setAvatarUrl(e.target.value)}
-                            className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-300 placeholder:text-gray-700"
-                            placeholder="https://images.com/photo.jpg"
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            accept="image/*"
+                            className="hidden"
                           />
                         </div>
 
