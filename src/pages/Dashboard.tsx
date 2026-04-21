@@ -5,10 +5,16 @@ import { ShieldAlert, ChevronRight, Clock, Box } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { STATUS_DETAILS } from "../constants/scan";
+import { useAuthStore } from "../store/AuthStore";
 
 export const Dashboard: React.FC = () => {
   const { scans, isLoading, error, refetch } = useScans();
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+
+  const canScan = ["admin", "superadmin", "owner", "operateur"].includes(
+    user?.role || "",
+  );
 
   // SSE for real-time updates is now handled centrally in useScans hook.
   // This component will automatically re-render when useScans updates.
@@ -48,22 +54,24 @@ export const Dashboard: React.FC = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
-        {/* Launchpad Form on the left/top */}
-        <div className="flex-1 w-full max-w-xl">
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-white uppercase tracking-widest text-gray-300">
-              Nouvelle Analyse
-            </h2>
-          </div>
+        {/* Launchpad Form on the left/top - Only for roles with scan permission */}
+        {canScan && (
+          <div className="flex-1 w-full max-w-xl">
+            <div className="mb-4">
+              <h2 className="text-lg font-bold text-white uppercase tracking-widest text-gray-300">
+                Nouvelle Analyse
+              </h2>
+            </div>
 
-          <div className="bg-[#111318] border border-gray-800/60 rounded-xl p-6 shadow-xl w-full">
-            <p className="text-sm text-gray-400 mb-6 font-sans">
-              Entrez l'image Docker cible pour démarrer l'analyse de
-              vulnérabilités.
-            </p>
-            <LaunchpadForm onScanUpdate={refetch} />
+            <div className="bg-[#111318] border border-gray-800/60 rounded-xl p-6 shadow-xl w-full">
+              <p className="text-sm text-gray-400 mb-6 font-sans">
+                Entrez l'image Docker cible pour démarrer l'analyse de
+                vulnérabilités.
+              </p>
+              <LaunchpadForm onScanUpdate={refetch} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Recent Scans Widget on the right/bottom */}
         <div className="flex-1 w-full xl:max-w-2xl max-w-xl">
