@@ -8,6 +8,7 @@ import { api } from "../api/Axios";
 vi.mock("../api/Axios", () => ({
   api: {
     put: vi.fn(),
+    get: vi.fn(),
   },
 }));
 
@@ -108,6 +109,14 @@ describe("Settings Page", () => {
 
   it("handles email update successfully", async () => {
     vi.mocked(api.put).mockResolvedValueOnce({ data: {} });
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: {
+        id: "1",
+        name: "Enzo Gaggiotti",
+        email: "new@aegis.ai",
+        role: "admin",
+      },
+    });
 
     render(
       <MemoryRouter>
@@ -124,6 +133,7 @@ describe("Settings Page", () => {
       expect(api.put).toHaveBeenCalledWith("/users/me/email", {
         email: "new@aegis.ai",
       });
+      expect(api.get).toHaveBeenCalledWith("/auth/me");
       expect(mockSetAuth).toHaveBeenCalledWith(
         "fake-jwt",
         expect.objectContaining({ email: "new@aegis.ai" }),

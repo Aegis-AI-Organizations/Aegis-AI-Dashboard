@@ -114,12 +114,22 @@ export const Settings: React.FC = () => {
     setEmailLoading(true);
     try {
       await api.put("/users/me/email", { email });
-      if (accessToken && user) setAuth(accessToken, { ...user, email });
+      // Refresh user data from the server to ensure the displayed email is accurate
+      // and the store stays consistent with the database
+      try {
+        const { data: freshUser } = await api.get("/auth/me");
+        if (accessToken) setAuth(accessToken, freshUser);
+      } catch {
+        // Fallback: update store locally if /auth/me fails
+        if (accessToken && user) setAuth(accessToken, { ...user, email });
+      }
       setEmailMessage({ type: "success", text: "Email mis à jour" });
     } catch (err: any) {
       setEmailMessage({
         type: "error",
-        text: err.response?.data?.error || "Erreur",
+        text:
+          err.response?.data?.error ||
+          "Erreur lors de la mise à jour de l'email",
       });
     } finally {
       setEmailLoading(false);
