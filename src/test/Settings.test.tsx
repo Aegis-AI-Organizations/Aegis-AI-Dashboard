@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Settings } from "../pages/Settings";
 import { MemoryRouter } from "react-router-dom";
-import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 
 // Mock Axios API
@@ -34,6 +33,16 @@ vi.mock("../store/AuthStore", () => ({
 describe("Settings Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockState = {
+      user: {
+        id: "1",
+        name: "Enzo Gaggiotti",
+        email: "enzo@aegis.ai",
+        role: "admin",
+      },
+      accessToken: "fake-jwt",
+      setAuth: mockSetAuth,
+    };
   });
 
   it("renders the profile tab by default", () => {
@@ -71,13 +80,6 @@ describe("Settings Page", () => {
   });
 
   it("handles profile update successfully", async () => {
-    const setAuthMock = vi.fn();
-    (useAuthStore as any).mockReturnValue({
-      user: mockUser,
-      accessToken: "fake-jwt",
-      setAuth: setAuthMock,
-    });
-
     vi.mocked(api.put).mockResolvedValueOnce({ data: {} });
 
     render(
@@ -95,6 +97,10 @@ describe("Settings Page", () => {
       expect(api.put).toHaveBeenCalledWith("/users/me/profile", {
         name: "New Name",
       });
+      expect(mockSetAuth).toHaveBeenCalledWith(
+        "fake-jwt",
+        expect.objectContaining({ name: "New Name" }),
+      );
       expect(
         screen.getByText("Profil mis à jour avec succès."),
       ).toBeInTheDocument();
@@ -183,30 +189,40 @@ describe("Settings Page", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText("Sécurité"));
+    // Switch to Security tab via the nav button
+    const securityTab = screen.getByRole("button", { name: /sécurité/i });
+    fireEvent.click(securityTab);
 
-    fireEvent.change(screen.getByLabelText("NOUVEAU MOT DE PASSE"), {
+    // Fill all password fields
+    fireEvent.change(screen.getByLabelText(/ANCIEN MOT DE PASSE/i), {
+      target: { value: "OldPassword1!" },
+    });
+    fireEvent.change(screen.getByLabelText(/NOUVEAU MOT DE PASSE/i), {
       target: { value: "NewPass1!" },
     });
-    fireEvent.change(screen.getByLabelText("CONFIRMATION"), {
+    fireEvent.change(screen.getByLabelText(/CONFIRMATION/i), {
       target: { value: "Mismatch1!" },
     });
 
-    fireEvent.click(screen.getByText("Mettre à jour le mot de passe"));
+    fireEvent.click(
+      screen.getByRole("button", { name: /mettre à jour le mot de passe/i }),
+    );
 
     expect(
-      screen.getByText("Les mots de passe ne correspondent pas."),
+      await screen.findByText("Les mots de passe ne correspondent pas."),
     ).toBeInTheDocument();
   });
 
   it("generates correct initials from name", () => {
-    const { rerender } = render(
+    const { unmount } = render(
       <MemoryRouter>
         <Settings />
       </MemoryRouter>,
     );
 
     expect(screen.getByText("EG")).toBeInTheDocument();
+
+    unmount();
 
     mockState = {
       ...mockState,
@@ -218,7 +234,7 @@ describe("Settings Page", () => {
       },
     };
 
-    rerender(
+    render(
       <MemoryRouter>
         <Settings />
       </MemoryRouter>,
