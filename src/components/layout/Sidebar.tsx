@@ -11,7 +11,6 @@ import {
 import { useAuthStore } from "../../store/AuthStore";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { useNavigate } from "react-router-dom";
-import { getInitials } from "../../utils/user";
 import { ProfileCircle } from "../ui/ProfileCircle";
 
 const navItems = [

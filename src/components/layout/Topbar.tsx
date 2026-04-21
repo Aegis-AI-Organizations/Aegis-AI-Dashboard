@@ -3,11 +3,9 @@ import { useAuthStore } from "../../store/AuthStore";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
-import { getInitials } from "../../utils/user";
 import { ProfileCircle } from "../ui/ProfileCircle";
 
 export const Topbar: React.FC = () => {
-  const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);

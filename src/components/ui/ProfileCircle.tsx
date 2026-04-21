@@ -1,5 +1,5 @@
 import React from "react";
-import { getInitials, getAvatarContent } from "../../utils/user";
+import { getAvatarContent } from "../../utils/user";
 import { useAuthStore } from "../../store/AuthStore";
 
 interface ProfileCircleProps {
