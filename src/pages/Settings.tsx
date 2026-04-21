@@ -11,8 +11,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Camera,
-  History,
-  Database,
   Trash2,
 } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
