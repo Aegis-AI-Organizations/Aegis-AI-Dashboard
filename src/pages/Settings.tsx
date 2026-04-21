@@ -13,6 +13,7 @@ import {
   Camera,
   History,
   Database,
+  Trash2,
 } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
@@ -31,6 +32,7 @@ export const Settings: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [isPhotoOptionsOpen, setIsPhotoOptionsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Separate password states for confirming changes
@@ -94,6 +96,20 @@ export const Settings: React.FC = () => {
       }
     };
     reader.readAsDataURL(file);
+    setIsPhotoOptionsOpen(false);
+  };
+
+  const handleDeletePhoto = async () => {
+    try {
+      await api.delete("/users/me/profile/avatar");
+      setAvatarUrl("");
+      if (accessToken && user) {
+        setAuth(accessToken, { ...user, avatar_url: "" });
+      }
+      setIsPhotoOptionsOpen(false);
+    } catch (err) {
+      console.error("Avatar deletion failed", err);
+    }
   };
 
   const handleUpdateNameInit = (e: React.FormEvent) => {
@@ -299,7 +315,7 @@ export const Settings: React.FC = () => {
                   {/* Interactive Avatar */}
                   <div
                     className="relative group/avatar cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setIsPhotoOptionsOpen(true)}
                   >
                     <ProfileCircle
                       size="xl"
@@ -329,7 +345,7 @@ export const Settings: React.FC = () => {
                     <div className="flex flex-wrap justify-center md:justify-start gap-4">
                       <RoleBadge role={user?.role || "viewer"} />
                       <button
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => setIsPhotoOptionsOpen(true)}
                         className="text-[10px] font-black text-cyan-500 hover:text-cyan-400 uppercase tracking-widest transition-colors flex items-center gap-2"
                       >
                         <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />{" "}
@@ -454,57 +470,6 @@ export const Settings: React.FC = () => {
                     </button>
                   </form>
                 </div>
-              </div>
-
-              {/* Fast Stats Row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {[
-                  {
-                    label: "Dernière Connexion",
-                    value: "A l'instant",
-                    icon: History,
-                    color: "text-amber-500",
-                  },
-                  {
-                    label: "Stockage Profil",
-                    value: "Vérification...",
-                    icon: Database,
-                    color: "text-purple-500",
-                  },
-                  {
-                    label: "Rôle Actuel",
-                    value: (
-                      <RoleBadge
-                        role={user?.role || "viewer"}
-                        showIcon={false}
-                      />
-                    ),
-                    icon: Shield,
-                    color: "text-cyan-500",
-                  },
-                ].map((stat, i) => (
-                  <div
-                    key={i}
-                    className="bg-[#0B0D13] border border-gray-800/60 p-6 rounded-[2rem] flex items-center gap-5 hover:bg-gray-800/20 transition-all group"
-                  >
-                    <div
-                      className={`w-12 h-12 rounded-2xl ${stat.color.replace(
-                        "text-",
-                        "bg-",
-                      )}/10 flex items-center justify-center ${stat.color}`}
-                    >
-                      <stat.icon className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
-                        {stat.label}
-                      </p>
-                      <p className="text-white font-bold tracking-tight">
-                        {stat.value}
-                      </p>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           )}
@@ -671,6 +636,64 @@ export const Settings: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* Profile Photo Options Modal */}
+      {isPhotoOptionsOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+          <div
+            className="absolute inset-0 bg-[#0B0D13]/80 backdrop-blur-xl"
+            onClick={() => setIsPhotoOptionsOpen(false)}
+          />
+          <div className="relative w-full max-w-sm bg-[#0B0D13] border border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="p-8 space-y-6">
+              <div className="space-y-2 text-center">
+                <h3 className="text-xl font-black text-white">
+                  Photo de profil
+                </h3>
+                <p className="text-sm text-gray-500 font-bold">
+                  Que souhaitez-vous faire ?
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full py-4 bg-cyan-500 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/20"
+                >
+                  <Camera className="w-5 h-5" />
+                  Téléverser une photo
+                </button>
+
+                {avatarUrl && (
+                  <button
+                    onClick={handleDeletePhoto}
+                    className="w-full py-4 bg-red-500/10 text-red-500 border border-red-500/20 font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition-all"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    Supprimer la photo
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setIsPhotoOptionsOpen(false)}
+                  className="w-full py-4 text-gray-500 font-black uppercase tracking-widest text-[10px] hover:text-white transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
 
       <PasswordPromptModal
         isOpen={isPasswordModalOpen}

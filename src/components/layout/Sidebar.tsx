@@ -59,6 +59,12 @@ const navItems = [
     roles: ["superadmin", "admin", "billing_aegis", "owner", "billing_client"],
   },
   {
+    icon: Shield,
+    label: "Administration",
+    path: "/administration",
+    roles: ["superadmin", "admin", "commercial"],
+  },
+  {
     icon: Settings,
     label: "Paramètres",
     path: "/settings",
