@@ -13,6 +13,8 @@ The Dashboard handles all user-facing interactions and visualizes the massive da
 - **Live Attack Map**: Real-time visualization of scan progress via **Server-Sent Events (SSE)**.
 - **Vulnerability Vault**: Deep-dive into discovered CVEs with technical evidence and loot.
 - **Remediation Hub**: Automated patch generation and GitOps-driven deployment triggers.
+- **Administration Dashboard**: Manual onboarding workflow for new organizations and owner management.
+- **Profile Settings**: Self-service user profile management (Email, Password, Avatar).
 
 ```mermaid
 graph LR
