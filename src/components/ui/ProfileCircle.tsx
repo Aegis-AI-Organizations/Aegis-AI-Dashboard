@@ -3,6 +3,9 @@ import { getAvatarContent } from "../../utils/user";
 import { useAuthStore } from "../../store/AuthStore";
 
 interface ProfileCircleProps {
+  user?: { name: string; avatar_url?: string };
+  avatarUrl?: string;
+  name?: string;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
   showStatus?: boolean;
@@ -13,11 +16,19 @@ interface ProfileCircleProps {
  * Explicitly listens to useAuthStore to ensure initials and avatar update instantly.
  */
 export const ProfileCircle: React.FC<ProfileCircleProps> = ({
+  user: propUser,
+  avatarUrl,
+  name: propName,
   size = "md",
   className = "",
   showStatus = false,
 }) => {
-  const user = useAuthStore((s) => s.user);
+  const authUser = useAuthStore((s) => s.user);
+  const user =
+    propUser ||
+    (avatarUrl || propName
+      ? { name: propName || "", avatar_url: avatarUrl }
+      : authUser);
 
   const sizeClasses = {
     sm: "w-8 h-8 text-xs",
