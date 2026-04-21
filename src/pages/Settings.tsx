@@ -33,9 +33,6 @@ export const Settings: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Separate password states for confirming changes
-  const [currentPasswordName, setCurrentPasswordName] = useState("");
-  const [currentPasswordEmail, setCurrentPasswordEmail] = useState("");
-
   // Sync avatar only (name and email are only for new inputs now)
   useEffect(() => {
     if (user) {
