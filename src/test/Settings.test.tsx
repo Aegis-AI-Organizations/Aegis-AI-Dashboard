@@ -12,26 +12,28 @@ vi.mock("../api/Axios", () => ({
   },
 }));
 
-// Mock AuthStore
-vi.mock("../store/AuthStore", () => ({
-  useAuthStore: vi.fn(),
-}));
-
-describe("Settings Page", () => {
-  const mockUser = {
+// Mock AuthStore with selector support
+const mockSetAuth = vi.fn();
+let mockState = {
+  user: {
     id: "1",
     name: "Enzo Gaggiotti",
     email: "enzo@aegis.ai",
     role: "admin",
-  };
+  },
+  accessToken: "fake-jwt",
+  setAuth: mockSetAuth,
+};
 
+vi.mock("../store/AuthStore", () => ({
+  useAuthStore: vi.fn((selector) =>
+    selector ? selector(mockState) : mockState,
+  ),
+}));
+
+describe("Settings Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAuthStore as any).mockReturnValue({
-      user: mockUser,
-      accessToken: "fake-jwt",
-      setAuth: vi.fn(),
-    });
   });
 
   it("renders the profile tab by default", () => {
@@ -206,11 +208,15 @@ describe("Settings Page", () => {
 
     expect(screen.getByText("EG")).toBeInTheDocument();
 
-    (useAuthStore as any).mockReturnValue({
-      user: { ...mockUser, name: "John Doe" },
-      accessToken: "fake-jwt",
-      setAuth: vi.fn(),
-    });
+    mockState = {
+      ...mockState,
+      user: {
+        id: "1",
+        email: "enzo@aegis.ai",
+        role: "admin",
+        name: "John Doe",
+      },
+    };
 
     rerender(
       <MemoryRouter>
