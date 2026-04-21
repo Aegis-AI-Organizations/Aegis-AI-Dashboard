@@ -21,7 +21,7 @@ import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { getPasswordError } from "../utils/validation";
-import { getInitials } from "../utils/user";
+import { getInitials, getAvatarContent } from "../utils/user";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
@@ -33,6 +33,7 @@ export const Settings: React.FC = () => {
   // Profile Form State
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || "");
 
   // Name Update State
   const [nameLoading, setNameLoading] = useState(false);
@@ -64,13 +65,13 @@ export const Settings: React.FC = () => {
     setNameMessage(null);
 
     try {
-      await api.put("/users/me/profile", { name });
+      await api.put("/users/me/profile", { name, avatar_url: avatarUrl });
       if (user && accessToken) {
-        setAuth(accessToken, { ...user, name });
+        setAuth(accessToken, { ...user, name, avatar_url: avatarUrl });
       }
       setNameMessage({
         type: "success",
-        text: "Nom mis à jour avec succès.",
+        text: "Profil mis à jour avec succès.",
       });
     } catch (err: any) {
       setNameMessage({
@@ -233,16 +234,37 @@ export const Settings: React.FC = () => {
                   <div className="px-10 pb-10 relative">
                     <div className="flex flex-col md:flex-row items-end gap-6 -mt-12 mb-10">
                       <div className="relative group/avatar">
-                        <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-cyan-500 to-indigo-600 border-4 border-[#0A0C12] shadow-2xl flex items-center justify-center text-3xl font-black text-white relative z-10">
-                          {getInitials(name, user?.email)}
+                        <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-cyan-500 to-indigo-600 border-4 border-[#0A0C12] shadow-2xl flex items-center justify-center text-3xl font-black text-white relative z-10 overflow-hidden">
+                          {getAvatarContent({
+                            name,
+                            email,
+                            avatar_url: avatarUrl,
+                          }).type === "image" ? (
+                            <img
+                              src={avatarUrl}
+                              alt={name}
+                              className="w-full h-full object-cover animate-in fade-in duration-500"
+                              onError={() => setAvatarUrl("")}
+                            />
+                          ) : (
+                            getInitials(name, email)
+                          )}
                         </div>
                         <div className="absolute inset-0 rounded-3xl bg-cyan-400 blur-xl opacity-0 group-hover/avatar:opacity-20 transition-opacity duration-500" />
                       </div>
                       <div className="flex-1 pb-2">
-                        <h2 className="text-2xl font-bold text-white mb-1">
-                          {name || "Aegis User"}
-                        </h2>
-                        <div className="flex items-center gap-2 text-gray-400 font-medium">
+                        <div className="flex items-center gap-4 mb-2">
+                          <h1 className="text-3xl font-black text-white tracking-tight">
+                            {name || "Aegis User"}
+                          </h1>
+                          <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                            <span className="text-[10px] font-black text-cyan-400 uppercase tracking-tighter">
+                              {user?.role || "Viewer"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-500 font-medium">
                           <Mail className="w-4 h-4" />
                           {email}
                         </div>
@@ -267,6 +289,24 @@ export const Settings: React.FC = () => {
                             onChange={(e) => setName(e.target.value)}
                             className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-300 placeholder:text-gray-700"
                             placeholder="Ex: Jean Dupont"
+                          />
+                        </div>
+
+                        <div className="space-y-3">
+                          <label
+                            htmlFor="avatar"
+                            className="text-sm font-bold text-gray-400 flex items-center gap-2 px-1"
+                          >
+                            <Globe className="w-4 h-4 text-cyan-500" />
+                            PHOTO DE PROFIL (URL)
+                          </label>
+                          <input
+                            id="avatar"
+                            type="text"
+                            value={avatarUrl}
+                            onChange={(e) => setAvatarUrl(e.target.value)}
+                            className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-300 placeholder:text-gray-700"
+                            placeholder="https://images.com/photo.jpg"
                           />
                         </div>
 

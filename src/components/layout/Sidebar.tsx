@@ -11,7 +11,7 @@ import {
 import { useAuthStore } from "../../store/AuthStore";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { useNavigate } from "react-router-dom";
-import { getInitials } from "../../utils/user";
+import { getInitials, getAvatarContent } from "../../utils/user";
 
 const navItems = [
   {
@@ -120,15 +120,23 @@ export const Sidebar: React.FC = () => {
           isExpanded ? "opacity-100" : "opacity-0 h-0 hidden"
         }`}
       >
-        <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner">
-          {getInitials(user?.name, user?.email)}
+        <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner overflow-hidden border border-white/5">
+          {getAvatarContent(user || undefined).type === "image" ? (
+            <img
+              src={user?.avatar_url}
+              alt={user?.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            getInitials(user?.name, user?.email)
+          )}
         </div>
         <div className="flex flex-col whitespace-nowrap">
-          <span className="text-sm font-medium text-white">
+          <span className="text-sm font-bold text-white tracking-tight">
             {user?.name || user?.email?.split("@")[0] || "Administrateur"}
           </span>
-          <span className="text-xs text-gray-500 capitalize">
-            {user?.role || "Standard Plan"}
+          <span className="text-[10px] font-black text-cyan-500 uppercase tracking-tighter">
+            {user?.role || "Viewer"}
           </span>
         </div>
         <button

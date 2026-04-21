@@ -96,13 +96,14 @@ describe("Settings Page", () => {
     await waitFor(() => {
       expect(api.put).toHaveBeenCalledWith("/users/me/profile", {
         name: "New Name",
+        avatar_url: "",
       });
       expect(mockSetAuth).toHaveBeenCalledWith(
         "fake-jwt",
-        expect.objectContaining({ name: "New Name" }),
+        expect.objectContaining({ name: "New Name", avatar_url: "" }),
       );
       expect(
-        screen.getByText("Nom mis à jour avec succès."),
+        screen.getByText("Profil mis à jour avec succès."),
       ).toBeInTheDocument();
     });
   });

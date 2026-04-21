@@ -18,3 +18,18 @@ export const getInitials = (name?: string, email?: string): string => {
 
   return "AD";
 };
+
+/**
+ * Returns either the avatar image or the initials based on availability.
+ * Useful for the common avatar circle component.
+ */
+export const getAvatarContent = (user?: {
+  name?: string;
+  email?: string;
+  avatar_url?: string;
+}) => {
+  if (user?.avatar_url && user.avatar_url.trim()) {
+    return { type: "image", value: user.avatar_url.trim() };
+  }
+  return { type: "initials", value: getInitials(user?.name, user?.email) };
+};
