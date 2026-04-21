@@ -54,7 +54,7 @@ describe("Settings Page", () => {
 
     expect(screen.getByText("Paramètres")).toBeInTheDocument();
     expect(screen.getByText("Enzo Gaggiotti")).toBeInTheDocument();
-    expect(screen.getByLabelText(/NOM & PRÉNOM/i)).toHaveValue(
+    expect(screen.getByLabelText(/Nom & Prénom/i)).toHaveValue(
       "Enzo Gaggiotti",
     );
   });
@@ -72,11 +72,11 @@ describe("Settings Page", () => {
 
     // Switch to Notifications
     fireEvent.click(screen.getByText("Notifications"));
-    expect(screen.getByText("Centre de Notifications")).toBeInTheDocument();
+    expect(screen.getByText("Bientôt Disponible")).toBeInTheDocument();
 
     // Switch to Billing
     fireEvent.click(screen.getByText("Facturation"));
-    expect(screen.getByText("Plan & Facturation")).toBeInTheDocument();
+    expect(screen.getByText("Bientôt Disponible")).toBeInTheDocument();
   });
 
   it("handles name update successfully", async () => {
@@ -88,10 +88,10 @@ describe("Settings Page", () => {
       </MemoryRouter>,
     );
 
-    const nameInput = screen.getByLabelText(/NOM & PRÉNOM/i);
+    const nameInput = screen.getByLabelText(/Nom & Prénom/i);
     fireEvent.change(nameInput, { target: { value: "New Name" } });
 
-    fireEvent.click(screen.getByText("Mettre à jour le nom"));
+    fireEvent.click(screen.getByText("Enregistrer les modifications"));
 
     await waitFor(() => {
       expect(api.put).toHaveBeenCalledWith("/users/me/profile", {
@@ -102,9 +102,7 @@ describe("Settings Page", () => {
         "fake-jwt",
         expect.objectContaining({ name: "New Name", avatar_url: "" }),
       );
-      expect(
-        screen.getByText("Profil mis à jour avec succès."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Profil mis à jour")).toBeInTheDocument();
     });
   });
 
@@ -117,10 +115,10 @@ describe("Settings Page", () => {
       </MemoryRouter>,
     );
 
-    const emailInput = screen.getByLabelText(/ADRESSE EMAIL/i);
+    const emailInput = screen.getByLabelText(/Adresse Email/i);
     fireEvent.change(emailInput, { target: { value: "new@aegis.ai" } });
 
-    fireEvent.click(screen.getByText("Mettre à jour l'email"));
+    fireEvent.click(screen.getByText("Mettre à jour l'identifiant"));
 
     await waitFor(() => {
       expect(api.put).toHaveBeenCalledWith("/users/me/email", {
@@ -130,9 +128,7 @@ describe("Settings Page", () => {
         "fake-jwt",
         expect.objectContaining({ email: "new@aegis.ai" }),
       );
-      expect(
-        screen.getByText("Adresse e-mail mise à jour avec succès."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Email mis à jour")).toBeInTheDocument();
     });
   });
 
@@ -147,7 +143,7 @@ describe("Settings Page", () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText("Mettre à jour le nom"));
+    fireEvent.click(screen.getByText("Enregistrer les modifications"));
 
     await waitFor(() => {
       expect(screen.getByText("Update failed")).toBeInTheDocument();
@@ -163,18 +159,18 @@ describe("Settings Page", () => {
 
     fireEvent.click(screen.getByText("Sécurité"));
 
-    const newPasswordInput = screen.getByLabelText("NOUVEAU MOT DE PASSE");
+    const newPasswordInput = screen.getByLabelText(/Nouveau mot de passe/i);
 
     // Initially requirements are not met
-    expect(screen.getByText("8+ caractères")).toHaveClass("text-gray-600");
+    expect(screen.getByText("8+ symb.")).toHaveClass("text-gray-600");
 
     // Type a compliant password
     fireEvent.change(newPasswordInput, { target: { value: "Complex1!" } });
 
-    expect(screen.getByText("8+ caractères")).toHaveClass("text-emerald-400");
+    expect(screen.getByText("8+ symb.")).toHaveClass("text-emerald-400");
     expect(screen.getByText("Majuscule")).toHaveClass("text-emerald-400");
-    expect(screen.getByText("Un chiffre")).toHaveClass("text-emerald-400");
-    expect(screen.getByText("Signe spécial")).toHaveClass("text-emerald-400");
+    expect(screen.getByText("Chiffre")).toHaveClass("text-emerald-400");
+    expect(screen.getByText("Spécial")).toHaveClass("text-emerald-400");
   });
 
   it("handles password update successfully", async () => {
@@ -188,26 +184,24 @@ describe("Settings Page", () => {
 
     fireEvent.click(screen.getByText("Sécurité"));
 
-    fireEvent.change(screen.getByLabelText("ANCIEN MOT DE PASSE"), {
+    fireEvent.change(screen.getByLabelText(/Mot de passe actuel/i), {
       target: { value: "OldPass1!" },
     });
-    fireEvent.change(screen.getByLabelText("NOUVEAU MOT DE PASSE"), {
+    fireEvent.change(screen.getByLabelText(/Nouveau mot de passe/i), {
       target: { value: "NewPass1!" },
     });
-    fireEvent.change(screen.getByLabelText("CONFIRMATION"), {
+    fireEvent.change(screen.getByLabelText(/Confirmation/i), {
       target: { value: "NewPass1!" },
     });
 
-    fireEvent.click(screen.getByText("Mettre à jour le mot de passe"));
+    fireEvent.click(screen.getByText("Mettre à jour la sécurité"));
 
     await waitFor(() => {
       expect(api.put).toHaveBeenCalledWith("/users/me/password", {
         old_password: "OldPass1!",
         new_password: "NewPass1!",
       });
-      expect(
-        screen.getByText("Mot de passe modifié avec succès."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Mot de passe modifié")).toBeInTheDocument();
     });
   });
 
@@ -223,22 +217,22 @@ describe("Settings Page", () => {
     fireEvent.click(securityTab);
 
     // Fill all password fields
-    fireEvent.change(screen.getByLabelText(/ANCIEN MOT DE PASSE/i), {
+    fireEvent.change(screen.getByLabelText(/Mot de passe actuel/i), {
       target: { value: "OldPassword1!" },
     });
-    fireEvent.change(screen.getByLabelText(/NOUVEAU MOT DE PASSE/i), {
+    fireEvent.change(screen.getByLabelText(/Nouveau mot de passe/i), {
       target: { value: "NewPass1!" },
     });
-    fireEvent.change(screen.getByLabelText(/CONFIRMATION/i), {
+    fireEvent.change(screen.getByLabelText(/Confirmation/i), {
       target: { value: "Mismatch1!" },
     });
 
     fireEvent.click(
-      screen.getByRole("button", { name: /mettre à jour le mot de passe/i }),
+      screen.getByRole("button", { name: /Mettre à jour la sécurité/i }),
     );
 
     expect(
-      await screen.findByText("Les mots de passe ne correspondent pas."),
+      await screen.findByText("Mots de passe différents"),
     ).toBeInTheDocument();
   });
 

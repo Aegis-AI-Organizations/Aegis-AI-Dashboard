@@ -271,11 +271,15 @@ export const Settings: React.FC = () => {
                   {/* Unified Input Boxes */}
                   <form onSubmit={handleUpdateName} className="space-y-8">
                     <div className="space-y-3">
-                      <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                      <label
+                        htmlFor="name"
+                        className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                      >
                         <User className="w-3.5 h-3.5 text-cyan-500" /> Nom &
                         Prénom
                       </label>
                       <input
+                        id="name"
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -317,11 +321,15 @@ export const Settings: React.FC = () => {
 
                   <form onSubmit={handleUpdateEmail} className="space-y-8">
                     <div className="space-y-3">
-                      <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                      <label
+                        htmlFor="email"
+                        className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                      >
                         <Mail className="w-3.5 h-3.5 text-cyan-500" /> Adresse
                         Email
                       </label>
                       <input
+                        id="email"
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -433,10 +441,14 @@ export const Settings: React.FC = () => {
                 <form onSubmit={handleUpdatePassword} className="space-y-12">
                   <div className="grid grid-cols-1 gap-10 max-w-2xl">
                     <div className="space-y-3">
-                      <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                      <label
+                        htmlFor="oldPassword"
+                        className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                      >
                         Mot de passe actuel
                       </label>
                       <input
+                        id="oldPassword"
                         type="password"
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
@@ -447,10 +459,14 @@ export const Settings: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-3">
-                        <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2">
+                        <label
+                          htmlFor="newPassword"
+                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2"
+                        >
                           Nouveau mot de passe
                         </label>
                         <input
+                          id="newPassword"
                           type="password"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
@@ -459,10 +475,14 @@ export const Settings: React.FC = () => {
                         />
                       </div>
                       <div className="space-y-3">
-                        <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2">
+                        <label
+                          htmlFor="confirmPassword"
+                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2"
+                        >
                           Confirmation
                         </label>
                         <input
+                          id="confirmPassword"
                           type="password"
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}

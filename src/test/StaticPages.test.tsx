@@ -33,7 +33,7 @@ describe("static pages", () => {
     );
     expect(
       screen.getByText(
-        "Personnalisez votre espace de travail, gérez vos identifiants et supervisez votre abonnement.",
+        "Gérez votre identité numérique, sécurisez votre accès et configurez vos préférences Aegis AI.",
       ),
     ).toBeInTheDocument();
   });
