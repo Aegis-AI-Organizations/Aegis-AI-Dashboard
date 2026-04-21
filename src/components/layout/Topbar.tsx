@@ -3,7 +3,8 @@ import { useAuthStore } from "../../store/AuthStore";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
-import { getInitials, getAvatarContent } from "../../utils/user";
+import { getInitials } from "../../utils/user";
+import { ProfileCircle } from "../ui/ProfileCircle";
 
 export const Topbar: React.FC = () => {
   const user = useAuthStore((s) => s.user);
@@ -58,17 +59,7 @@ export const Topbar: React.FC = () => {
           </button>
 
           <div className="flex items-center gap-2 cursor-pointer group">
-            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner overflow-hidden border border-white/10">
-              {getAvatarContent(user || undefined).type === "image" ? (
-                <img
-                  src={user?.avatar_url}
-                  alt={user?.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                getInitials(user?.name, user?.email)
-              )}
-            </div>
+            <ProfileCircle size="sm" showStatus />
             <button
               onClick={() => setIsLogoutModalOpen(true)}
               className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"

@@ -1,135 +1,125 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   User,
-  Lock,
-  Mail,
   Shield,
-  CheckCircle2,
-  AlertCircle,
+  Mail,
+  Lock,
   Loader2,
   Bell,
   CreditCard,
-  ArrowRight,
-  Settings as SettingsIcon,
-  Smartphone,
-  Globe,
-  Database,
-  History,
   Zap,
+  CheckCircle2,
+  AlertCircle,
   Camera,
-  Upload,
+  History,
+  Database,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { getPasswordError } from "../utils/validation";
-import { getInitials, getAvatarContent } from "../utils/user";
-import { useRef } from "react";
+import { ProfileCircle } from "../components/ui/ProfileCircle";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
 export const Settings: React.FC = () => {
-  const { user, setAuth } = useAuthStore();
-  const accessToken = useAuthStore((s) => s.accessToken);
+  const { user, setAuth, accessToken } = useAuthStore();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profil");
 
-  // Profile Form State
+  // Local Form States
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Name Update State
+  // Sync local state when user object in store changes (Reactivity fix)
+  useEffect(() => {
+    if (user) {
+      setName(user.name || "");
+      setEmail(user.email || "");
+      setAvatarUrl(user.avatar_url || "");
+    }
+  }, [user]);
+
+  // Status states
   const [nameLoading, setNameLoading] = useState(false);
   const [nameMessage, setNameMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
 
-  // Email Update State
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailMessage, setEmailMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
 
-  // Password Form State
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Optional: Size check (e.g., 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      setNameMessage({
-        type: "error",
-        text: "L'image est trop volumineuse (max 2MB).",
-      });
+    if (file.size > 20 * 1024 * 1024) {
+      // 20MB limit (infrastructure will support 50MB)
+      setNameMessage({ type: "error", text: "Image trop lourde (max 20MB)" });
       return;
     }
 
     const reader = new FileReader();
-    reader.onloadend = () => {
+    reader.onloadend = async () => {
       const base64String = reader.result as string;
       setAvatarUrl(base64String);
+      // Auto-save on photo change for better UX
+      await saveProfile(name, base64String);
     };
     reader.readAsDataURL(file);
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleUpdateName = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const saveProfile = async (newName: string, newAvatar: string) => {
     setNameLoading(true);
     setNameMessage(null);
-
     try {
-      await api.put("/users/me/profile", { name, avatar_url: avatarUrl });
-      if (user && accessToken) {
-        setAuth(accessToken, { ...user, name, avatar_url: avatarUrl });
-      }
-      setNameMessage({
-        type: "success",
-        text: "Profil mis à jour avec succès.",
+      await api.put("/users/me/profile", {
+        name: newName,
+        avatar_url: newAvatar,
       });
+      if (accessToken && user) {
+        setAuth(accessToken, { ...user, name: newName, avatar_url: newAvatar });
+      }
+      setNameMessage({ type: "success", text: "Profil mis à jour" });
     } catch (err: any) {
       setNameMessage({
         type: "error",
-        text: err.response?.data?.error || "Erreur lors de la mise à jour.",
+        text: err.response?.data?.error || "Erreur de sauvegarde",
       });
     } finally {
       setNameLoading(false);
     }
   };
 
+  const handleUpdateName = (e: React.FormEvent) => {
+    e.preventDefault();
+    saveProfile(name, avatarUrl);
+  };
+
   const handleUpdateEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setEmailLoading(true);
-    setEmailMessage(null);
-
     try {
       await api.put("/users/me/email", { email });
-      if (user && accessToken) {
-        setAuth(accessToken, { ...user, email });
-      }
-      setEmailMessage({
-        type: "success",
-        text: "Adresse e-mail mise à jour avec succès.",
-      });
+      if (accessToken && user) setAuth(accessToken, { ...user, email });
+      setEmailMessage({ type: "success", text: "Email mis à jour" });
     } catch (err: any) {
       setEmailMessage({
         type: "error",
-        text: err.response?.data?.error || "Erreur lors de la mise à jour.",
+        text: err.response?.data?.error || "Erreur",
       });
     } finally {
       setEmailLoading(false);
@@ -138,19 +128,13 @@ export const Settings: React.FC = () => {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPasswordMessage(null);
-
-    const complexityError = getPasswordError(newPassword);
-    if (complexityError) {
-      setPasswordMessage({ type: "error", text: complexityError });
+    const error = getPasswordError(newPassword);
+    if (error) {
+      setPasswordMessage({ type: "error", text: error });
       return;
     }
-
     if (newPassword !== confirmPassword) {
-      setPasswordMessage({
-        type: "error",
-        text: "Les mots de passe ne correspondent pas.",
-      });
+      setPasswordMessage({ type: "error", text: "Mots de passe différents" });
       return;
     }
 
@@ -163,14 +147,11 @@ export const Settings: React.FC = () => {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setPasswordMessage({
-        type: "success",
-        text: "Mot de passe modifié avec succès.",
-      });
+      setPasswordMessage({ type: "success", text: "Mot de passe modifié" });
     } catch (err: any) {
       setPasswordMessage({
         type: "error",
-        text: err.response?.data?.error || "Ancien mot de passe incorrect.",
+        text: "Ancien mot de passe invalide",
       });
     } finally {
       setPasswordLoading(false);
@@ -185,655 +166,399 @@ export const Settings: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 animate-in fade-in duration-700">
-      {/* Header with Glassmorphism Accent */}
-      <div className="relative">
-        <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-1 h-12 bg-cyan-500 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-extrabold text-white tracking-tight sm:text-5xl mb-2">
-              Paramètres
-            </h1>
-            <p className="text-gray-400 text-lg max-w-2xl leading-relaxed">
-              Personnalisez votre espace de travail, gérez vos identifiants et
-              supervisez votre abonnement.
-            </p>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-2 bg-gray-800/20 border border-gray-700/30 rounded-2xl backdrop-blur-sm">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-sm font-medium text-gray-300">
-              Statut: Opérationnel
-            </span>
-          </div>
+    <div className="max-w-6xl mx-auto px-4 py-8 animate-in fade-in duration-500">
+      {/* Premium Header */}
+      <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div className="space-y-2">
+          <h1 className="text-5xl font-black text-white tracking-tighter">
+            Paramètres
+          </h1>
+          <p className="text-gray-500 text-lg font-medium max-w-xl leading-relaxed">
+            Gérez votre identité numérique, sécurisez votre accès et configurez
+            vos préférences Aegis AI.
+          </p>
+        </div>
+        <div className="flex items-center gap-3 px-5 py-2.5 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl">
+          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+          <span className="text-xs font-black text-cyan-400 uppercase tracking-widest">
+            Connecté en tant que {user?.role}
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-[auto_1fr] lg:grid-cols-12 gap-5 lg:gap-10">
-        {/* Navigation - Ultra Modern Glass Sidebar */}
-        <aside className="lg:col-span-3">
-          <nav className="flex flex-col gap-3 p-1 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-3xl sticky top-24 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)]">
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Modern Sidebar Tabs */}
+        <aside className="lg:w-72 shrink-0">
+          <nav className="flex flex-row lg:flex-col gap-2 p-1.5 bg-gray-900/40 border border-gray-800/60 rounded-[2.5rem] overflow-x-auto no-scrollbar">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-4 px-4 py-3 md:px-5 md:py-4 rounded-2xl transition-all duration-500 group relative ${
+                className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] transition-all duration-300 min-w-max ${
                   activeTab === tab.id
-                    ? "bg-cyan-500/10 text-cyan-400"
-                    : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
+                    ? "bg-cyan-600 text-white shadow-lg shadow-cyan-600/20"
+                    : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/40"
                 }`}
               >
                 <tab.icon
-                  className={`w-6 h-6 md:w-5 md:h-5 transition-all duration-500 ${
-                    activeTab === tab.id
-                      ? "text-cyan-400 scale-110"
-                      : "text-gray-500 group-hover:text-gray-300"
+                  className={`w-5 h-5 ${
+                    activeTab === tab.id ? "scale-110" : ""
                   }`}
                 />
-                <span
-                  className={`text-sm font-black tracking-widest transition-all duration-500 hidden md:block uppercase ${
-                    activeTab === tab.id
-                      ? "opacity-100"
-                      : "opacity-60 group-hover:opacity-100"
-                  }`}
-                >
+                <span className="text-sm font-black uppercase tracking-widest">
                   {tab.label}
                 </span>
-
-                {activeTab === tab.id && (
-                  <>
-                    <div className="absolute left-0 w-1 h-2/3 bg-gradient-to-b from-cyan-400 to-indigo-500 rounded-full shadow-[0_0_15px_rgba(34,211,238,0.5)]" />
-                    <div className="absolute inset-0 bg-cyan-400/5 rounded-2xl blur-xl" />
-                  </>
-                )}
               </button>
             ))}
           </nav>
         </aside>
 
-        {/* Content Area */}
-        <main className="min-w-0 lg:col-span-9 min-h-[600px]">
-          <div className="transition-all duration-500 ease-out">
-            {activeTab === "profil" && (
-              <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-500">
-                {/* Profile Overview Card */}
-                <section className="bg-gradient-to-b from-[#11141D] to-[#0A0C12] border border-gray-800/80 rounded-3xl shadow-2xl overflow-hidden group">
-                  <div className="h-24 bg-gradient-to-r from-cyan-600/20 via-indigo-600/20 to-purple-600/20 relative">
-                    <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:20px_20px]" />
+        {/* Dynamic Content Area */}
+        <main className="flex-1 min-h-[600px] animate-in slide-in-from-bottom-4 duration-500">
+          {activeTab === "profil" && (
+            <div className="space-y-6">
+              {/* Profile Card */}
+              <div className="bg-[#0B0D13] border border-gray-800/60 rounded-[3rem] p-10 relative overflow-hidden group shadow-2xl">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 blur-[100px] pointer-events-none" />
+
+                <div className="flex flex-col md:flex-row items-center gap-12 relative z-10 transition-all duration-500">
+                  {/* Interactive Avatar */}
+                  <div
+                    className="relative group/avatar cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ProfileCircle
+                      size="xl"
+                      className="ring-8 ring-gray-900/50 group-hover/avatar:ring-cyan-500/20 transition-all duration-500"
+                    />
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 opacity-0 group-hover/avatar:opacity-100 rounded-2xl transition-all duration-300 backdrop-blur-[2px]">
+                      <Camera className="w-10 h-10 text-white animate-in zoom-in-50 duration-300" />
+                    </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
                   </div>
-                  <div className="px-10 pb-10 relative">
-                    <div className="flex flex-col md:flex-row items-end gap-6 -mt-12 mb-10">
-                      <div className="relative group/avatar">
-                        <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-cyan-500 to-indigo-600 border-4 border-[#0A0C12] shadow-2xl flex items-center justify-center text-3xl font-black text-white relative z-10 overflow-hidden">
-                          {getAvatarContent({
-                            name,
-                            email,
-                            avatar_url: avatarUrl,
-                          }).type === "image" ? (
-                            <img
-                              src={avatarUrl}
-                              alt={name}
-                              className="w-full h-full object-cover animate-in fade-in duration-500"
-                              onError={() => setAvatarUrl("")}
-                            />
-                          ) : (
-                            getInitials(name, email)
-                          )}
-                        </div>
-                        <button
-                          onClick={triggerFileInput}
-                          className="absolute inset-0 z-20 bg-black/40 opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-3xl backdrop-blur-sm"
-                        >
-                          <Camera className="w-8 h-8 text-white scale-75 group-hover/avatar:scale-100 transition-transform duration-300" />
-                        </button>
-                        <div className="absolute inset-0 rounded-3xl bg-cyan-400 blur-xl opacity-0 group-hover/avatar:opacity-20 transition-opacity duration-500" />
+
+                  <div className="flex-1 text-center md:text-left space-y-4">
+                    <div className="space-y-1">
+                      <h2 className="text-4xl font-black text-white tracking-tight">
+                        {user?.name || "Aegis User"}
+                      </h2>
+                      <p className="text-gray-500 font-bold tracking-wide uppercase text-sm">
+                        {user?.email}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                      <div className="px-4 py-1.5 bg-gray-800/60 rounded-full text-[10px] font-black text-gray-400 uppercase tracking-widest border border-gray-700/50">
+                        {user?.role}
                       </div>
-                      <div className="flex-1 pb-2">
-                        <div className="flex items-center gap-4 mb-2">
-                          <h1 className="text-3xl font-black text-white tracking-tight">
-                            {name || "Aegis User"}
-                          </h1>
-                          <div className="px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
-                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                            <span className="text-[10px] font-black text-cyan-400 uppercase tracking-tighter">
-                              {user?.role || "Viewer"}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2 text-gray-500 font-medium">
-                            <Mail className="w-4 h-4" />
-                            {email}
-                          </div>
-                          <button
-                            onClick={triggerFileInput}
-                            className="text-[10px] font-black text-cyan-500 hover:text-cyan-400 uppercase tracking-widest flex items-center gap-2 transition-colors"
-                          >
-                            <span className="w-1 h-1 rounded-full bg-cyan-500" />
-                            Modifier la photo
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                      {/* Name Update Section */}
-                      <form onSubmit={handleUpdateName} className="space-y-6">
-                        <div className="space-y-3">
-                          <label
-                            htmlFor="fullname"
-                            className="text-sm font-bold text-gray-400 flex items-center gap-2 px-1"
-                          >
-                            <User className="w-4 h-4 text-cyan-500" />
-                            NOM & PRÉNOM
-                          </label>
-                          <input
-                            id="fullname"
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-300 placeholder:text-gray-700"
-                            placeholder="Ex: Jean Dupont"
-                          />
-                        </div>
-
-                        <div className="space-y-3">
-                          <label
-                            htmlFor="avatar"
-                            className="text-sm font-bold text-gray-400 flex items-center gap-2 px-1"
-                          >
-                            <Globe className="w-4 h-4 text-cyan-500" />
-                            PHOTO DE PROFIL (URL OU IMPORT)
-                          </label>
-                          <div className="flex gap-4">
-                            <input
-                              id="avatar"
-                              type="text"
-                              value={avatarUrl}
-                              onChange={(e) => setAvatarUrl(e.target.value)}
-                              className="flex-1 bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-300 placeholder:text-gray-700 text-xs"
-                              placeholder="https://images.com/photo.jpg"
-                            />
-                            <button
-                              type="button"
-                              onClick={triggerFileInput}
-                              className="px-6 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-2xl border border-gray-700 transition-all flex items-center gap-2 shrink-0 text-xs"
-                            >
-                              <Upload className="w-4 h-4" />
-                              Importer
-                            </button>
-                          </div>
-                          <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept="image/*"
-                            className="hidden"
-                          />
-                        </div>
-
-                        {nameMessage && (
-                          <div
-                            className={`p-4 rounded-xl flex items-center gap-3 animate-in zoom-in-95 duration-300 text-sm ${
-                              nameMessage.type === "success"
-                                ? "bg-emerald-500/5 border border-emerald-500/20 text-emerald-400"
-                                : "bg-red-500/5 border border-red-500/20 text-red-400"
-                            }`}
-                          >
-                            {nameMessage.type === "success" ? (
-                              <CheckCircle2 className="w-4 h-4" />
-                            ) : (
-                              <AlertCircle className="w-4 h-4" />
-                            )}
-                            <span className="font-semibold">
-                              {nameMessage.text}
-                            </span>
-                          </div>
-                        )}
-
-                        <button
-                          type="submit"
-                          disabled={nameLoading}
-                          className="w-full group relative px-6 py-4 bg-cyan-600/20 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-400 hover:text-white font-bold rounded-2xl transition-all duration-300 overflow-hidden"
-                        >
-                          <div className="relative z-10 flex items-center justify-center gap-3">
-                            {nameLoading ? (
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                              <Zap className="w-5 h-5" />
-                            )}
-                            Mettre à jour le nom
-                          </div>
-                        </button>
-                      </form>
-
-                      {/* Email Update Section */}
-                      <form onSubmit={handleUpdateEmail} className="space-y-6">
-                        <div className="space-y-3">
-                          <label
-                            htmlFor="email"
-                            className="text-sm font-bold text-gray-400 flex items-center gap-2 px-1"
-                          >
-                            <Globe className="w-4 h-4 text-cyan-500" />
-                            ADRESSE EMAIL
-                          </label>
-                          <input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all duration-300 placeholder:text-gray-700"
-                            placeholder="jean@example.com"
-                          />
-                        </div>
-
-                        {emailMessage && (
-                          <div
-                            className={`p-4 rounded-xl flex items-center gap-3 animate-in zoom-in-95 duration-300 text-sm ${
-                              emailMessage.type === "success"
-                                ? "bg-emerald-500/5 border border-emerald-500/20 text-emerald-400"
-                                : "bg-red-500/5 border border-red-500/20 text-red-400"
-                            }`}
-                          >
-                            {emailMessage.type === "success" ? (
-                              <CheckCircle2 className="w-4 h-4" />
-                            ) : (
-                              <AlertCircle className="w-4 h-4" />
-                            )}
-                            <span className="font-semibold">
-                              {emailMessage.text}
-                            </span>
-                          </div>
-                        )}
-
-                        <button
-                          type="submit"
-                          disabled={emailLoading}
-                          className="w-full group relative px-6 py-4 bg-gray-800/40 hover:bg-white text-gray-400 hover:text-gray-950 border border-gray-700 hover:border-white font-bold rounded-2xl transition-all duration-300"
-                        >
-                          <div className="relative z-10 flex items-center justify-center gap-3">
-                            {emailLoading ? (
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                              <ArrowRight className="w-5 h-5" />
-                            )}
-                            Mettre à jour l'email
-                          </div>
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                </section>
-
-                {/* Account Stats Mock */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-[#11141D] border border-gray-800/60 p-6 rounded-3xl flex items-center gap-5 hover:border-gray-700 transition-colors">
-                    <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-                      <History className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                        Dernière Connexion
-                      </p>
-                      <p className="text-white font-bold">Il y a 2 heures</p>
-                    </div>
-                  </div>
-                  <div className="bg-[#11141D] border border-gray-800/60 p-6 rounded-3xl flex items-center gap-5 hover:border-gray-700 transition-colors">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400">
-                      <Database className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                        Stockage Utilisé
-                      </p>
-                      <p className="text-white font-bold">1.2 GB / 5 GB</p>
-                    </div>
-                  </div>
-                  <div className="bg-[#11141D] border border-gray-800/60 p-6 rounded-3xl flex items-center gap-5 hover:border-gray-700 transition-colors">
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400">
-                      <Shield className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                        Rôle Utilisateur
-                      </p>
-                      <p className="text-white font-bold capitalize">
-                        {user?.role || "Viewer"}
-                      </p>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-[10px] font-black text-cyan-500 hover:text-cyan-400 uppercase tracking-widest transition-colors flex items-center gap-2"
+                      >
+                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />{" "}
+                        Modifier la photo
+                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
 
-            {activeTab === "securite" && (
-              <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-500">
-                <section className="bg-[#11141D] border border-gray-800 rounded-3xl shadow-xl overflow-hidden">
-                  <div className="px-10 py-8 border-b border-gray-800/50 bg-gray-800/10 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-amber-500/10 rounded-2xl text-amber-400">
-                        <Lock className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold text-white">
-                          Sécurité du Compte
-                        </h2>
-                        <p className="text-gray-500 text-sm">
-                          Maintenez votre compte sécurisé avec un mot de passe
-                          robuste.
-                        </p>
-                      </div>
+                <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12">
+                  {/* Unified Input Boxes */}
+                  <form onSubmit={handleUpdateName} className="space-y-8">
+                    <div className="space-y-3">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                        <User className="w-3.5 h-3.5 text-cyan-500" /> Nom &
+                        Prénom
+                      </label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Votre nom complet"
+                        className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
+                      />
                     </div>
-                  </div>
-                  <form
-                    onSubmit={handleUpdatePassword}
-                    className="p-10 space-y-10"
-                  >
-                    <div className="space-y-8 max-w-2xl">
-                      <div className="space-y-3">
-                        <label
-                          htmlFor="old_password"
-                          className="text-sm font-bold text-gray-400 flex items-center gap-2 px-1"
-                        >
-                          ANCIEN MOT DE PASSE
-                        </label>
-                        <input
-                          id="old_password"
-                          type="password"
-                          required
-                          value={oldPassword}
-                          onChange={(e) => setOldPassword(e.target.value)}
-                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-gray-700"
-                          placeholder="••••••••"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-3">
-                          <label
-                            htmlFor="new_password"
-                            className="text-sm font-bold text-gray-400 px-1"
-                          >
-                            NOUVEAU MOT DE PASSE
-                          </label>
-                          <input
-                            id="new_password"
-                            type="password"
-                            required
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                            className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-gray-700"
-                            placeholder="••••••••"
-                          />
-                        </div>
-                        <div className="space-y-3">
-                          <label
-                            htmlFor="confirm_password"
-                            className="text-sm font-bold text-gray-400 px-1"
-                          >
-                            CONFIRMATION
-                          </label>
-                          <input
-                            id="confirm_password"
-                            type="password"
-                            required
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-gray-700"
-                            placeholder="••••••••"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Password Requirements Display */}
-                      <div className="bg-gray-950/40 border border-gray-800 rounded-2xl p-6 space-y-4">
-                        <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest">
-                          Niveau de Sécurité Requis
-                        </h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          {[
-                            {
-                              label: "8+ caractères",
-                              valid: newPassword.length >= 8,
-                            },
-                            {
-                              label: "Majuscule",
-                              valid: /[A-Z]/.test(newPassword),
-                            },
-                            {
-                              label: "Un chiffre",
-                              valid: /[0-9]/.test(newPassword),
-                            },
-                            {
-                              label: "Signe spécial",
-                              valid: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword),
-                            },
-                          ].map((req, rid) => (
-                            <div key={rid} className="flex items-center gap-3">
-                              <div
-                                className={`w-2 h-2 rounded-full shadow-[0_0_8px] transition-all duration-500 ${
-                                  req.valid
-                                    ? "bg-emerald-500 shadow-emerald-500/50 scale-125"
-                                    : "bg-gray-700"
-                                }`}
-                              />
-                              <span
-                                className={`text-xs font-bold transition-colors duration-500 ${
-                                  req.valid
-                                    ? "text-emerald-400"
-                                    : "text-gray-600"
-                                }`}
-                              >
-                                {req.label}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {passwordMessage && (
+                    {nameMessage && (
                       <div
-                        className={`p-5 rounded-2xl flex items-center gap-4 max-w-2xl animate-in zoom-in-95 duration-300 ${
-                          passwordMessage.type === "success"
-                            ? "bg-emerald-500/5 border border-emerald-500/20 text-emerald-400"
-                            : "bg-red-500/5 border border-red-500/20 text-red-400"
+                        className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold ${
+                          nameMessage.type === "success"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            : "bg-red-500/10 text-red-400 border border-red-500/20"
                         }`}
                       >
-                        {passwordMessage.type === "success" ? (
-                          <CheckCircle2 className="w-6 h-6" />
+                        {nameMessage.type === "success" ? (
+                          <CheckCircle2 className="w-4 h-4" />
                         ) : (
-                          <AlertCircle className="w-6 h-6" />
-                        )}
-                        <span className="font-semibold">
-                          {passwordMessage.text}
-                        </span>
+                          <AlertCircle className="w-4 h-4" />
+                        )}{" "}
+                        {nameMessage.text}
                       </div>
                     )}
-
-                    <div className="pt-4">
-                      <button
-                        type="submit"
-                        disabled={passwordLoading}
-                        className="px-8 py-4 bg-white text-gray-950 hover:bg-gray-200 disabled:opacity-50 font-black rounded-2xl transition-all shadow-xl shadow-white/5 flex items-center gap-3"
-                      >
-                        {passwordLoading && (
-                          <Loader2 className="w-5 h-5 animate-spin" />
+                    <button
+                      type="submit"
+                      disabled={nameLoading}
+                      className="relative w-full py-5 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-500 hover:text-white font-black rounded-2xl transition-all group overflow-hidden uppercase tracking-widest text-xs"
+                    >
+                      <div className="relative z-10 flex items-center justify-center gap-3">
+                        {nameLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Zap className="w-4 h-4" />
                         )}
-                        Mettre à jour le mot de passe
-                      </button>
-                    </div>
+                        Enregistrer les modifications
+                      </div>
+                    </button>
                   </form>
-                </section>
-              </div>
-            )}
 
-            {activeTab === "notifications" && (
-              <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-500">
-                <section className="bg-[#11141D] border border-gray-800 rounded-3xl shadow-xl overflow-hidden p-10">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-cyan-500/10 rounded-2xl text-cyan-400">
-                        <Bell className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold text-white">
-                          Centre de Notifications
-                        </h2>
-                        <p className="text-gray-500 text-sm italic">
-                          Gérez vos préférences d'alertes.
-                        </p>
-                      </div>
+                  <form onSubmit={handleUpdateEmail} className="space-y-8">
+                    <div className="space-y-3">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                        <Mail className="w-3.5 h-3.5 text-cyan-500" /> Adresse
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="exemple@aegis.com"
+                        className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
+                      />
                     </div>
-                    <div className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                      Prévisualisation
+                    {emailMessage && (
+                      <div
+                        className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold ${
+                          emailMessage.type === "success"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                            : "bg-red-500/10 text-red-400 border border-red-500/20"
+                        }`}
+                      >
+                        {emailMessage.type === "success" ? (
+                          <CheckCircle2 className="w-4 h-4" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4" />
+                        )}{" "}
+                        {emailMessage.text}
+                      </div>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={emailLoading}
+                      className="w-full py-5 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-500 hover:text-white font-black rounded-2xl transition-all uppercase tracking-widest text-xs"
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        {emailLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Zap className="w-4 h-4" />
+                        )}
+                        Mettre à jour l'identifiant
+                      </div>
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Fast Stats Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[
+                  {
+                    label: "Dernière Connexion",
+                    value: "A l'instant",
+                    icon: History,
+                    color: "text-amber-500",
+                  },
+                  {
+                    label: "Stockage Profil",
+                    value: "Vérification...",
+                    icon: Database,
+                    color: "text-purple-500",
+                  },
+                  {
+                    label: "Rôle Actuel",
+                    value: user?.role || "Chargement...",
+                    icon: Shield,
+                    color: "text-cyan-500",
+                  },
+                ].map((stat, i) => (
+                  <div
+                    key={i}
+                    className="bg-[#0B0D13] border border-gray-800/60 p-6 rounded-[2rem] flex items-center gap-5 hover:bg-gray-800/20 transition-all group"
+                  >
+                    <div
+                      className={`w-12 h-12 rounded-2xl ${stat.color.replace(
+                        "text-",
+                        "bg-",
+                      )}/10 flex items-center justify-center ${stat.color}`}
+                    >
+                      <stat.icon className="w-6 h-6 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                        {stat.label}
+                      </p>
+                      <p className="text-white font-bold tracking-tight">
+                        {stat.value}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "securite" && (
+            <div className="space-y-6">
+              <section className="bg-[#0B0D13] border border-gray-800/60 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] pointer-events-none" />
+
+                <div className="flex items-center gap-6 mb-12 border-b border-gray-800/40 pb-8">
+                  <div className="p-4 bg-amber-500/10 rounded-3xl text-amber-500 ring-1 ring-amber-500/20">
+                    <Lock className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-black text-white tracking-tight uppercase">
+                      Sécurité du Compte
+                    </h2>
+                    <p className="text-gray-500 font-medium">
+                      Renforcez votre protection avec un mot de passe complexe.
+                    </p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleUpdatePassword} className="space-y-12">
+                  <div className="grid grid-cols-1 gap-10 max-w-2xl">
+                    <div className="space-y-3">
+                      <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                        Mot de passe actuel
+                      </label>
+                      <input
+                        type="password"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-bold placeholder:text-gray-800"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-3">
+                        <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2">
+                          Nouveau mot de passe
+                        </label>
+                        <input
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="8+ caractères"
+                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-bold placeholder:text-gray-800"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2">
+                          Confirmation
+                        </label>
+                        <input
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Répétez le mot de passe"
+                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-bold placeholder:text-gray-800"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-10">
-                    {[
-                      {
-                        icon: Mail,
-                        title: "Alertes par Email",
-                        desc: "Soyez informé des vulnérabilités critiques via votre boîte mail.",
-                        enabled: true,
-                      },
-                      {
-                        icon: Smartphone,
-                        title: "Notifications Push",
-                        desc: "Alertes instantanées sur vos appareils mobiles et bureau.",
-                        enabled: false,
-                      },
-                      {
-                        icon: Shield,
-                        title: "Rapports Hebdomadaires",
-                        desc: "Un digest complet de votre posture de sécurité chaque lundi.",
-                        enabled: true,
-                      },
-                    ].map((notif, nid) => (
-                      <div
-                        key={nid}
-                        className="flex items-center justify-between p-6 bg-gray-900/30 rounded-2xl border border-gray-800/40 hover:border-gray-800 transition-colors group"
-                      >
-                        <div className="flex items-center gap-5">
-                          <div className="w-12 h-12 rounded-xl bg-gray-800/50 flex items-center justify-center text-gray-500 group-hover:text-cyan-400 transition-colors">
-                            <notif.icon className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-white">
-                              {notif.title}
-                            </h4>
-                            <p className="text-sm text-gray-500">
-                              {notif.desc}
-                            </p>
-                          </div>
-                        </div>
+                  {/* Sleek Password Complexity Bar */}
+                  <div className="bg-gray-900/30 border border-gray-800/40 rounded-3xl p-8 max-w-2xl space-y-6">
+                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-3">
+                      <Shield className="w-3.5 h-3.5" /> Exigences de sécurité
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                      {[
+                        { label: "8+ symb.", valid: newPassword.length >= 8 },
+                        {
+                          label: "Majuscule",
+                          valid: /[A-Z]/.test(newPassword),
+                        },
+                        { label: "Chiffre", valid: /[0-9]/.test(newPassword) },
+                        {
+                          label: "Spécial",
+                          valid: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword),
+                        },
+                      ].map((req, rid) => (
                         <div
-                          className={`w-14 h-7 rounded-full relative cursor-pointer transition-colors duration-500 ${
-                            notif.enabled ? "bg-cyan-500" : "bg-gray-800"
-                          }`}
+                          key={rid}
+                          className="flex flex-col items-center gap-3 group"
                         >
                           <div
-                            className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 ${
-                              notif.enabled ? "translate-x-8" : "translate-x-1"
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
+                              req.valid
+                                ? "bg-emerald-400 scale-150 shadow-[0_0_10px_rgba(52,211,153,0.8)]"
+                                : "bg-gray-800 group-hover:bg-gray-700"
                             }`}
                           />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              </div>
-            )}
-
-            {activeTab === "facturation" && (
-              <div className="space-y-8 animate-in slide-in-from-bottom-6 duration-500">
-                <section className="bg-gradient-to-br from-[#11141D] to-[#0A0C12] border border-gray-800 rounded-3xl shadow-xl overflow-hidden p-10 flex flex-col md:flex-row gap-10">
-                  <div className="flex-1 space-y-8">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-500/10 rounded-2xl text-purple-400">
-                        <CreditCard className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-bold text-white">
-                          Plan & Facturation
-                        </h2>
-                        <p className="text-gray-500 text-sm">
-                          Gérez votre abonnement Aegis AI.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-8 bg-gradient-to-r from-purple-600/10 to-transparent border border-purple-500/20 rounded-3xl relative overflow-hidden group">
-                      <div className="relative z-10">
-                        <div className="text-xs font-black text-purple-400 uppercase tracking-widest mb-4">
-                          PLAN ACTUEL
-                        </div>
-                        <div className="text-4xl font-black text-white mb-2">
-                          PRO{" "}
-                          <span className="text-lg font-normal text-gray-500">
-                            / mois
-                          </span>
-                        </div>
-                        <p className="text-gray-400 mb-8 max-w-xs leading-relaxed">
-                          Accès complet aux scans par IA, rapports illimités et
-                          support prioritaire 24/7.
-                        </p>
-                        <div className="flex flex-wrap gap-4">
-                          <Link
-                            to="/billing"
-                            className="px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-2xl transition-all shadow-lg flex items-center gap-2"
+                          <span
+                            className={`text-[10px] font-black uppercase tracking-tighter ${
+                              req.valid ? "text-emerald-400" : "text-gray-600"
+                            }`}
                           >
-                            Gérer l'abonnement
-                            <ArrowRight className="w-4 h-4" />
-                          </Link>
-                          <div className="px-6 py-3 bg-white/5 border border-white/5 text-gray-300 font-bold rounded-2xl cursor-not-allowed">
-                            Changer de plan
-                          </div>
+                            {req.label}
+                          </span>
                         </div>
-                      </div>
-                      <div className="absolute top-1/2 right-10 -translate-y-1/2 opacity-5 scale-150 rotate-12 group-hover:opacity-10 group-hover:scale-175 transition-all duration-1000">
-                        <Zap className="w-48 h-48 text-purple-400" />
-                      </div>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="w-full md:w-80 space-y-6">
-                    <div className="bg-gray-950/20 border border-gray-800/60 rounded-3xl p-8 space-y-6">
-                      <h4 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2">
-                        <SettingsIcon className="w-4 h-4 text-cyan-500" />
-                        PROCHAIN PRÉLÈVEMENT
-                      </h4>
-                      <div>
-                        <p className="text-3xl font-black text-white">$49.00</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Prévu pour le 1 Mai 2026
-                        </p>
-                      </div>
-                      <div className="h-px bg-gray-800" />
-                      <div className="space-y-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">
-                            Moyen de paiement
-                          </span>
-                          <span className="text-white font-bold">
-                            •••• 4242
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">
-                            Dernière facture
-                          </span>
-                          <span className="text-cyan-400 font-bold underline cursor-pointer">
-                            PDF #812
-                          </span>
-                        </div>
-                      </div>
+                  {passwordMessage && (
+                    <div
+                      className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold max-w-2xl ${
+                        passwordMessage.type === "success"
+                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                          : "bg-red-500/10 text-red-400 border border-red-500/20"
+                      }`}
+                    >
+                      {passwordMessage.type === "success" ? (
+                        <CheckCircle2 className="w-4 h-4" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4" />
+                      )}{" "}
+                      {passwordMessage.text}
                     </div>
-                  </div>
-                </section>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="px-10 py-5 bg-amber-500 hover:bg-amber-400 text-black font-black rounded-3xl transition-all shadow-xl shadow-amber-500/10 uppercase tracking-widest text-xs flex items-center gap-3"
+                  >
+                    {passwordLoading && (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    )}
+                    Mettre à jour la sécurité
+                  </button>
+                </form>
+              </section>
+            </div>
+          )}
+
+          {(activeTab === "notifications" || activeTab === "facturation") && (
+            <div className="flex flex-col items-center justify-center p-20 bg-[#0B0D13] border border-gray-800/60 rounded-[3rem] space-y-6">
+              <Zap className="w-16 h-16 text-cyan-500/20 animate-pulse" />
+              <div className="text-center">
+                <h3 className="text-2xl font-black text-white uppercase tracking-widest">
+                  Bientôt Disponible
+                </h3>
+                <p className="text-gray-500 font-medium">
+                  Cette section est en cours de développement.
+                </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

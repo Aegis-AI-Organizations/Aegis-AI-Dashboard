@@ -11,7 +11,8 @@ import {
 import { useAuthStore } from "../../store/AuthStore";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { useNavigate } from "react-router-dom";
-import { getInitials, getAvatarContent } from "../../utils/user";
+import { getInitials } from "../../utils/user";
+import { ProfileCircle } from "../ui/ProfileCircle";
 
 const navItems = [
   {
@@ -120,17 +121,7 @@ export const Sidebar: React.FC = () => {
           isExpanded ? "opacity-100" : "opacity-0 h-0 hidden"
         }`}
       >
-        <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold shadow-inner overflow-hidden border border-white/5">
-          {getAvatarContent(user || undefined).type === "image" ? (
-            <img
-              src={user?.avatar_url}
-              alt={user?.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            getInitials(user?.name, user?.email)
-          )}
-        </div>
+        <ProfileCircle size="sm" />
         <div className="flex flex-col whitespace-nowrap">
           <span className="text-sm font-bold text-white tracking-tight">
             {user?.name || user?.email?.split("@")[0] || "Administrateur"}
