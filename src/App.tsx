@@ -9,7 +9,6 @@ import { Login } from "./pages/Login";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleRoute } from "./components/auth/RoleRoute";
 import { AuthHydrator } from "./components/auth/AuthHydrator";
-import { Administration } from "./pages/Administration";
 
 function App() {
   return (
@@ -25,15 +24,14 @@ function App() {
             <Route path="/vulnerabilities" element={<Vulnerabilities />} />
             <Route path="/monitoring/:scanId" element={<Dashboard />} />
 
-            {/* Admin & SuperAdmin & Commercial Only */}
+            {/* Management Routes */}
             <Route
               element={
                 <RoleRoute
-                  allowedRoles={["admin", "superadmin", "commercial"]}
+                  allowedRoles={["admin", "superadmin", "commercial", "owner"]}
                 />
               }
             >
-              <Route path="/administration" element={<Administration />} />
               <Route path="/users" element={<Users />} />
               <Route path="/billing" element={<Billing />} />
             </Route>

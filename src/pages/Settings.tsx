@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Camera,
   Trash2,
+  Copy,
 } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
@@ -336,9 +337,26 @@ export const Settings: React.FC = () => {
                       <h2 className="text-4xl font-black text-white tracking-tight">
                         {user?.name || "Aegis User"}
                       </h2>
-                      <p className="text-gray-500 font-bold tracking-wide uppercase text-sm">
-                        {user?.email}
-                      </p>
+                      <div className="flex flex-col gap-1">
+                        <p className="text-gray-500 font-bold tracking-wide uppercase text-sm">
+                          {user?.email}
+                        </p>
+                        <div className="flex items-center gap-2 group/id transition-all">
+                          <code className="text-[10px] font-mono text-gray-600 bg-gray-900/50 px-2 py-0.5 rounded-md border border-gray-800/40">
+                            ID: {user?.id}
+                          </code>
+                          <button
+                            onClick={() => {
+                              if (user?.id)
+                                navigator.clipboard.writeText(user.id);
+                            }}
+                            className="p-1 text-gray-700 hover:text-cyan-500 transition-colors"
+                            title="Copier l'ID"
+                          >
+                            <Copy className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                     <div className="flex flex-wrap justify-center md:justify-start gap-4">
                       <RoleBadge role={user?.role || "viewer"} />
