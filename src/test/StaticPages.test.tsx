@@ -1,7 +1,19 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Settings } from "../pages/Settings";
 import { Users } from "../pages/Users";
+import { MemoryRouter } from "react-router-dom";
+
+// Mock the AuthStore to provide a default user for rendering
+vi.mock("../store/AuthStore", () => ({
+  useAuthStore: (fn?: any) => {
+    const state = {
+      user: { name: "Test User", email: "test@example.com", role: "admin" },
+      accessToken: "fake-token",
+    };
+    return fn ? fn(state) : state;
+  },
+}));
 
 describe("static pages", () => {
   it("renders users page", () => {
@@ -14,9 +26,15 @@ describe("static pages", () => {
   });
 
   it("renders settings page", () => {
-    render(<Settings />);
+    render(
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>,
+    );
     expect(
-      screen.getByText("Gérez votre compte et vos préférences de sécurité."),
+      screen.getByText(
+        "Personnalisez votre espace de travail, gérez vos identifiants et supervisez votre abonnement.",
+      ),
     ).toBeInTheDocument();
   });
 });

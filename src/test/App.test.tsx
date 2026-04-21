@@ -48,9 +48,12 @@ describe("App routes", () => {
     ["/monitoring/scan-1", "dashboard-page"],
   ])("renders %s when authenticated", (entry, expectedText) => {
     // Set authenticated state
-    useAuthStore
-      .getState()
-      .setAuth("fake-token", { email: "test@aegis.ai", role: "admin" } as any);
+    useAuthStore.getState().setAuth("fake-token", {
+      id: "1",
+      name: "Test User",
+      email: "test@aegis.ai",
+      role: "admin",
+    } as any);
 
     render(
       <MemoryRouter initialEntries={[entry]}>
