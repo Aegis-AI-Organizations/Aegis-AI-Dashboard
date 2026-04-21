@@ -1,8 +1,8 @@
-# 🎛️ Aegis AI — Analyst Dashboard
+# Aegis AI — Analyst Dashboard
 
 **Project ID:** AEGIS-CORE-2026
 
-> The **Aegis AI Dashboard** is the primary command and control interface for security analysts. A high-performance **React 18** application that provides real-time visualization of orchestrated pentests, vulnerability intelligence, and automated remediation workflows.
+The Aegis AI Dashboard is the primary command and control interface for security analysts. A high-performance React 18 application that provides real-time visualization of orchestrated pentests, vulnerability intelligence, and automated remediation workflows.
 
 ---
 
@@ -16,9 +16,9 @@ The Dashboard handles all user-facing interactions and visualizes the massive da
 
 ```mermaid
 graph LR
-    User([Analyst]) -- "HTTPS / OIDC" --> Dashboard[Dashboard (React)]
-    Dashboard -- "REST / SSE" --> Gateway[API Gateway]
-    Gateway -- "gRPC / mTLS" --> Brain[Brain Orchestrator]
+    User([Analyst]) -- "HTTPS / OIDC" --> Dashboard["Dashboard (React)"]
+    Dashboard -- "REST / SSE" --> Gateway["API Gateway"]
+    Gateway -- "gRPC / mTLS" --> Brain["Brain Orchestrator"]
 ```
 
 ---

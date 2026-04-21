@@ -38,7 +38,7 @@ describe("Login Page", () => {
   });
 
   it("should handle successful login and redirect", async () => {
-    const mockUser = { id: "1", email: "test@aegis.ai" };
+    const mockUser = { id: "1", email: "test@aegis.ai", name: "Test User" };
     vi.mocked(api.post).mockResolvedValueOnce({
       data: { access_token: "jwt", user: mockUser },
     });
