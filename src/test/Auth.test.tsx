@@ -38,6 +38,7 @@ describe("Authentication Infrastructure", () => {
     const mockUser = {
       id: "1",
       email: "test@aegis.ai",
+      name: "Test User",
       company_id: "corp1",
       role: "admin",
     };
@@ -52,7 +53,7 @@ describe("Authentication Infrastructure", () => {
   });
 
   it("should clear state when clearAuth is called", () => {
-    useAuthStore.getState().setAuth("token", { id: "1" } as any);
+    useAuthStore.getState().setAuth("token", { id: "1", name: "Test" } as any);
     useAuthStore.getState().clearAuth();
 
     const state = useAuthStore.getState();
@@ -62,7 +63,9 @@ describe("Authentication Infrastructure", () => {
 
   it("should inject Authorization header in API requests when token exists", async () => {
     const mockToken = "secret-jwt";
-    useAuthStore.getState().setAuth(mockToken, { id: "1" } as any);
+    useAuthStore
+      .getState()
+      .setAuth(mockToken, { id: "1", name: "Test" } as any);
 
     // Test the request interceptor directly via the exported function
     const config = await requestInterceptor({ headers: {} } as any);
@@ -81,7 +84,9 @@ describe("Authentication Infrastructure", () => {
     it("should attempt to refresh token on 401 error", async () => {
       const mockToken = "old-token";
       const newToken = "new-token";
-      useAuthStore.getState().setAuth(mockToken, { id: "1" } as any);
+      useAuthStore
+        .getState()
+        .setAuth(mockToken, { id: "1", name: "Test" } as any);
 
       // Mock refresh call success
       vi.mocked(axios.post).mockResolvedValueOnce({
@@ -113,7 +118,9 @@ describe("Authentication Infrastructure", () => {
 
     it("should redirect to login when refresh fails", async () => {
       const mockToken = "old-token";
-      useAuthStore.getState().setAuth(mockToken, { id: "1" } as any);
+      useAuthStore
+        .getState()
+        .setAuth(mockToken, { id: "1", name: "Test" } as any);
 
       // Mock refresh call failure
       vi.mocked(axios.post).mockRejectedValueOnce(new Error("Refresh failed"));
