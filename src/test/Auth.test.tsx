@@ -44,7 +44,7 @@ describe("Authentication Infrastructure", () => {
     };
     const mockToken = "fake-jwt-token";
 
-    useAuthStore.getState().setAuth(mockToken, mockUser);
+    useAuthStore.getState().setAuth(mockToken, mockUser as any);
 
     const state = useAuthStore.getState();
     expect(state.accessToken).toBe(mockToken);

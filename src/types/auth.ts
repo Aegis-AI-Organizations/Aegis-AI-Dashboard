@@ -1,9 +1,21 @@
+export type UserRole =
+  | "superadmin"
+  | "admin"
+  | "billing_aegis"
+  | "technicien"
+  | "support"
+  | "commercial"
+  | "owner"
+  | "billing_client"
+  | "operateur"
+  | "viewer";
+
 export interface User {
   id: string;
   email: string;
   name: string;
   company_id: string;
-  role: string;
+  role: UserRole;
   avatar_url?: string;
 }
 

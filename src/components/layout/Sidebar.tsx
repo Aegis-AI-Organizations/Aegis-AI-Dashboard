@@ -12,37 +12,68 @@ import { useAuthStore } from "../../store/AuthStore";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { useNavigate } from "react-router-dom";
 import { ProfileCircle } from "../ui/ProfileCircle";
+import { RoleBadge } from "../ui/RoleBadge";
 
 const navItems = [
   {
     icon: LayoutDashboard,
     label: "Tableau de Bord",
     path: "/",
-    roles: ["admin", "superadmin", "operator", "viewer"],
+    roles: [
+      "superadmin",
+      "admin",
+      "billing_aegis",
+      "technicien",
+      "support",
+      "commercial",
+      "owner",
+      "billing_client",
+      "operateur",
+      "viewer",
+    ],
   },
   {
     icon: History,
     label: "Historique des Scans",
     path: "/vulnerabilities",
-    roles: ["admin", "superadmin", "operator", "viewer"],
+    roles: [
+      "superadmin",
+      "admin",
+      "technicien",
+      "support",
+      "owner",
+      "operateur",
+      "viewer",
+    ],
   },
   {
     icon: Users,
     label: "Équipe",
     path: "/users",
-    roles: ["admin", "superadmin"],
+    roles: ["superadmin", "admin", "owner"],
   },
   {
     icon: Shield,
     label: "Facturation",
     path: "/billing",
-    roles: ["admin", "superadmin"],
+    roles: ["superadmin", "admin", "billing_aegis", "owner", "billing_client"],
   },
   {
     icon: Settings,
     label: "Paramètres",
     path: "/settings",
-    roles: ["admin", "superadmin", "operator"],
+    roles: [
+      "superadmin",
+      "admin",
+      "billing_aegis",
+      "technicien",
+      "support",
+      "commercial",
+      "owner",
+      "billing_client",
+      "operateur",
+      "viewer",
+    ],
   },
 ];
 
@@ -125,9 +156,7 @@ export const Sidebar: React.FC = () => {
           <span className="text-sm font-bold text-white tracking-tight">
             {user?.name || user?.email?.split("@")[0] || "Administrateur"}
           </span>
-          <span className="text-[10px] font-black text-cyan-500 uppercase tracking-tighter">
-            {user?.role || "Viewer"}
-          </span>
+          <RoleBadge role={user?.role || "viewer"} showIcon={false} />
         </div>
         <button
           onClick={() => setIsLogoutModalOpen(true)}

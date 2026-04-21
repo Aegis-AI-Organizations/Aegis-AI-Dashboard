@@ -19,6 +19,7 @@ import { api } from "../api/Axios";
 import { getPasswordError } from "../utils/validation";
 import { ProfileCircle } from "../components/ui/ProfileCircle";
 import { PasswordPromptModal } from "../components/ui/PasswordPromptModal";
+import { RoleBadge } from "../components/ui/RoleBadge";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
@@ -255,9 +256,7 @@ export const Settings: React.FC = () => {
         </div>
         <div className="flex items-center gap-3 px-5 py-2.5 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl">
           <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
-          <span className="text-xs font-black text-cyan-400 uppercase tracking-widest">
-            Connecté en tant que {user?.role}
-          </span>
+          <RoleBadge role={user?.role || "viewer"} />
         </div>
       </div>
 
@@ -328,9 +327,7 @@ export const Settings: React.FC = () => {
                       </p>
                     </div>
                     <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                      <div className="px-4 py-1.5 bg-gray-800/60 rounded-full text-[10px] font-black text-gray-400 uppercase tracking-widest border border-gray-700/50">
-                        {user?.role}
-                      </div>
+                      <RoleBadge role={user?.role || "viewer"} />
                       <button
                         onClick={() => fileInputRef.current?.click()}
                         className="text-[10px] font-black text-cyan-500 hover:text-cyan-400 uppercase tracking-widest transition-colors flex items-center gap-2"
@@ -476,7 +473,12 @@ export const Settings: React.FC = () => {
                   },
                   {
                     label: "Rôle Actuel",
-                    value: user?.role || "Chargement...",
+                    value: (
+                      <RoleBadge
+                        role={user?.role || "viewer"}
+                        showIcon={false}
+                      />
+                    ),
                     icon: Shield,
                     color: "text-cyan-500",
                   },
