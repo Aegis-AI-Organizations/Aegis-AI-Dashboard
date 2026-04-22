@@ -46,6 +46,12 @@ const mockUsers = [
 describe("Users Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock navigator.clipboard
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn(),
+      },
+    });
     useAuthStore
       .getState()
       .setAuth("token", { id: "su-1", role: "superadmin" } as any);
@@ -183,6 +189,18 @@ describe("Users Page", () => {
     await waitFor(() => {
       expect(screen.getByText("Onboarding Réussi !")).toBeInTheDocument();
     });
+
+    // Test clipboard copy
+    const copyButton = screen.getByText("Copier le Token");
+    const writeTextSpy = vi
+      .spyOn(navigator.clipboard, "writeText")
+      .mockResolvedValue();
+    fireEvent.click(copyButton);
+    expect(writeTextSpy).toHaveBeenCalledWith("new-token");
+
+    // Test close modal
+    fireEvent.click(screen.getByText("Terminer"));
+    expect(screen.queryByText("Onboarding Réussi !")).toBeNull();
   });
 
   it("opens and handles user creation modal", async () => {

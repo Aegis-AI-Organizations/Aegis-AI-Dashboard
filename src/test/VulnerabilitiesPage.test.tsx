@@ -13,18 +13,30 @@ vi.mock("../components/PentestAccordion", () => ({
   PentestAccordion: ({
     scan,
     defaultOpen,
+    onSelectVulnerability,
   }: {
     scan: { id: string };
     defaultOpen?: boolean;
+    onSelectVulnerability: (v: any) => void;
   }) => (
     <div>
       accordion-{scan.id}-{String(defaultOpen)}
+      <button
+        onClick={() => onSelectVulnerability({ id: "v-1", title: "Vuln 1" })}
+      >
+        Select Vuln
+      </button>
     </div>
   ),
 }));
 
 vi.mock("../components/VulnerabilityDetailsDrawer", () => ({
-  VulnerabilityDetailsDrawer: () => <div>drawer</div>,
+  VulnerabilityDetailsDrawer: ({ onClose }: { onClose: () => void }) => (
+    <div>
+      drawer
+      <button onClick={onClose}>Close Drawer</button>
+    </div>
+  ),
 }));
 
 describe("Vulnerabilities page", () => {
@@ -108,5 +120,60 @@ describe("Vulnerabilities page", () => {
     );
 
     expect(screen.getByText("accordion-scan-1-true")).toBeInTheDocument();
+  });
+
+  it("filters scans via search query", () => {
+    useScans.mockReturnValue({
+      isLoading: false,
+      error: null,
+      scans: [
+        {
+          id: "scan-1",
+          target_image: "ubuntu:latest",
+          started_at: "2025-01-01",
+        },
+        {
+          id: "scan-2",
+          target_image: "nginx:latest",
+          started_at: "2025-01-02",
+        },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <Vulnerabilities />
+      </MemoryRouter>,
+    );
+
+    const searchInput = screen.getByPlaceholderText(
+      "Rechercher une cible, un ID...",
+    );
+    fireEvent.change(searchInput, { target: { value: "nginx" } });
+
+    expect(screen.getByText("accordion-scan-2-true")).toBeInTheDocument();
+    expect(screen.queryByText("accordion-scan-1-true")).toBeNull();
+  });
+
+  it("opens and closes the vulnerability drawer", () => {
+    useScans.mockReturnValue({
+      isLoading: false,
+      error: null,
+      scans: [
+        { id: "scan-1", target_image: "ubuntu", started_at: "2025-01-01" },
+      ],
+    });
+
+    render(
+      <MemoryRouter>
+        <Vulnerabilities />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText("Select Vuln"));
+    expect(screen.getByText("drawer")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Close Drawer"));
+    expect(screen.queryByText("drawer")).toBeNull();
   });
 });
