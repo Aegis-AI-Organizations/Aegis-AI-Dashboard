@@ -134,7 +134,7 @@ describe("Users Page", () => {
   });
 
   it("toggles company expansion and avoids re-fetching if members exist", async () => {
-    const { rerender } = render(
+    render(
       <MemoryRouter>
         <Users />
       </MemoryRouter>,

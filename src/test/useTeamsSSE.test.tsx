@@ -18,7 +18,7 @@ class MockEventSource {
   close = vi.fn();
 }
 
-(global as any).EventSource = MockEventSource;
+vi.stubGlobal("EventSource", MockEventSource);
 
 const TestComponent: React.FC<{ onUpdate: () => void }> = ({ onUpdate }) => {
   useTeamsSSE(onUpdate);
