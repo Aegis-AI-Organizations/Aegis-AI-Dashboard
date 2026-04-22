@@ -15,6 +15,9 @@ vi.mock("../api/Axios", () => ({
   api: {
     get: vi.fn(),
     post: vi.fn(),
+    defaults: {
+      baseURL: "http://api.aegis.pre-alpha.local:32564",
+    },
   },
 }));
 
