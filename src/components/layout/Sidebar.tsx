@@ -7,6 +7,7 @@ import {
   Settings,
   Shield,
   LogOut,
+  Gavel,
 } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
@@ -51,6 +52,12 @@ const navItems = [
     label: "Équipe",
     path: "/users",
     roles: ["superadmin", "admin", "owner"],
+  },
+  {
+    icon: Gavel,
+    label: "Administration",
+    path: "/administration",
+    roles: ["superadmin", "admin"],
   },
   {
     icon: Shield,

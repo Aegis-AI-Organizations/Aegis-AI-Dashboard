@@ -1,307 +1,268 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
+  ShieldAlert,
+  Search,
   Building2,
   UserPlus,
-  Mail,
-  Key,
-  ShieldCheck,
-  Zap,
-  CheckCircle2,
-  Copy,
-  Terminal,
+  History,
+  Info,
+  Calendar,
+  User,
+  Activity,
+  ArrowRight,
   Loader2,
   AlertCircle,
+  Copy,
+  Download,
 } from "lucide-react";
+import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
+import { RoleBadge } from "../components/ui/RoleBadge";
+import { ProfileCircle } from "../components/ui/ProfileCircle";
+
+interface AuditLog {
+  id: string;
+  user_id: string;
+  company_id: string;
+  action: string;
+  target_type: string;
+  target_id: string;
+  details: string; // JSON string
+  ip_address: string;
+  timestamp: string;
+}
 
 export const Administration: React.FC = () => {
-  const [loading, setLoading] = useState(false);
-  const [successData, setSuccessData] = useState<{
-    company_id: string;
-    owner_id: string;
-    deployment_token: string;
-    company_name: string;
-  } | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { user: currentUser } = useAuthStore();
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
+  const [limit] = useState(50);
+  const [offset, setOffset] = useState(0);
 
-  // Form states
-  const [companyName, setCompanyName] = useState("");
-  const [ownerName, setOwnerName] = useState("");
-  const [ownerEmail, setOwnerEmail] = useState("");
-  const [ownerPassword, setOwnerPassword] = useState("");
-
-  const handleOnboard = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchLogs = async () => {
     setLoading(true);
-    setError(null);
     try {
-      const { data } = await api.post("/companies/onboard", {
-        company_name: companyName,
-        owner_name: ownerName,
-        owner_email: ownerEmail,
-        owner_password: ownerPassword,
-      });
-      setSuccessData({
-        ...data,
-        company_name: companyName,
-      });
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Erreur lors de l'onboarding");
+      const { data } = await api.get(
+        `/admin/audit-logs?limit=${limit}&offset=${offset}`,
+      );
+      setLogs(data.logs || []);
+      setTotal(data.total || 0);
+    } catch (err) {
+      console.error("Failed to fetch audit logs", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  useEffect(() => {
+    fetchLogs();
+  }, [offset]);
+
+  const parseDetails = (detailsStr: string) => {
+    try {
+      return JSON.parse(detailsStr);
+    } catch (e) {
+      return detailsStr;
+    }
   };
 
-  if (successData) {
-    return (
-      <div className="max-w-4xl mx-auto space-y-8 animate-in zoom-in-95 duration-500">
-        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-[3rem] p-12 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] pointer-events-none" />
-          <div className="relative z-10 space-y-6">
-            <div className="w-20 h-20 rounded-3xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mx-auto mb-4">
-              <CheckCircle2 className="w-10 h-10" />
-            </div>
-            <h1 className="text-4xl font-black text-white tracking-tight">
-              Onboarding Réussi !
-            </h1>
-            <p className="text-gray-400 font-bold max-w-md mx-auto">
-              L'entreprise{" "}
-              <span className="text-emerald-400">
-                {successData.company_name}
-              </span>{" "}
-              a été créée avec succès.
-            </p>
-          </div>
+  const getActionColor = (action: string) => {
+    if (action.includes("CREATE"))
+      return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+    if (action.includes("START"))
+      return "text-cyan-400 bg-cyan-500/10 border-cyan-500/20";
+    if (action.includes("STOP") || action.includes("DELETE"))
+      return "text-red-400 bg-red-500/10 border-red-500/20";
+    return "text-gray-400 bg-gray-500/10 border-gray-500/20";
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
+        <div className="space-y-3">
+          <h1 className="text-5xl font-black text-white tracking-tighter">
+            Administration
+          </h1>
+          <p className="text-gray-500 font-bold text-lg max-w-xl leading-relaxed">
+            Centre de contrôle global du système. Gérez les entités et
+            surveillez les actions critiques via l'Audit Trail.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Identifiants */}
-          <div className="bg-[#0B0D13] border border-gray-800/60 rounded-[2.5rem] p-8 space-y-6 shadow-xl">
-            <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-cyan-500" /> Informations
-              Client
-            </h2>
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-900/40 rounded-2xl border border-gray-800/40 group">
-                <p className="text-[10px] font-black text-gray-600 uppercase mb-1">
-                  ID Entreprise
-                </p>
-                <div className="flex items-center justify-between">
-                  <code className="text-cyan-400 font-mono text-sm break-all">
-                    {successData.company_id}
-                  </code>
-                  <button
-                    onClick={() => copyToClipboard(successData.company_id)}
-                    className="text-gray-500 hover:text-white p-1"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="p-4 bg-gray-900/40 rounded-2xl border border-gray-800/40">
-                <p className="text-[10px] font-black text-gray-600 uppercase mb-1">
-                  ID Propriétaire
-                </p>
-                <div className="flex items-center justify-between">
-                  <code className="text-gray-300 font-mono text-sm break-all">
-                    {successData.owner_id}
-                  </code>
-                  <button
-                    onClick={() => copyToClipboard(successData.owner_id)}
-                    className="text-gray-500 hover:text-white p-1"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-wrap gap-4">
+          <button
+            onClick={() => (window.location.href = "/users?action=new-user")}
+            className="px-6 py-3.5 bg-white text-black font-black rounded-2xl flex items-center gap-3 hover:bg-gray-200 transition-all shadow-xl shadow-white/5 uppercase tracking-widest text-xs"
+          >
+            <UserPlus className="w-4 h-4" />
+            Nouveau Collaborateur
+          </button>
+          <button
+            onClick={() => (window.location.href = "/users?action=new-company")}
+            className="px-6 py-3.5 bg-cyan-600 text-white font-black rounded-2xl flex items-center gap-3 hover:bg-cyan-500 transition-all shadow-xl shadow-cyan-600/20 uppercase tracking-widest text-xs"
+          >
+            <Building2 className="w-4 h-4" />
+            Nouvelle Entreprise
+          </button>
+        </div>
+      </div>
 
-          {/* Token de Déploiement */}
-          <div className="bg-gradient-to-br from-[#0B0D13] to-[#151921] border border-cyan-500/20 rounded-[2.5rem] p-8 space-y-6 shadow-2xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 blur-[60px] group-hover:bg-cyan-500/20 transition-all" />
-            <h2 className="text-xs font-black text-cyan-500 uppercase tracking-widest flex items-center gap-2">
-              <Terminal className="w-4 h-4" /> Token de Déploiement
-            </h2>
-            <p className="text-gray-400 text-sm font-medium leading-relaxed">
-              Ce token est nécessaire pour l'installation de la sonde Rust
-              (Aegis Agent).
-              <span className="text-amber-500/80 font-bold block mt-2">
-                Attention : Gardez-le précieusement.
-              </span>
-            </p>
-            <div className="p-5 bg-black/40 rounded-2xl border border-cyan-500/30 flex flex-col gap-3">
-              <code className="text-white font-mono text-lg break-all">
-                {successData.deployment_token}
-              </code>
+      {/* Audit Trail Section */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
+            <History className="w-4 h-4" /> Journal d'Audit (Audit Trail)
+          </h2>
+          <div className="flex items-center gap-4 text-xs font-bold text-gray-600">
+            <span>Total: {total} logs</span>
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => copyToClipboard(successData.deployment_token)}
-                className="w-full py-3 bg-cyan-500 text-white font-black rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-400 transition-all text-xs"
+                onClick={() => setOffset(Math.max(0, offset - limit))}
+                disabled={offset === 0}
+                className="p-2 hover:text-white disabled:opacity-30 transition-colors"
               >
-                <Copy className="w-3.5 h-3.5" /> Copier le token
+                Précédent
+              </button>
+              <span className="text-gray-400">
+                {Math.floor(offset / limit) + 1} /{" "}
+                {Math.ceil(total / limit) || 1}
+              </span>
+              <button
+                onClick={() => setOffset(offset + limit)}
+                disabled={offset + limit >= total}
+                className="p-2 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                Suivant
               </button>
             </div>
           </div>
         </div>
 
-        <button
-          onClick={() => setSuccessData(null)}
-          className="w-full py-5 bg-gray-800/20 hover:bg-gray-800/40 text-gray-400 font-black rounded-[2rem] transition-all uppercase tracking-[0.2em] text-xs border border-gray-800/40"
-        >
-          Créer un autre Client
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">
-      <div className="space-y-4">
-        <h1 className="text-5xl font-black text-white tracking-tighter">
-          Administration
-        </h1>
-        <p className="text-gray-500 font-bold text-lg max-w-2xl leading-relaxed">
-          Bienvenue dans le portail d'onboarding Aegis. Créez manuellement les
-          entités entreprises et les comptes propriétaires pour vos nouveaux
-          clients.
-        </p>
-      </div>
-
-      <div className="bg-[#0B0D13] border border-gray-800/60 rounded-[3.5rem] p-12 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 blur-[120px] pointer-events-none" />
-
-        <form onSubmit={handleOnboard} className="relative z-10 space-y-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {/* Left: Company Details */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-4 text-cyan-500 mb-2">
-                <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
-                  <Building2 className="w-5 h-5" />
-                </div>
-                <h3 className="font-black uppercase tracking-widest text-xs">
-                  Entreprise
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">
-                    Nom de l'entreprise
-                  </label>
-                  <input
-                    required
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="ex: Global CyberSec Inc."
-                    className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold placeholder:text-gray-700"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Owner Details */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-4 text-indigo-500 mb-2">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                  <UserPlus className="w-5 h-5" />
-                </div>
-                <h3 className="font-black uppercase tracking-widest text-xs">
-                  Propriétaire (Owner)
-                </h3>
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">
-                    Nom complet
-                  </label>
-                  <div className="relative">
-                    <input
-                      required
-                      value={ownerName}
-                      onChange={(e) => setOwnerName(e.target.value)}
-                      placeholder="Jean Dupont"
-                      className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl pl-12 pr-6 py-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold placeholder:text-gray-700"
-                    />
-                    <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">
-                    Email professionnel
-                  </label>
-                  <div className="relative">
-                    <input
-                      required
-                      type="email"
-                      value={ownerEmail}
-                      onChange={(e) => setOwnerEmail(e.target.value)}
-                      placeholder="client@entreprise.com"
-                      className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl pl-12 pr-6 py-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold placeholder:text-gray-700"
-                    />
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">
-                    Mot de passe initial
-                  </label>
-                  <div className="relative">
-                    <input
-                      required
-                      type="password"
-                      value={ownerPassword}
-                      onChange={(e) => setOwnerPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl pl-12 pr-6 py-4 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-bold placeholder:text-gray-700"
-                    />
-                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div className="bg-[#0B0D13] border border-gray-800/60 rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-gray-800/60 bg-black/20">
+                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                    Date & Heure
+                  </th>
+                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                    Acteur
+                  </th>
+                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                    Action
+                  </th>
+                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                    Cible
+                  </th>
+                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                    IP Address
+                  </th>
+                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">
+                    Détails
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800/40">
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td
+                        colSpan={6}
+                        className="px-8 py-6 h-16 bg-gray-900/10"
+                      ></td>
+                    </tr>
+                  ))
+                ) : logs.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="px-8 py-20 text-center text-gray-600 italic"
+                    >
+                      Aucune activité enregistrée dans le journal.
+                    </td>
+                  </tr>
+                ) : (
+                  logs.map((log) => (
+                    <tr
+                      key={log.id}
+                      className="hover:bg-white/[0.02] transition-colors group"
+                    >
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-gray-300">
+                            {new Date(log.timestamp).toLocaleDateString()}
+                          </span>
+                          <span className="text-[10px] font-black text-gray-600 uppercase">
+                            {new Date(log.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-500">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-black text-white font-mono">
+                              {log.user_id.substring(0, 8)}...
+                            </span>
+                            <span className="text-[9px] font-bold text-gray-600 uppercase">
+                              SuperAdmin
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span
+                          className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getActionColor(
+                            log.action,
+                          )}`}
+                        >
+                          {log.action.replace(/_/g, " ")}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-gray-400">
+                            {log.target_type}
+                          </span>
+                          <span className="text-[10px] font-mono text-gray-600">
+                            {log.target_id.substring(0, 12)}...
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className="text-xs font-mono text-gray-500">
+                          {log.ip_address || "Internal"}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <button
+                          className="p-2 text-gray-600 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-xl transition-all"
+                          title="Voir les détails JSON"
+                          onClick={() =>
+                            alert(
+                              JSON.stringify(
+                                parseDetails(log.details),
+                                null,
+                                2,
+                              ),
+                            )
+                          }
+                        >
+                          <Info className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex items-center gap-3 text-red-500 text-sm font-black">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="group relative w-full py-6 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-3xl transition-all shadow-2xl shadow-cyan-500/30 overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            <div className="relative z-10 flex items-center justify-center gap-4 uppercase tracking-[0.2em] text-sm">
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  <Zap className="w-5 h-5 fill-white" />
-                  Finaliser l'Onboarding
-                </>
-              )}
-            </div>
-          </button>
-        </form>
-      </div>
-
-      {/* Helper Footer */}
-      <div className="flex items-center justify-center gap-10 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
-        <Building2 className="w-8 h-8 text-gray-500" />
-        <div className="h-4 w-px bg-gray-800" />
-        <UserPlus className="w-8 h-8 text-gray-500" />
-        <div className="h-4 w-px bg-gray-800" />
-        <Terminal className="w-8 h-8 text-gray-500" />
+        </div>
       </div>
     </div>
   );

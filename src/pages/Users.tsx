@@ -61,6 +61,20 @@ export const Users: React.FC = () => {
   const [isNewUserOpen, setIsNewUserOpen] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
 
+  // Handle auto-open modals from search params
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (action === "new-company") {
+      setIsNewCompanyOpen(true);
+      searchParams.delete("action");
+      setSearchParams(searchParams);
+    } else if (action === "new-user") {
+      setIsNewUserOpen(true);
+      searchParams.delete("action");
+      setSearchParams(searchParams);
+    }
+  }, [searchParams, setSearchParams]);
+
   const fetchCompanies = useCallback(async (query: string = "") => {
     setLoading(true);
     try {
@@ -166,13 +180,9 @@ export const Users: React.FC = () => {
     navigator.clipboard.writeText(text);
   };
 
-  // RBAC Helpers
-  const canCreateCompany = ["superadmin", "admin", "commercial"].includes(
-    currentUser?.role || "",
-  );
-  const canCreateUser = ["superadmin", "admin", "owner"].includes(
-    currentUser?.role || "",
-  );
+  // RBAC Helpers - Admins/SuperAdmins use the Administration page for these
+  const canCreateCompany = false; // Only in Admin page now
+  const canCreateUser = currentUser?.role === "owner"; // Owners still create users in Team page
 
   return (
     <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">
