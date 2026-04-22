@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AuthHydrator } from "../components/auth/AuthHydrator";
 import { api } from "../api/Axios";
 import { useAuthStore } from "../store/AuthStore";
-import React from "react";
 
 vi.mock("../api/Axios", () => ({
   api: {

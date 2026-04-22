@@ -22,6 +22,7 @@ let mockState = {
     name: "Enzo Gaggiotti",
     email: "enzo@aegis.ai",
     role: "admin",
+    avatar_url: "",
   },
   accessToken: "fake-jwt",
   setAuth: mockSetAuth,
@@ -42,6 +43,7 @@ describe("Settings Page", () => {
         name: "Enzo Gaggiotti",
         email: "enzo@aegis.ai",
         role: "admin",
+        avatar_url: "",
       },
       accessToken: "fake-jwt",
       setAuth: mockSetAuth,
@@ -323,6 +325,7 @@ describe("Settings Page", () => {
         email: "enzo@aegis.ai",
         role: "admin",
         name: "John Doe",
+        avatar_url: "",
       },
     };
 

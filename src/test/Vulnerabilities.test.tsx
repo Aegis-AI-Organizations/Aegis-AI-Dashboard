@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Vulnerabilities } from "../pages/Vulnerabilities";
 import { useScans } from "../hooks/useScans";
@@ -11,6 +11,7 @@ vi.mock("../hooks/useScans", () => ({
 const mockScans = [
   {
     id: "scan-1",
+    temporal_workflow_id: "wf-1",
     target_image: "nginx:latest",
     status: "COMPLETED",
     vulnerabilities_count: {
@@ -43,6 +44,7 @@ describe("Vulnerabilities Page", () => {
       scans: [],
       isLoading: true,
       error: null,
+      refetch: vi.fn() as any,
     });
     render(
       <MemoryRouter>
@@ -57,6 +59,7 @@ describe("Vulnerabilities Page", () => {
       scans: [],
       isLoading: false,
       error: "Failed to fetch",
+      refetch: vi.fn() as any,
     });
     render(
       <MemoryRouter>
@@ -68,9 +71,10 @@ describe("Vulnerabilities Page", () => {
 
   it("renders scans list and handles search", async () => {
     vi.mocked(useScans).mockReturnValue({
-      scans: mockScans,
+      scans: mockScans as any,
       isLoading: false,
       error: null,
+      refetch: vi.fn() as any,
     });
     render(
       <MemoryRouter>
@@ -100,9 +104,10 @@ describe("Vulnerabilities Page", () => {
       target_image: `image-${i}`,
     }));
     vi.mocked(useScans).mockReturnValue({
-      scans: manyScans,
+      scans: manyScans as any,
       isLoading: false,
       error: null,
+      refetch: vi.fn() as any,
     });
 
     render(
