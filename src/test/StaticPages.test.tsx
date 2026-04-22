@@ -17,7 +17,11 @@ vi.mock("../store/AuthStore", () => ({
 
 describe("static pages", () => {
   it("renders users page", () => {
-    render(<Users />);
+    render(
+      <MemoryRouter>
+        <Users />
+      </MemoryRouter>,
+    );
     expect(screen.getByText("Équipes")).toBeInTheDocument();
     expect(
       screen.getByText(

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { useSearchParams, useLocation } from "react-router-dom";
 import {
   Search,
   Filter,
@@ -8,16 +9,19 @@ import {
 } from "lucide-react";
 import { PentestAccordion } from "../components/PentestAccordion";
 import { VulnerabilityDetailsDrawer } from "../components/VulnerabilityDetailsDrawer";
-import { useLocation } from "react-router-dom";
 import { useScans } from "../hooks/useScans";
 import type { Vulnerability } from "../types/vulnerability";
 
 export const Vulnerabilities: React.FC = () => {
   const { scans, isLoading, error } = useScans();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || "",
+  );
   const [selectedVuln, setSelectedVuln] = useState<Vulnerability | null>(null);
   const location = useLocation();
   const openScanId = location.state?.openScanId as string | undefined;
-  const [currentPage, setCurrentPage] = React.useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   React.useEffect(() => {
@@ -29,12 +33,33 @@ export const Vulnerabilities: React.FC = () => {
     }
   }, [openScanId, scans.length]);
 
-  const isDrawerOpen = selectedVuln !== null;
+  const filteredScans = useMemo(() => {
+    return scans.filter((s) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        s.target_image?.toLowerCase().includes(query) ||
+        s.id?.toLowerCase().includes(query) ||
+        (s.company_name && s.company_name.toLowerCase().includes(query))
+      );
+    });
+  }, [scans, searchQuery]);
 
-  const totalPages = Math.ceil(scans.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredScans.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentScans = scans.slice(indexOfFirstItem, indexOfLastItem);
+  const currentScans = filteredScans.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Sync search with URL
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery) {
+        setSearchParams({ search: searchQuery }, { replace: true });
+      } else {
+        setSearchParams({}, { replace: true });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, setSearchParams]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -42,16 +67,39 @@ export const Vulnerabilities: React.FC = () => {
     }
   };
 
+  const isDrawerOpen = selectedVuln !== null;
+
   return (
     <div className="h-[calc(100vh-8rem)] md:h-[calc(100vh-8rem)] flex flex-col">
-      <div className="mb-6 flex-shrink-0 hidden md:block">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
-          Historique des Scans
-        </h1>
-        <p className="text-gray-400 text-sm">
-          Naviguez à travers l'historique complet de vos analyses de
-          vulnérabilités et examinez les détails.
-        </p>
+      <div className="mb-6 flex-shrink-0 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
+            Historique des Scans
+          </h1>
+          <p className="text-gray-400 text-sm">
+            Naviguez à travers l'historique complet de vos analyses et examinez
+            les détails.
+          </p>
+        </div>
+
+        {/* Desktop Search Bar */}
+        <div className="hidden md:flex items-center gap-3 w-full md:w-96">
+          <div className="relative flex-1">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+              <Search className="w-4 h-4 text-gray-500" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Rechercher une cible, un ID..."
+              className="w-full bg-[#13151A] border border-gray-800 text-sm rounded-xl pl-10 pr-4 py-2.5 text-gray-200 focus:outline-none focus:border-cyan-500 transition-all placeholder-gray-600 focus:ring-4 focus:ring-cyan-500/5"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="md:hidden flex flex-col gap-4 mb-4 flex-shrink-0">
@@ -62,6 +110,11 @@ export const Vulnerabilities: React.FC = () => {
             </div>
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               placeholder="Rechercher..."
               className="w-full bg-[#13151A] border border-gray-800 text-sm rounded-lg pl-9 pr-4 py-2 text-gray-200 focus:outline-none focus:border-cyan-500 transition-colors placeholder-gray-600"
             />

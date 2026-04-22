@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Search,
   Building2,
@@ -41,9 +42,18 @@ interface User {
 
 export const Users: React.FC = () => {
   const { user: currentUser } = useAuthStore();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get("search") || "";
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const expandedIdsRef = useRef<Set<string>>(expandedIds);
+  expandedIdsRef.current = expandedIds;
   const [loading, setLoading] = useState(true);
+
+  // Reference to prevent unnecessary refetches of members during company list updates
+  const companiesRef = useRef<Company[]>([]);
+  companiesRef.current = companies;
 
   // Modals state
   const [isNewCompanyOpen, setIsNewCompanyOpen] = useState(false);
@@ -54,7 +64,16 @@ export const Users: React.FC = () => {
     setLoading(true);
     try {
       const { data } = await api.get(`/admin/companies?search=${query}`);
-      setCompanies(data || []);
+      setCompanies((prev) => {
+        return (data || []).map((c: Company) => {
+          const old = prev.find((pc) => pc.id === c.id);
+          return {
+            ...c,
+            isExpanded: expandedIdsRef.current.has(c.id),
+            members: old?.members,
+          };
+        });
+      });
     } catch (err) {
       console.error("Failed to fetch companies", err);
     } finally {
@@ -62,32 +81,56 @@ export const Users: React.FC = () => {
     }
   }, []);
 
+  // Sync search with URL
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCompanies(searchQuery);
+      if (searchQuery) {
+        setSearchParams({ search: searchQuery }, { replace: true });
+      } else {
+        setSearchParams({}, { replace: true });
+      }
     }, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery, fetchCompanies]);
+  }, [searchQuery, fetchCompanies, setSearchParams]);
+
+  // Auto-refresh members for expanded companies when search query changes
+  useEffect(() => {
+    expandedIds.forEach((id) => {
+      fetchMembers(id, searchQuery);
+    });
+  }, [searchQuery]);
 
   const toggleCompany = async (companyId: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(companyId)) {
+        next.delete(companyId);
+      } else {
+        next.add(companyId);
+        // Fetch members if not already present
+        const comp = companies.find((c) => c.id === companyId);
+        if (!comp?.members) {
+          fetchMembers(companyId, searchQuery);
+        }
+      }
+      return next;
+    });
+
     setCompanies((prev) =>
       prev.map((c) => {
         if (c.id === companyId) {
-          const nextExpanded = !c.isExpanded;
-          if (nextExpanded && !c.members) {
-            fetchMembers(companyId);
-          }
-          return { ...c, isExpanded: nextExpanded };
+          return { ...c, isExpanded: !c.isExpanded };
         }
         return c;
       }),
     );
   };
 
-  const fetchMembers = async (companyId: string) => {
+  const fetchMembers = async (companyId: string, query: string = "") => {
     try {
       const { data } = await api.get(
-        `/admin/users?company_id=${companyId}&search=${searchQuery}`,
+        `/admin/users?company_id=${companyId}&search=${query}`,
       );
       setCompanies((prev) =>
         prev.map((c) => (c.id === companyId ? { ...c, members: data } : c)),
