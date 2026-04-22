@@ -107,12 +107,20 @@ export const Users: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchQuery, fetchCompanies, setSearchParams]);
 
-  // Auto-refresh members for expanded companies when search query changes
+  // Auto-refresh members for expanded companies when search query or expanded set changes
   useEffect(() => {
     expandedIds.forEach((id) => {
       fetchMembers(id, searchQuery);
     });
-  }, [searchQuery]);
+  }, [expandedIds, searchQuery]);
+
+  // Automatic refresh polling (every 10 seconds) to keep data fresh
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      fetchCompanies(searchQuery);
+    }, 10000);
+    return () => clearInterval(pollInterval);
+  }, [searchQuery, fetchCompanies]);
 
   const toggleCompany = async (companyId: string) => {
     setExpandedIds((prev) => {
@@ -394,6 +402,8 @@ export const Users: React.FC = () => {
           onSuccess={() => {
             setIsNewUserOpen(false);
             fetchCompanies(searchQuery);
+            // Also refresh members for all expanded companies to show the new user
+            expandedIds.forEach((id) => fetchMembers(id, searchQuery));
           }}
           currentUser={currentUser}
           companies={companies}
