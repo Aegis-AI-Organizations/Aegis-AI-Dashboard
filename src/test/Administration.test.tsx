@@ -14,6 +14,20 @@ vi.mock("../api/Axios", () => ({
   },
 }));
 
+describe("Administration Helpers", () => {
+  it("getActionColor returns correct colors", () => {
+    expect(getActionColor("START_SCAN")).toContain("text-cyan-400");
+    expect(getActionColor("CREATE_COMPANY")).toContain("text-emerald-400");
+    expect(getActionColor("DELETE_USER")).toContain("text-red-400");
+  });
+
+  it("parseDetails parses various input types", () => {
+    expect(parseDetails('{"foo":"bar"}')).toEqual({ foo: "bar" });
+    expect(parseDetails(null as any)).toBe(null);
+    expect(parseDetails("invalid json")).toBe("invalid json");
+  });
+});
+
 const mockLogs = {
   logs: [
     {

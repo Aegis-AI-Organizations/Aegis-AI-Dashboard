@@ -71,5 +71,8 @@ describe("Dashboard page", () => {
     expect(navigate).toHaveBeenCalledWith("/vulnerabilities", {
       state: { openScanId: "scan-1" },
     });
+
+    fireEvent.click(screen.getByText(/Voir tout l'historique/i));
+    expect(navigate).toHaveBeenCalledWith("/vulnerabilities");
   });
 });

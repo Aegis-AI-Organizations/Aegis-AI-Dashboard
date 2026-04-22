@@ -1,7 +1,13 @@
 import React from "react";
 import { Shield } from "lucide-react";
 
-export const LoadingPage: React.FC = () => {
+interface LoadingPageProps {
+  message?: string;
+}
+
+export const LoadingPage: React.FC<LoadingPageProps> = ({
+  message = "Initialisation du Système",
+}) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#050810] relative overflow-hidden">
       {/* Background radial glow */}
@@ -30,7 +36,7 @@ export const LoadingPage: React.FC = () => {
               <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce" />
             </div>
             <span className="text-gray-500 text-xs font-semibold uppercase tracking-[0.2em]">
-              Initialisation du Système
+              {message}
             </span>
           </div>
         </div>

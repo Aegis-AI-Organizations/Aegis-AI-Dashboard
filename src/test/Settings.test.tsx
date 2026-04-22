@@ -10,6 +10,7 @@ vi.mock("../api/Axios", () => ({
     put: vi.fn(),
     get: vi.fn(),
     post: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -215,6 +216,30 @@ describe("Settings Page", () => {
     expect(screen.getByText("Majuscule")).toHaveClass("text-emerald-400");
     expect(screen.getByText("Chiffre")).toHaveClass("text-emerald-400");
     expect(screen.getByText("Spécial")).toHaveClass("text-emerald-400");
+  });
+
+  it("handles photo deletion successfully", async () => {
+    vi.mocked(api.delete).mockResolvedValueOnce({ data: {} });
+
+    // Set an initial avatar to show the delete button
+    mockState.user.avatar_url = "some-url";
+
+    render(
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText(/Modifier la photo/i));
+    fireEvent.click(screen.getByText(/Supprimer la photo/i));
+
+    await waitFor(() => {
+      expect(api.delete).toHaveBeenCalledWith("/users/me/profile/avatar");
+      expect(mockSetAuth).toHaveBeenCalledWith(
+        "fake-jwt",
+        expect.objectContaining({ avatar_url: "" }),
+      );
+    });
   });
 
   it("handles password update successfully", async () => {
