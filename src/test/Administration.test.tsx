@@ -1,107 +1,78 @@
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-} from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Administration } from "../pages/Administration";
 import { api } from "../api/Axios";
+import { MemoryRouter } from "react-router-dom";
 
 vi.mock("../api/Axios", () => ({
   api: {
-    post: vi.fn(),
+    get: vi.fn(),
   },
 }));
+
+const mockLogs = {
+  logs: [
+    {
+      id: "log-1",
+      user_id: "user-123",
+      company_id: "comp-456",
+      action: "START_SCAN",
+      target_type: "SCAN",
+      target_id: "scan-789",
+      details: '{"image": "nginx"}',
+      ip_address: "127.0.0.1",
+      timestamp: "2026-04-22T10:00:00Z",
+    },
+  ],
+  total: 1,
+};
 
 describe("Administration Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(api.get).mockResolvedValue({ data: mockLogs });
   });
 
-  it("renders the onboarding form initially", () => {
-    render(<Administration />);
+  it("renders the administration header and audit trail section", async () => {
+    render(
+      <MemoryRouter>
+        <Administration />
+      </MemoryRouter>,
+    );
+
     expect(screen.getByText("Administration")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("ex: Global CyberSec Inc."),
-    ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Jean Dupont")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("client@entreprise.com"),
-    ).toBeInTheDocument();
-  });
-
-  it("handles successful onboarding submission", async () => {
-    const mockResponse = {
-      data: {
-        company_id: "comp-123",
-        owner_id: "user-456",
-        deployment_token: "token-secret",
-      },
-    };
-    vi.mocked(api.post).mockResolvedValueOnce(mockResponse);
-
-    render(<Administration />);
-
-    fireEvent.change(screen.getByPlaceholderText("ex: Global CyberSec Inc."), {
-      target: { value: "Aegis AI" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Jean Dupont"), {
-      target: { value: "John Doe" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("client@entreprise.com"), {
-      target: { value: "john@aegis.ai" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("••••••••••••"), {
-      target: { value: "password123" },
-    });
-
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /Finaliser l'Onboarding/i }),
-      );
-    });
+    expect(screen.getByText(/Journal d'Audit/i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.getByText("Onboarding Réussi !")).toBeInTheDocument();
-      expect(screen.getByText("comp-123")).toBeInTheDocument();
-      expect(screen.getByText("token-secret")).toBeInTheDocument();
+      expect(screen.getByText("START SCAN")).toBeInTheDocument();
+      expect(screen.getByText("127.0.0.1")).toBeInTheDocument();
     });
-
-    // Test "Create another client" button
-    fireEvent.click(screen.getByText("Créer un autre Client"));
-    expect(screen.getByText("Administration")).toBeInTheDocument();
   });
 
-  it("handles onboarding error", async () => {
-    vi.mocked(api.post).mockRejectedValueOnce({
-      response: { data: { error: "Name already exists" } },
-    });
+  it("shows action buttons that link to users page", () => {
+    render(
+      <MemoryRouter>
+        <Administration />
+      </MemoryRouter>,
+    );
 
-    render(<Administration />);
+    expect(screen.getByText("Nouveau Collaborateur")).toBeInTheDocument();
+    expect(screen.getByText("Nouvelle Entreprise")).toBeInTheDocument();
+  });
 
-    fireEvent.change(screen.getByPlaceholderText("ex: Global CyberSec Inc."), {
-      target: { value: "Aegis AI" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Jean Dupont"), {
-      target: { value: "John Doe" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("client@entreprise.com"), {
-      target: { value: "john@aegis.ai" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("••••••••••••"), {
-      target: { value: "password123" },
-    });
+  it("handles empty logs gracefully", async () => {
+    vi.mocked(api.get).mockResolvedValueOnce({ data: { logs: [], total: 0 } });
 
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /Finaliser l'Onboarding/i }),
-      );
-    });
+    render(
+      <MemoryRouter>
+        <Administration />
+      </MemoryRouter>,
+    );
 
     await waitFor(() => {
-      expect(screen.getByText("Name already exists")).toBeInTheDocument();
+      expect(
+        screen.getByText(/Aucune activité enregistrée/i),
+      ).toBeInTheDocument();
     });
   });
 });
