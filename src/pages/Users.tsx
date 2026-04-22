@@ -297,23 +297,6 @@ export const Users: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="flex flex-col items-end gap-1 px-4 border-r border-gray-800/60">
-                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-                      Token Aegis
-                    </span>
-                    <code className="text-xs text-amber-500/80 font-mono flex items-center gap-2">
-                      {company.deployment_token?.substring(0, 12)}...
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          copyToClipboard(company.deployment_token);
-                        }}
-                        className="hover:text-white"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
-                    </code>
-                  </div>
                   <div className="p-3 rounded-xl bg-gray-900 group-hover:bg-cyan-500 group-hover:text-white text-gray-600 transition-all">
                     {company.isExpanded ? (
                       <ChevronDown className="w-5 h-5" />
@@ -569,6 +552,16 @@ const CreateUserModal: React.FC<{
     company_id: currentUser?.role === "owner" ? currentUser?.company_id : "",
   });
 
+  const selectedCompany = companies.find((c) => c.id === formData.company_id);
+  const isSelectingAegis = selectedCompany?.name === "Aegis AI";
+
+  useEffect(() => {
+    const internalRoles = ["admin", "superadmin", "technicien"];
+    if (!isSelectingAegis && internalRoles.includes(formData.role)) {
+      setFormData((prev) => ({ ...prev, role: "viewer" }));
+    }
+  }, [isSelectingAegis, formData.role]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -660,11 +653,17 @@ const CreateUserModal: React.FC<{
                 >
                   <option value="viewer">Lecteur (Viewer)</option>
                   <option value="operateur">Opérateur</option>
-                  <option value="technicien">Technicien</option>
                   <option value="owner">Propriétaire (Owner)</option>
-                  {isAegisUser && <option value="admin">Administrateur</option>}
-                  {currentUser?.role === "superadmin" && (
-                    <option value="superadmin">SuperAdmin</option>
+                  {isSelectingAegis && (
+                    <>
+                      <option value="technicien">Technicien</option>
+                      {isAegisUser && (
+                        <option value="admin">Administrateur</option>
+                      )}
+                      {currentUser?.role === "superadmin" && (
+                        <option value="superadmin">SuperAdmin</option>
+                      )}
+                    </>
                   )}
                 </select>
               </div>
