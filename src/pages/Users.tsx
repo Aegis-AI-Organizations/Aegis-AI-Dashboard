@@ -64,12 +64,24 @@ export const Users: React.FC = () => {
     setLoading(true);
     try {
       const { data } = await api.get(`/admin/companies?search=${query}`);
+      const results = data || [];
+
+      // If searching, auto-expand all found companies
+      if (query && results.length > 0) {
+        const resultIds = results.map((c: Company) => c.id);
+        setExpandedIds((prev) => {
+          const next = new Set(prev);
+          resultIds.forEach((id: string) => next.add(id));
+          return next;
+        });
+      }
+
       setCompanies((prev) => {
-        return (data || []).map((c: Company) => {
+        return results.map((c: Company) => {
           const old = prev.find((pc) => pc.id === c.id);
           return {
             ...c,
-            isExpanded: expandedIdsRef.current.has(c.id),
+            isExpanded: query ? true : expandedIdsRef.current.has(c.id),
             members: old?.members,
           };
         });
