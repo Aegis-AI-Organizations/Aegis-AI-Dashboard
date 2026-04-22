@@ -20,6 +20,7 @@ import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { RoleBadge } from "../components/ui/RoleBadge";
 import { ProfileCircle } from "../components/ui/ProfileCircle";
+import { useTeamsSSE } from "../hooks/useTeamsSSE";
 
 interface Company {
   id: string;
@@ -114,13 +115,10 @@ export const Users: React.FC = () => {
     });
   }, [expandedIds, searchQuery]);
 
-  // Automatic refresh polling (every 10 seconds) to keep data fresh
-  useEffect(() => {
-    const pollInterval = setInterval(() => {
-      fetchCompanies(searchQuery);
-    }, 10000);
-    return () => clearInterval(pollInterval);
-  }, [searchQuery, fetchCompanies]);
+  // Real-time updates via SSE
+  useTeamsSSE(() => {
+    fetchCompanies(searchQuery);
+  });
 
   const toggleCompany = async (companyId: string) => {
     setExpandedIds((prev) => {
