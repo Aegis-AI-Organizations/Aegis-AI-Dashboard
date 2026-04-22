@@ -76,6 +76,7 @@ export const Users: React.FC = () => {
       });
     } catch (err) {
       console.error("Failed to fetch companies", err);
+      setCompanies([]); // Clear results on error to avoid showing stale data
     } finally {
       setLoading(false);
     }
@@ -137,6 +138,9 @@ export const Users: React.FC = () => {
       );
     } catch (err) {
       console.error("Failed to fetch members", err);
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === companyId ? { ...c, members: [] } : c)),
+      );
     }
   };
 
