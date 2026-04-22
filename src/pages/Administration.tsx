@@ -1,24 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  ShieldAlert,
-  Search,
-  Building2,
-  UserPlus,
-  History,
-  Info,
-  Calendar,
-  User,
-  Activity,
-  ArrowRight,
-  Loader2,
-  AlertCircle,
-  Copy,
-  Download,
-} from "lucide-react";
-import { useAuthStore } from "../store/AuthStore";
+import { Building2, UserPlus, History, Info, User } from "lucide-react";
 import { api } from "../api/Axios";
-import { RoleBadge } from "../components/ui/RoleBadge";
-import { ProfileCircle } from "../components/ui/ProfileCircle";
 
 interface AuditLog {
   id: string;
@@ -33,7 +15,6 @@ interface AuditLog {
 }
 
 export const Administration: React.FC = () => {
-  const { user: currentUser } = useAuthStore();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
