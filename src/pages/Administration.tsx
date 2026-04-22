@@ -14,6 +14,24 @@ interface AuditLog {
   timestamp: string;
 }
 
+export const parseDetails = (detailsStr: string) => {
+  try {
+    return JSON.parse(detailsStr);
+  } catch (e) {
+    return detailsStr;
+  }
+};
+
+export const getActionColor = (action: string) => {
+  if (action.includes("CREATE"))
+    return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
+  if (action.includes("START"))
+    return "text-cyan-400 bg-cyan-500/10 border-cyan-500/20";
+  if (action.includes("STOP") || action.includes("DELETE"))
+    return "text-red-400 bg-red-500/10 border-red-500/20";
+  return "text-gray-400 bg-gray-500/10 border-gray-500/20";
+};
+
 export const Administration: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,24 +57,6 @@ export const Administration: React.FC = () => {
   useEffect(() => {
     fetchLogs();
   }, [offset]);
-
-  const parseDetails = (detailsStr: string) => {
-    try {
-      return JSON.parse(detailsStr);
-    } catch (e) {
-      return detailsStr;
-    }
-  };
-
-  const getActionColor = (action: string) => {
-    if (action.includes("CREATE"))
-      return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
-    if (action.includes("START"))
-      return "text-cyan-400 bg-cyan-500/10 border-cyan-500/20";
-    if (action.includes("STOP") || action.includes("DELETE"))
-      return "text-red-400 bg-red-500/10 border-red-500/20";
-    return "text-gray-400 bg-gray-500/10 border-gray-500/20";
-  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">

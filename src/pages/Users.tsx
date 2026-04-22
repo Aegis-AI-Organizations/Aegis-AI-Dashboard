@@ -60,20 +60,21 @@ export const Users: React.FC = () => {
   const [isNewCompanyOpen, setIsNewCompanyOpen] = useState(false);
   const [isNewUserOpen, setIsNewUserOpen] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
+  const actionHandledRef = useRef(false);
 
   // Handle auto-open modals from search params
   useEffect(() => {
+    if (actionHandledRef.current) return;
+
     const action = searchParams.get("action");
     if (action === "new-company") {
       setIsNewCompanyOpen(true);
-      searchParams.delete("action");
-      setSearchParams(searchParams);
+      actionHandledRef.current = true;
     } else if (action === "new-user") {
       setIsNewUserOpen(true);
-      searchParams.delete("action");
-      setSearchParams(searchParams);
+      actionHandledRef.current = true;
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams]);
 
   const fetchCompanies = useCallback(async (query: string = "") => {
     setLoading(true);
@@ -114,9 +115,23 @@ export const Users: React.FC = () => {
     const timer = setTimeout(() => {
       fetchCompanies(searchQuery);
       if (searchQuery) {
-        setSearchParams({ search: searchQuery }, { replace: true });
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.set("search", searchQuery);
+            return next;
+          },
+          { replace: true },
+        );
       } else {
-        setSearchParams({}, { replace: true });
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev);
+            next.delete("search");
+            return next;
+          },
+          { replace: true },
+        );
       }
     }, 300);
     return () => clearTimeout(timer);
@@ -410,7 +425,7 @@ export const Users: React.FC = () => {
 };
 
 // Sub-components for Modals
-const CreateCompanyModal: React.FC<{
+export const CreateCompanyModal: React.FC<{
   onClose: () => void;
   onSuccess: (data: any) => void;
 }> = ({ onClose, onSuccess }) => {
@@ -544,7 +559,7 @@ const CreateCompanyModal: React.FC<{
   );
 };
 
-const CreateUserModal: React.FC<{
+export const CreateUserModal: React.FC<{
   onClose: () => void;
   onSuccess: () => void;
   currentUser: any;
@@ -734,7 +749,7 @@ const CreateUserModal: React.FC<{
   );
 };
 
-const SuccessModal: React.FC<{ data: any; onClose: () => void }> = ({
+export const SuccessModal: React.FC<{ data: any; onClose: () => void }> = ({
   data,
   onClose,
 }) => (

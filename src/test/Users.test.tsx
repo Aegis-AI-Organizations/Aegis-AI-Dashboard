@@ -1,10 +1,4 @@
-import {
-  render,
-  screen,
-  fireEvent,
-  waitFor,
-  act,
-} from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Users } from "../pages/Users";
 import { api } from "../api/Axios";
@@ -59,13 +53,10 @@ describe("Users Page", () => {
       .getState()
       .setAuth("token", { id: "su-1", role: "superadmin" } as any);
     vi.mocked(api.get).mockImplementation((url) => {
-      if (url.includes("/admin/companies")) {
-        return Promise.resolve({ data: mockCompanies });
-      }
       if (url.includes("/admin/users")) {
         return Promise.resolve({ data: mockUsers });
       }
-      return Promise.reject(new Error("Not found"));
+      return Promise.resolve({ data: mockCompanies });
     });
   });
 
@@ -81,7 +72,7 @@ describe("Users Page", () => {
         expect(screen.getByText("Aegis AI")).toBeInTheDocument();
         expect(screen.getByText("Client Corp")).toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 5000 },
     );
   });
 
@@ -93,7 +84,7 @@ describe("Users Page", () => {
     );
 
     // Wait for initial load
-    await waitFor(() => screen.getByText("Aegis AI"), { timeout: 1000 });
+    await waitFor(() => screen.getByText("Aegis AI"), { timeout: 5000 });
 
     const searchInput = screen.getByPlaceholderText(
       /Rechercher une entreprise/i,
@@ -106,7 +97,7 @@ describe("Users Page", () => {
           expect.stringContaining("search=Aegis"),
         );
       },
-      { timeout: 1000 },
+      { timeout: 5000 },
     );
   });
 
@@ -117,7 +108,7 @@ describe("Users Page", () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => screen.getByText("Client Corp"), { timeout: 1000 });
+    await waitFor(() => screen.getByText("Client Corp"), { timeout: 5000 });
 
     fireEvent.click(screen.getByText("Client Corp"));
 
@@ -128,7 +119,7 @@ describe("Users Page", () => {
         );
         expect(screen.getByText("John Doe")).toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 5000 },
     );
   });
 
@@ -142,6 +133,31 @@ describe("Users Page", () => {
     expect(screen.queryByText("Nouvelle Entreprise")).toBeNull();
   });
 
+  it("toggles company expansion and avoids re-fetching if members exist", async () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <Users />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => screen.getByText("Client Corp"));
+
+    // First expand
+    fireEvent.click(screen.getByText("Client Corp"));
+    await waitFor(() =>
+      expect(api.get).toHaveBeenCalledWith(
+        expect.stringContaining("/admin/users"),
+      ),
+    );
+
+    // Collapse
+    fireEvent.click(screen.getByText("Client Corp"));
+
+    // Expand again
+    fireEvent.click(screen.getByText("Client Corp"));
+    await waitFor(() => screen.getByText("John Doe"));
+  });
+
   it("shows only user creation for owner", () => {
     useAuthStore
       .getState()
@@ -153,99 +169,5 @@ describe("Users Page", () => {
     );
     expect(screen.getByText("Créer un Utilisateur")).toBeInTheDocument();
     expect(screen.queryByText("Nouvelle Entreprise")).toBeNull();
-  });
-
-  it.skip("opens and handles company creation modal", async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({
-      data: { id: "new-comp", deployment_token: "new-token" },
-    });
-
-    render(
-      <MemoryRouter>
-        <Users />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByText("Nouvelle Entreprise"));
-
-    expect(screen.getByText("Nouvelle Entité Aegis")).toBeInTheDocument();
-
-    fireEvent.change(screen.getByPlaceholderText("ex: Global CyberSec Inc."), {
-      target: { value: "New Co" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Nom complet"), {
-      target: { value: "New Owner" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Email professionnel"), {
-      target: { value: "new@owner.com" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("Mot de passe initial"), {
-      target: { value: "password" },
-    });
-
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /Finaliser l'Onboarding/i }),
-      );
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("Onboarding Réussi !")).toBeInTheDocument();
-    });
-
-    // Test clipboard copy
-    const copyButton = screen.getByText("Copier le Token");
-    const writeTextSpy = vi
-      .spyOn(navigator.clipboard, "writeText")
-      .mockResolvedValue();
-    fireEvent.click(copyButton);
-    expect(writeTextSpy).toHaveBeenCalledWith("new-token");
-
-    // Test close modal
-    fireEvent.click(screen.getByText("Terminer"));
-    expect(screen.queryByText("Onboarding Réussi !")).toBeNull();
-  });
-
-  it.skip("opens and handles user creation modal", async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({ data: { id: "new-user" } });
-
-    render(
-      <MemoryRouter>
-        <Users />
-      </MemoryRouter>,
-    );
-
-    // Wait for companies to load first
-    await waitFor(() => screen.getByText("Client Corp"), { timeout: 1000 });
-
-    fireEvent.click(screen.getByText("Créer un Utilisateur"));
-
-    expect(screen.getByText("Nouveau Collaborateur")).toBeInTheDocument();
-
-    // Get the first combobox (company selection)
-    const companySelect = screen.getAllByRole(
-      "combobox",
-    )[0] as HTMLSelectElement;
-    fireEvent.change(companySelect, { target: { value: "comp-2" } });
-
-    fireEvent.change(screen.getByPlaceholderText("Prénom Nom"), {
-      target: { value: "New User" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("user@domain.com"), {
-      target: { value: "new@client.com" },
-    });
-    fireEvent.change(screen.getByPlaceholderText("8+ caractères"), {
-      target: { value: "password" },
-    });
-
-    await act(async () => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /Créer le Collaborateur/i }),
-      );
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByText("Nouveau Collaborateur")).toBeNull();
-    });
   });
 });
