@@ -15,15 +15,42 @@ export const Billing: React.FC = () => {
       className={css({
         maxWidth: "6xl",
         mx: "auto",
-        "& > * + *": { mt: "8" },
-        animation: "fadeIn 0.7s ease-out",
+        px: "4",
+        py: "8",
       })}
     >
-      <div className={css({ mb: "8" })}>
-        <h1 className={pageTitle()}>Facturation</h1>
-        <p className={css({ color: "text.muted" })}>
-          Gérez votre abonnement, vos factures et vos méthodes de paiement.
-        </p>
+      <div
+        className={flex({
+          mb: "12",
+          direction: { base: "column", md: "row" },
+          justify: "space-between",
+          align: { base: "start", md: "end" },
+          gap: "6",
+        })}
+      >
+        <div className={css({ "& > * + *": { mt: "2" } })}>
+          <h1
+            className={css({
+              fontSize: "5xl",
+              fontWeight: "900",
+              color: "white",
+              letterSpacing: "tighter",
+            })}
+          >
+            Facturation
+          </h1>
+          <p
+            className={css({
+              color: "text.muted",
+              fontSize: "lg",
+              fontWeight: "medium",
+              maxW: "xl",
+              lineHeight: "relaxed",
+            })}
+          >
+            Gérez votre abonnement, vos factures et vos méthodes de paiement.
+          </p>
+        </div>
       </div>
 
       <div className={grid({ columns: { base: 1, md: 3 }, gap: "6" })}>
