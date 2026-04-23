@@ -18,11 +18,12 @@ describe("Sidebar Component", () => {
     expect(
       screen.getByRole("link", { name: "Tableau de Bord" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: "Gestion & Audit" }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Équipes" })).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Facturation" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Logs d'Audit" }),
     ).toBeInTheDocument();
   });
 

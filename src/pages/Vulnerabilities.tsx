@@ -332,7 +332,12 @@ export const Vulnerabilities: React.FC = () => {
           ) : (
             <>
               <div
-                className={flex({ direction: "column", pb: "4", flex: "1" })}
+                className={flex({
+                  direction: "column",
+                  pb: "8",
+                  gap: "6",
+                  flex: "1",
+                })}
               >
                 {currentScans.map((scan: ScanStatusResponse, index: number) => (
                   <PentestAccordion

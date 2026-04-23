@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   Shield,
+  Terminal,
 } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
 
@@ -43,7 +44,7 @@ const navItems = [
   },
   {
     icon: Users,
-    label: "Gestion & Audit",
+    label: "Équipes",
     path: "/users",
     roles: ["superadmin", "admin", "owner"],
   },
@@ -52,6 +53,12 @@ const navItems = [
     label: "Facturation",
     path: "/billing",
     roles: ["superadmin", "admin", "billing_aegis", "owner", "billing_client"],
+  },
+  {
+    icon: Terminal,
+    label: "Logs d'Audit",
+    path: "/audit",
+    roles: ["superadmin", "owner"],
   },
   {
     icon: Settings,

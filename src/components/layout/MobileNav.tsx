@@ -1,13 +1,20 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Shield, Users, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  Shield,
+  Users,
+  Settings,
+  Terminal,
+} from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex } from "styled-system/patterns";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Tableau de Bord", path: "/" },
-  { icon: Shield, label: "Historique des Scans", path: "/vulnerabilities" },
-  { icon: Users, label: "Gestion & Audit", path: "/users" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+  { icon: Shield, label: "Scans", path: "/vulnerabilities" },
+  { icon: Users, label: "Équipes", path: "/users" },
+  { icon: Terminal, label: "Audit", path: "/audit" },
   { icon: Settings, label: "Paramètres", path: "/settings" },
 ];
 
