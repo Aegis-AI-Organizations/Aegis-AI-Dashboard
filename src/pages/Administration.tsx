@@ -69,7 +69,7 @@ export const Administration: React.FC = () => {
       className={css({
         maxWidth: "7xl",
         mx: "auto",
-        spaceY: "sectionGap",
+        "& > * + *": { mt: "sectionGap" },
         pb: "20",
       })}
     >
@@ -82,7 +82,7 @@ export const Administration: React.FC = () => {
           gap: "8",
         })}
       >
-        <div className={css({ spaceY: "3" })}>
+        <div className={css({ "& > * + *": { mt: "3" } })}>
           <h1 className={pageTitle()}>Administration</h1>
           <p
             className={css({
@@ -117,7 +117,7 @@ export const Administration: React.FC = () => {
       </div>
 
       {/* Audit Trail Section */}
-      <div className={css({ spaceY: "6" })}>
+      <div className={css({ "& > * + *": { mt: "6" } })}>
         <div className={flex({ align: "center", justify: "space-between" })}>
           <h2 className={sectionTitle()}>
             <History className={css({ w: "4", h: "4" })} /> Journal d'Audit
@@ -265,8 +265,10 @@ export const Administration: React.FC = () => {
               </thead>
               <tbody
                 className={css({
-                  divideY: "1px",
-                  divideColor: "whiteAlpha.100",
+                  "& > tr + tr": {
+                    borderTop: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                  },
                 })}
               >
                 {loading ? (

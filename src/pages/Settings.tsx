@@ -20,6 +20,9 @@ import { getPasswordError } from "../utils/validation";
 import { ProfileCircle } from "../components/ui/ProfileCircle";
 import { PasswordPromptModal } from "../components/ui/PasswordPromptModal";
 import { RoleBadge } from "../components/ui/RoleBadge";
+import { css, cx } from "styled-system/css";
+import { flex, grid, circle } from "styled-system/patterns";
+import { card } from "styled-system/recipes";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
@@ -27,15 +30,13 @@ export const Settings: React.FC = () => {
   const { user, setAuth, accessToken } = useAuthStore();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profil");
 
-  // Local Form States - Starting empty as requested
+  // Local Form States
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [isPhotoOptionsOpen, setIsPhotoOptionsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Separate password states for confirming changes
-  // Sync avatar only (name and email are only for new inputs now)
   useEffect(() => {
     if (user) {
       setAvatarUrl(user.avatar_url || "");
@@ -257,44 +258,135 @@ export const Settings: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 animate-in fade-in duration-500">
+    <div
+      className={css({
+        maxWidth: "6xl",
+        mx: "auto",
+        px: "4",
+        py: "8",
+      })}
+    >
       {/* Premium Header */}
-      <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-        <div className="space-y-2">
-          <h1 className="text-5xl font-black text-white tracking-tighter">
+      <div
+        className={flex({
+          mb: "12",
+          direction: { base: "column", md: "row" },
+          justify: "space-between",
+          align: { base: "start", md: "end" },
+          gap: "6",
+        })}
+      >
+        <div className={css({ "& > * + *": { mt: "2" } })}>
+          <h1
+            className={css({
+              fontSize: "5xl",
+              fontWeight: "900",
+              color: "white",
+              letterSpacing: "tighter",
+            })}
+          >
             Paramètres
           </h1>
-          <p className="text-gray-500 text-lg font-medium max-w-xl leading-relaxed">
+          <p
+            className={css({
+              color: "text.muted",
+              fontSize: "lg",
+              fontWeight: "medium",
+              maxW: "xl",
+              lineHeight: "relaxed",
+            })}
+          >
             Gérez votre identité numérique, sécurisez votre accès et configurez
             vos préférences Aegis AI.
           </p>
         </div>
-        <div className="flex items-center gap-3 px-5 py-2.5 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl">
-          <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+        <div
+          className={flex({
+            align: "center",
+            gap: "3",
+            px: "5",
+            py: "2.5",
+            bg: "brand.primary/5",
+            border: "1px solid",
+            borderColor: "brand.primary/20",
+            borderRadius: "2xl",
+          })}
+        >
+          <div
+            className={css({
+              w: "2",
+              h: "2",
+              borderRadius: "full",
+              bg: "brand.primary",
+              animation: "pulse 2s infinite",
+              boxShadow: "0 0 10px {colors.brand.primary}",
+            })}
+          />
           <RoleBadge role={user?.role || "viewer"} />
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div
+        className={flex({ direction: { base: "column", lg: "row" }, gap: "8" })}
+      >
         {/* Modern Sidebar Tabs */}
-        <aside className="lg:w-72 shrink-0">
-          <nav className="flex flex-row lg:flex-col gap-2 p-1.5 bg-gray-900/40 border border-gray-800/60 rounded-[2.5rem] overflow-x-auto no-scrollbar">
+        <aside className={css({ lg: { w: "72" }, flexShrink: "0" })}>
+          <nav
+            className={flex({
+              direction: { base: "row", lg: "column" },
+              gap: "2",
+              p: "1.5",
+              bg: "whiteAlpha.50",
+              border: "1px solid",
+              borderColor: "whiteAlpha.100",
+              borderRadius: { lg: "3xl", base: "2xl" },
+              overflowX: "auto",
+            })}
+          >
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] transition-all duration-300 min-w-max ${
+                className={cx(
+                  css({
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4",
+                    px: "6",
+                    py: "4",
+                    borderRadius: "full",
+                    transition: "all",
+                    transitionDuration: "300ms",
+                    minW: "max-content",
+                  }),
                   activeTab === tab.id
-                    ? "bg-cyan-600 text-white shadow-lg shadow-cyan-600/20"
-                    : "text-gray-500 hover:text-gray-300 hover:bg-gray-800/40"
-                }`}
+                    ? css({
+                        bg: "brand.primary",
+                        color: "white",
+                        boxShadow: "0 4px 12px {colors.brand.primary/20}",
+                      })
+                    : css({
+                        color: "text.muted",
+                        _hover: { color: "text.main", bg: "whiteAlpha.100" },
+                      }),
+                )}
               >
                 <tab.icon
-                  className={`w-5 h-5 ${
-                    activeTab === tab.id ? "scale-110" : ""
-                  }`}
+                  className={cx(
+                    css({ w: "5", h: "5" }),
+                    activeTab === tab.id
+                      ? css({ transform: "scale(1.1)" })
+                      : "",
+                  )}
                 />
-                <span className="text-sm font-black uppercase tracking-widest">
+                <span
+                  className={css({
+                    fontSize: "sm",
+                    fontWeight: "900",
+                    textTransform: "uppercase",
+                    letterSpacing: "widest",
+                  })}
+                >
                   {tab.label}
                 </span>
               </button>
@@ -303,46 +395,131 @@ export const Settings: React.FC = () => {
         </aside>
 
         {/* Dynamic Content Area */}
-        <main className="flex-1 min-h-[600px] animate-in slide-in-from-bottom-4 duration-500">
+        <main className={css({ flex: "1", minH: "600px" })}>
           {activeTab === "profil" && (
-            <div className="space-y-6">
+            <div className={css({ "& > * + *": { mt: "6" } })}>
               {/* Profile Card */}
-              <div className="bg-[#0B0D13] border border-gray-800/60 rounded-[3rem] p-10 relative overflow-hidden group shadow-2xl">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 blur-[100px] pointer-events-none" />
+              <div
+                className={cx(
+                  card(),
+                  css({
+                    p: "10",
+                    position: "relative",
+                    overflow: "hidden",
+                    borderRadius: "3xl",
+                    boxShadow: "2xl",
+                  }),
+                )}
+              >
+                <div
+                  className={css({
+                    position: "absolute",
+                    top: "0",
+                    right: "0",
+                    w: "64",
+                    h: "64",
+                    bg: "brand.primary/5",
+                    filter: "blur(100px)",
+                    pointerEvents: "none",
+                  })}
+                />
 
-                <div className="flex flex-col md:flex-row items-center gap-12 relative z-10 transition-all duration-500">
+                <div
+                  className={flex({
+                    direction: { base: "column", md: "row" },
+                    align: "center",
+                    gap: "12",
+                    position: "relative",
+                    zIndex: "10",
+                  })}
+                >
                   {/* Interactive Avatar */}
                   <div
-                    className="relative group/avatar cursor-pointer"
+                    className={cx(
+                      "group",
+                      css({ position: "relative", cursor: "pointer" }),
+                    )}
                     onClick={() => setIsPhotoOptionsOpen(true)}
                   >
                     <ProfileCircle
                       size="xl"
-                      className="ring-8 ring-gray-900/50 group-hover/avatar:ring-cyan-500/20 transition-all duration-500"
+                      className={css({
+                        ring: "8px",
+                        ringColor: "whiteAlpha.50",
+                        _hover: { ringColor: "brand.primary/20" },
+                        transition: "all",
+                        transitionDuration: "500ms",
+                      })}
                     />
-                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 opacity-0 group-hover/avatar:opacity-100 rounded-2xl transition-all duration-300 backdrop-blur-[2px]">
-                      <Camera className="w-10 h-10 text-white animate-in zoom-in-50 duration-300" />
+                    <div
+                      className={cx(
+                        "avatar-overlay",
+                        flex({
+                          position: "absolute",
+                          inset: "0",
+                          zIndex: "20",
+                          align: "center",
+                          justify: "center",
+                          bg: "black/60",
+                          opacity: "0",
+                          borderRadius: "2xl",
+                          transition: "all",
+                          transitionDuration: "300ms",
+                          backdropFilter: "blur(4px)",
+                          _groupHover: { opacity: 1 },
+                        }),
+                      )}
+                    >
+                      <Camera
+                        className={css({ w: "10", h: "10", color: "white" })}
+                      />
                     </div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      accept="image/*"
-                      className="hidden"
-                    />
                   </div>
 
-                  <div className="flex-1 text-center md:text-left space-y-4">
-                    <div className="space-y-1">
-                      <h2 className="text-4xl font-black text-white tracking-tight">
+                  <div
+                    className={css({
+                      flex: "1",
+                      textAlign: { base: "center", md: "left" },
+                      "& > * + *": { mt: "4" },
+                    })}
+                  >
+                    <div className={css({ "& > * + *": { mt: "1" } })}>
+                      <h2
+                        className={css({
+                          fontSize: "4xl",
+                          fontWeight: "900",
+                          color: "white",
+                          letterSpacing: "tight",
+                        })}
+                      >
                         {user?.name || "Aegis User"}
                       </h2>
-                      <div className="flex flex-col gap-1">
-                        <p className="text-gray-500 font-bold tracking-wide uppercase text-sm">
+                      <div className={flex({ direction: "column", gap: "1" })}>
+                        <p
+                          className={css({
+                            color: "text.muted",
+                            fontWeight: "bold",
+                            letterSpacing: "wide",
+                            textTransform: "uppercase",
+                            fontSize: "sm",
+                          })}
+                        >
                           {user?.email}
                         </p>
-                        <div className="flex items-center gap-2 group/id transition-all">
-                          <code className="text-[10px] font-mono text-gray-600 bg-gray-900/50 px-2 py-0.5 rounded-md border border-gray-800/40">
+                        <div className={flex({ align: "center", gap: "2" })}>
+                          <code
+                            className={css({
+                              fontSize: "10px",
+                              fontFamily: "mono",
+                              color: "gray.600",
+                              bg: "whiteAlpha.50",
+                              px: "2",
+                              py: "0.5",
+                              borderRadius: "md",
+                              border: "1px solid",
+                              borderColor: "whiteAlpha.100",
+                            })}
+                          >
                             ID: {user?.id}
                           </code>
                           <button
@@ -350,41 +527,95 @@ export const Settings: React.FC = () => {
                               if (user?.id)
                                 navigator.clipboard.writeText(user.id);
                             }}
-                            className="p-1 text-gray-700 hover:text-cyan-500 transition-colors"
+                            className={css({
+                              p: "1",
+                              color: "gray.700",
+                              _hover: { color: "brand.primary" },
+                              transition: "colors",
+                            })}
                             title="Copier l'ID"
                           >
-                            <Copy className="w-3 h-3" />
+                            <Copy className={css({ w: "3", h: "3" })} />
                           </button>
                         </div>
                       </div>
                     </div>
-                    <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                    <div
+                      className={flex({
+                        justify: { base: "center", md: "start" },
+                        flexWrap: "wrap",
+                        gap: "4",
+                      })}
+                    >
                       <RoleBadge role={user?.role || "viewer"} />
                       <button
                         onClick={() => setIsPhotoOptionsOpen(true)}
-                        className="text-[10px] font-black text-cyan-500 hover:text-cyan-400 uppercase tracking-widest transition-colors flex items-center gap-2"
+                        className={flex({
+                          fontSize: "10px",
+                          fontWeight: "900",
+                          color: "brand.primary",
+                          _hover: { color: "cyan.400" },
+                          textTransform: "uppercase",
+                          letterSpacing: "widest",
+                          transition: "colors",
+                          align: "center",
+                          gap: "2",
+                        })}
                       >
-                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />{" "}
+                        <div
+                          className={circle({
+                            size: "1.5",
+                            bg: "brand.primary",
+                          })}
+                        />{" "}
                         Modifier la photo
                       </button>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div
+                  className={grid({
+                    mt: "16",
+                    columns: { base: 1, md: 2 },
+                    gap: "12",
+                  })}
+                >
                   {/* Name Update Form */}
                   <form
                     onSubmit={handleUpdateNameInit}
-                    className="space-y-6 bg-gray-900/20 p-8 rounded-[2rem] border border-gray-800/40 shadow-inner"
+                    className={css({
+                      bg: "whiteAlpha.50",
+                      p: "8",
+                      borderRadius: "3xl",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                      "& > * + *": { mt: "6" },
+                    })}
                   >
-                    <div className="space-y-6">
-                      <div className="space-y-3">
+                    <div className={css({ "& > * + *": { mt: "6" } })}>
+                      <div className={css({ "& > * + *": { mt: "3" } })}>
                         <label
                           htmlFor="name"
-                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                          className={flex({
+                            fontSize: "xs",
+                            fontWeight: "900",
+                            color: "gray.500",
+                            textTransform: "uppercase",
+                            letterSpacing: "widest",
+                            px: "2",
+                            align: "center",
+                            gap: "2",
+                          })}
                         >
-                          <User className="w-3.5 h-3.5 text-cyan-500" /> Nouveau
-                          nom
+                          <User
+                            className={css({
+                              w: "3.5",
+                              h: "3.5",
+                              color: "brand.primary",
+                            })}
+                          />{" "}
+                          Nouveau nom
                         </label>
                         <input
                           id="name"
@@ -392,23 +623,60 @@ export const Settings: React.FC = () => {
                           value={name}
                           onChange={(e) => setName(e.target.value)}
                           placeholder="Votre nouveau nom complet"
-                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
+                          className={css({
+                            w: "full",
+                            bg: "whiteAlpha.50",
+                            border: "1px solid",
+                            borderColor: "whiteAlpha.100",
+                            color: "white",
+                            borderRadius: "2xl",
+                            px: "6",
+                            py: "4",
+                            _focus: {
+                              outline: "none",
+                              borderColor: "brand.primary",
+                              ring: "4px",
+                              ringColor: "brand.primary/10",
+                            },
+                            transition: "all",
+                            fontWeight: "bold",
+                          })}
                         />
                       </div>
                     </div>
 
                     {nameMessage && (
                       <div
-                        className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold ${
-                          nameMessage.type === "success"
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                            : "bg-red-500/10 text-red-400 border border-red-500/20"
-                        }`}
+                        className={flex({
+                          p: "4",
+                          borderRadius: "xl",
+                          align: "center",
+                          gap: "3",
+                          fontSize: "sm",
+                          fontWeight: "bold",
+                          bg:
+                            nameMessage.type === "success"
+                              ? "emerald.500/10"
+                              : "red.500/10",
+                          color:
+                            nameMessage.type === "success"
+                              ? "emerald.400"
+                              : "red.400",
+                          border: "1px solid",
+                          borderColor:
+                            nameMessage.type === "success"
+                              ? "emerald.500/20"
+                              : "red.500/20",
+                        })}
                       >
                         {nameMessage.type === "success" ? (
-                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          <CheckCircle2
+                            className={css({ w: "4", h: "4", flexShrink: "0" })}
+                          />
                         ) : (
-                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <AlertCircle
+                            className={css({ w: "4", h: "4", flexShrink: "0" })}
+                          />
                         )}{" "}
                         {nameMessage.text}
                       </div>
@@ -416,13 +684,40 @@ export const Settings: React.FC = () => {
                     <button
                       type="submit"
                       disabled={nameLoading}
-                      className="relative w-full py-5 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-500 hover:text-white font-black rounded-2xl transition-all group overflow-hidden uppercase tracking-widest text-xs mt-2"
+                      className={css({
+                        w: "full",
+                        py: "5",
+                        bg: "brand.primary/10",
+                        _hover: { bg: "brand.primary", color: "white" },
+                        border: "1px solid",
+                        borderColor: "brand.primary/30",
+                        color: "brand.primary",
+                        fontWeight: "900",
+                        borderRadius: "2xl",
+                        transition: "all",
+                        textTransform: "uppercase",
+                        letterSpacing: "widest",
+                        fontSize: "xs",
+                        mt: "2",
+                      })}
                     >
-                      <div className="relative z-10 flex items-center justify-center gap-3">
+                      <div
+                        className={flex({
+                          align: "center",
+                          justify: "center",
+                          gap: "3",
+                        })}
+                      >
                         {nameLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                          <Loader2
+                            className={css({
+                              w: "4",
+                              h: "4",
+                              animation: "spin 1s linear infinite",
+                            })}
+                          />
                         ) : (
-                          <Zap className="w-4 h-4 shrink-0" />
+                          <Zap className={css({ w: "4", h: "4" })} />
                         )}
                         Enregistrer le nom
                       </div>
@@ -432,15 +727,37 @@ export const Settings: React.FC = () => {
                   {/* Email Update Form */}
                   <form
                     onSubmit={handleUpdateEmailInit}
-                    className="space-y-6 bg-gray-900/20 p-8 rounded-[2rem] border border-gray-800/40 shadow-inner"
+                    className={css({
+                      bg: "whiteAlpha.50",
+                      p: "8",
+                      borderRadius: "3xl",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                      "& > * + *": { mt: "6" },
+                    })}
                   >
-                    <div className="space-y-6">
-                      <div className="space-y-3">
+                    <div className={css({ "& > * + *": { mt: "6" } })}>
+                      <div className={css({ "& > * + *": { mt: "3" } })}>
                         <label
                           htmlFor="email"
-                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                          className={flex({
+                            fontSize: "xs",
+                            fontWeight: "900",
+                            color: "gray.500",
+                            textTransform: "uppercase",
+                            letterSpacing: "widest",
+                            px: "2",
+                            align: "center",
+                            gap: "2",
+                          })}
                         >
-                          <Mail className="w-3.5 h-3.5 text-cyan-500" />{" "}
+                          <Mail
+                            className={css({
+                              w: "3.5",
+                              h: "3.5",
+                              color: "brand.primary",
+                            })}
+                          />{" "}
                           Nouvelle adresse email
                         </label>
                         <input
@@ -449,23 +766,60 @@ export const Settings: React.FC = () => {
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="nouvelle.adresse@aegis.com"
-                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/10 transition-all font-bold"
+                          className={css({
+                            w: "full",
+                            bg: "whiteAlpha.50",
+                            border: "1px solid",
+                            borderColor: "whiteAlpha.100",
+                            color: "white",
+                            borderRadius: "2xl",
+                            px: "6",
+                            py: "4",
+                            _focus: {
+                              outline: "none",
+                              borderColor: "brand.primary",
+                              ring: "4px",
+                              ringColor: "brand.primary/10",
+                            },
+                            transition: "all",
+                            fontWeight: "bold",
+                          })}
                         />
                       </div>
                     </div>
 
                     {emailMessage && (
                       <div
-                        className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold ${
-                          emailMessage.type === "success"
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                            : "bg-red-500/10 text-red-400 border border-red-500/20"
-                        }`}
+                        className={flex({
+                          p: "4",
+                          borderRadius: "xl",
+                          align: "center",
+                          gap: "3",
+                          fontSize: "sm",
+                          fontWeight: "bold",
+                          bg:
+                            emailMessage.type === "success"
+                              ? "emerald.500/10"
+                              : "red.500/10",
+                          color:
+                            emailMessage.type === "success"
+                              ? "emerald.400"
+                              : "red.400",
+                          border: "1px solid",
+                          borderColor:
+                            emailMessage.type === "success"
+                              ? "emerald.500/20"
+                              : "red.500/20",
+                        })}
                       >
                         {emailMessage.type === "success" ? (
-                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          <CheckCircle2
+                            className={css({ w: "4", h: "4", flexShrink: "0" })}
+                          />
                         ) : (
-                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <AlertCircle
+                            className={css({ w: "4", h: "4", flexShrink: "0" })}
+                          />
                         )}{" "}
                         {emailMessage.text}
                       </div>
@@ -473,13 +827,40 @@ export const Settings: React.FC = () => {
                     <button
                       type="submit"
                       disabled={emailLoading}
-                      className="w-full py-5 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-500/30 hover:border-cyan-500 text-cyan-500 hover:text-white font-black rounded-2xl transition-all uppercase tracking-widest text-xs mt-2"
+                      className={css({
+                        w: "full",
+                        py: "5",
+                        bg: "brand.primary/10",
+                        _hover: { bg: "brand.primary", color: "white" },
+                        border: "1px solid",
+                        borderColor: "brand.primary/30",
+                        color: "brand.primary",
+                        fontWeight: "900",
+                        borderRadius: "2xl",
+                        transition: "all",
+                        textTransform: "uppercase",
+                        letterSpacing: "widest",
+                        fontSize: "xs",
+                        mt: "2",
+                      })}
                     >
-                      <div className="flex items-center justify-center gap-3">
+                      <div
+                        className={flex({
+                          align: "center",
+                          justify: "center",
+                          gap: "3",
+                        })}
+                      >
                         {emailLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                          <Loader2
+                            className={css({
+                              w: "4",
+                              h: "4",
+                              animation: "spin 1s linear infinite",
+                            })}
+                          />
                         ) : (
-                          <Zap className="w-4 h-4 shrink-0" />
+                          <Zap className={css({ w: "4", h: "4" })} />
                         )}
                         Mettre à jour l'identifiant
                       </div>
@@ -491,30 +872,92 @@ export const Settings: React.FC = () => {
           )}
 
           {activeTab === "securite" && (
-            <div className="space-y-6">
-              <section className="bg-[#0B0D13] border border-gray-800/60 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 blur-[100px] pointer-events-none" />
+            <div className={css({ "& > * + *": { mt: "6" } })}>
+              <section
+                className={cx(
+                  card(),
+                  css({
+                    p: "10",
+                    borderRadius: "3xl",
+                    position: "relative",
+                    overflow: "hidden",
+                  }),
+                )}
+              >
+                <div
+                  className={css({
+                    position: "absolute",
+                    top: "0",
+                    right: "0",
+                    w: "64",
+                    h: "64",
+                    bg: "amber.500/5",
+                    filter: "blur(100px)",
+                    pointerEvents: "none",
+                  })}
+                />
 
-                <div className="flex items-center gap-6 mb-12 border-b border-gray-800/40 pb-8">
-                  <div className="p-4 bg-amber-500/10 rounded-3xl text-amber-500 ring-1 ring-amber-500/20">
-                    <Lock className="w-8 h-8" />
+                <div
+                  className={flex({
+                    align: "center",
+                    gap: "6",
+                    mb: "12",
+                    borderBottom: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                    pb: "8",
+                  })}
+                >
+                  <div
+                    className={css({
+                      p: "4",
+                      bg: "rgba(245, 158, 11, 0.1)",
+                      borderRadius: "3xl",
+                      color: "amber.500",
+                      ring: "1px",
+                      ringColor: "rgba(245, 158, 11, 0.2)",
+                    })}
+                  >
+                    <Lock className={css({ w: "8", h: "8" })} />
                   </div>
-                  <div>
-                    <h2 className="text-3xl font-black text-white tracking-tight uppercase">
+                  <div className={css({ "& > * + *": { mt: "1" } })}>
+                    <h2
+                      className={css({
+                        fontSize: "3xl",
+                        fontWeight: "900",
+                        color: "white",
+                        letterSpacing: "tight",
+                        textTransform: "uppercase",
+                      })}
+                    >
                       Sécurité du Compte
                     </h2>
-                    <p className="text-gray-500 font-medium">
+                    <p
+                      className={css({
+                        color: "text.muted",
+                        fontWeight: "medium",
+                      })}
+                    >
                       Renforcez votre protection avec un mot de passe complexe.
                     </p>
                   </div>
                 </div>
 
-                <form onSubmit={handleUpdatePassword} className="space-y-12">
-                  <div className="grid grid-cols-1 gap-10 max-w-2xl">
-                    <div className="space-y-3">
+                <form
+                  onSubmit={handleUpdatePassword}
+                  className={css({ "& > * + *": { mt: "12" } })}
+                >
+                  <div className={grid({ columns: 1, gap: "10", maxW: "2xl" })}>
+                    <div className={css({ "& > * + *": { mt: "3" } })}>
                       <label
                         htmlFor="oldPassword"
-                        className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2 flex items-center gap-2"
+                        className={css({
+                          fontSize: "xs",
+                          fontWeight: "900",
+                          color: "gray.500",
+                          textTransform: "uppercase",
+                          letterSpacing: "widest",
+                          px: "2",
+                        })}
                       >
                         Mot de passe actuel
                       </label>
@@ -524,15 +967,45 @@ export const Settings: React.FC = () => {
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-bold placeholder:text-gray-800"
+                        className={css({
+                          w: "full",
+                          bg: "whiteAlpha.50",
+                          border: "1px solid",
+                          borderColor: "whiteAlpha.100",
+                          color: "white",
+                          borderRadius: "2xl",
+                          px: "6",
+                          py: "4",
+                          _focus: {
+                            outline: "none",
+                            borderColor: "amber.500",
+                            ring: "4px",
+                            ringColor: "rgba(245, 158, 11, 0.1)",
+                          },
+                          transition: "all",
+                          fontWeight: "bold",
+                          _placeholder: { color: "gray.800" },
+                        })}
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-3">
+                    <div
+                      className={grid({
+                        columns: { base: 1, md: 2 },
+                        gap: "8",
+                      })}
+                    >
+                      <div className={css({ "& > * + *": { mt: "3" } })}>
                         <label
                           htmlFor="newPassword"
-                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2"
+                          className={css({
+                            fontSize: "xs",
+                            fontWeight: "900",
+                            color: "gray.500",
+                            textTransform: "uppercase",
+                            letterSpacing: "widest",
+                            px: "2",
+                          })}
                         >
                           Nouveau mot de passe
                         </label>
@@ -542,13 +1015,38 @@ export const Settings: React.FC = () => {
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="8+ caractères"
-                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-bold placeholder:text-gray-800"
+                          className={css({
+                            w: "full",
+                            bg: "whiteAlpha.50",
+                            border: "1px solid",
+                            borderColor: "whiteAlpha.100",
+                            color: "white",
+                            borderRadius: "2xl",
+                            px: "6",
+                            py: "4",
+                            _focus: {
+                              outline: "none",
+                              borderColor: "amber.500",
+                              ring: "4px",
+                              ringColor: "rgba(245, 158, 11, 0.1)",
+                            },
+                            transition: "all",
+                            fontWeight: "bold",
+                            _placeholder: { color: "gray.800" },
+                          })}
                         />
                       </div>
-                      <div className="space-y-3">
+                      <div className={css({ "& > * + *": { mt: "3" } })}>
                         <label
                           htmlFor="confirmPassword"
-                          className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] px-2"
+                          className={css({
+                            fontSize: "xs",
+                            fontWeight: "900",
+                            color: "gray.500",
+                            textTransform: "uppercase",
+                            letterSpacing: "widest",
+                            px: "2",
+                          })}
                         >
                           Confirmation
                         </label>
@@ -558,18 +1056,62 @@ export const Settings: React.FC = () => {
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder="Répétez le mot de passe"
-                          className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all font-bold placeholder:text-gray-800"
+                          className={css({
+                            w: "full",
+                            bg: "whiteAlpha.50",
+                            border: "1px solid",
+                            borderColor: "whiteAlpha.100",
+                            color: "white",
+                            borderRadius: "2xl",
+                            px: "6",
+                            py: "4",
+                            _focus: {
+                              outline: "none",
+                              borderColor: "amber.500",
+                              ring: "4px",
+                              ringColor: "rgba(245, 158, 11, 0.1)",
+                            },
+                            transition: "all",
+                            fontWeight: "bold",
+                            _placeholder: { color: "gray.800" },
+                          })}
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Sleek Password Complexity Bar */}
-                  <div className="bg-gray-900/30 border border-gray-800/40 rounded-3xl p-8 max-w-2xl space-y-6">
-                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-3">
-                      <Shield className="w-3.5 h-3.5" /> Exigences de sécurité
+                  <div
+                    className={css({
+                      bg: "whiteAlpha.50",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                      borderRadius: "3xl",
+                      p: "8",
+                      maxW: "2xl",
+                      "& > * + *": { mt: "6" },
+                    })}
+                  >
+                    <h4
+                      className={flex({
+                        fontSize: "10px",
+                        fontWeight: "900",
+                        color: "gray.500",
+                        textTransform: "uppercase",
+                        letterSpacing: "widest",
+                        align: "center",
+                        gap: "3",
+                      })}
+                    >
+                      <Shield className={css({ w: "3.5", h: "3.5" })} />{" "}
+                      Exigences de sécurité
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div
+                      className={grid({
+                        columns: { base: 2, md: 4 },
+                        gap: "6",
+                      })}
+                    >
                       {[
                         { label: "8+ symb.", valid: newPassword.length >= 8 },
                         {
@@ -584,19 +1126,48 @@ export const Settings: React.FC = () => {
                       ].map((req, rid) => (
                         <div
                           key={rid}
-                          className="flex flex-col items-center gap-3 group"
+                          className={cx(
+                            "group",
+                            flex({
+                              direction: "column",
+                              align: "center",
+                              gap: "3",
+                              cursor: "default",
+                            }),
+                          )}
                         >
                           <div
-                            className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
+                            className={cx(
+                              "req-dot",
+                              css({
+                                w: "1.5",
+                                h: "1.5",
+                                borderRadius: "full",
+                                transition: "all",
+                                transitionDuration: "500ms",
+                              }),
                               req.valid
-                                ? "bg-emerald-400 scale-150 shadow-[0_0_10px_rgba(52,211,153,0.8)]"
-                                : "bg-gray-800 group-hover:bg-gray-700"
-                            }`}
+                                ? css({
+                                    bg: "emerald.400",
+                                    transform: "scale(1.5)",
+                                    boxShadow:
+                                      "0 0 10px rgba(52, 211, 153, 0.8)",
+                                  })
+                                : css({ bg: "whiteAlpha.100" }),
+                            )}
                           />
                           <span
-                            className={`text-[10px] font-black uppercase tracking-tighter ${
-                              req.valid ? "text-emerald-400" : "text-gray-600"
-                            }`}
+                            className={cx(
+                              css({
+                                fontSize: "10px",
+                                fontWeight: "900",
+                                textTransform: "uppercase",
+                                letterSpacing: "tight",
+                              }),
+                              req.valid
+                                ? css({ color: "emerald.400" })
+                                : css({ color: "gray.600" }),
+                            )}
                           >
                             {req.label}
                           </span>
@@ -607,16 +1178,33 @@ export const Settings: React.FC = () => {
 
                   {passwordMessage && (
                     <div
-                      className={`p-4 rounded-xl flex items-center gap-3 text-sm font-bold max-w-2xl ${
-                        passwordMessage.type === "success"
-                          ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                          : "bg-red-500/10 text-red-400 border border-red-500/20"
-                      }`}
+                      className={flex({
+                        p: "4",
+                        borderRadius: "xl",
+                        align: "center",
+                        gap: "3",
+                        fontSize: "sm",
+                        fontWeight: "bold",
+                        maxW: "2xl",
+                        bg:
+                          passwordMessage.type === "success"
+                            ? "emerald.500/10"
+                            : "red.500/10",
+                        color:
+                          passwordMessage.type === "success"
+                            ? "emerald.400"
+                            : "red.400",
+                        border: "1px solid",
+                        borderColor:
+                          passwordMessage.type === "success"
+                            ? "emerald.500/20"
+                            : "red.500/20",
+                      })}
                     >
                       {passwordMessage.type === "success" ? (
-                        <CheckCircle2 className="w-4 h-4" />
+                        <CheckCircle2 className={css({ w: "4", h: "4" })} />
                       ) : (
-                        <AlertCircle className="w-4 h-4" />
+                        <AlertCircle className={css({ w: "4", h: "4" })} />
                       )}{" "}
                       {passwordMessage.text}
                     </div>
@@ -625,10 +1213,31 @@ export const Settings: React.FC = () => {
                   <button
                     type="submit"
                     disabled={passwordLoading}
-                    className="px-10 py-5 bg-amber-500 hover:bg-amber-400 text-black font-black rounded-3xl transition-all shadow-xl shadow-amber-500/10 uppercase tracking-widest text-xs flex items-center gap-3"
+                    className={flex({
+                      px: "10",
+                      py: "5",
+                      bg: "amber.500",
+                      _hover: { bg: "amber.400" },
+                      color: "black",
+                      fontWeight: "900",
+                      borderRadius: "3xl",
+                      transition: "all",
+                      boxShadow: "0 10px 30px rgba(245, 158, 11, 0.1)",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                      fontSize: "xs",
+                      align: "center",
+                      gap: "3",
+                    })}
                   >
                     {passwordLoading && (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2
+                        className={css({
+                          w: "4",
+                          h: "4",
+                          animation: "spin 1s linear infinite",
+                        })}
+                      />
                     )}
                     Mettre à jour la sécurité
                   </button>
@@ -638,13 +1247,47 @@ export const Settings: React.FC = () => {
           )}
 
           {(activeTab === "notifications" || activeTab === "facturation") && (
-            <div className="flex flex-col items-center justify-center p-20 bg-[#0B0D13] border border-gray-800/60 rounded-[3rem] space-y-6">
-              <Zap className="w-16 h-16 text-cyan-500/20 animate-pulse" />
-              <div className="text-center">
-                <h3 className="text-2xl font-black text-white uppercase tracking-widest">
+            <div
+              className={flex({
+                direction: "column",
+                align: "center",
+                justify: "center",
+                p: "20",
+                bg: "bg.card",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+                borderRadius: "3xl",
+                gap: "6",
+              })}
+            >
+              <Zap
+                className={css({
+                  w: "16",
+                  h: "16",
+                  color: "brand.primary/20",
+                  animation: "pulse 2s infinite",
+                })}
+              />
+              <div
+                className={css({
+                  textAlign: "center",
+                  "& > * + *": { mt: "2" },
+                })}
+              >
+                <h3
+                  className={css({
+                    fontSize: "2xl",
+                    fontWeight: "900",
+                    color: "white",
+                    textTransform: "uppercase",
+                    letterSpacing: "widest",
+                  })}
+                >
                   Bientôt Disponible
                 </h3>
-                <p className="text-gray-500 font-medium">
+                <p
+                  className={css({ color: "text.muted", fontWeight: "medium" })}
+                >
                   Cette section est en cours de développement.
                 </p>
               </div>
@@ -655,44 +1298,125 @@ export const Settings: React.FC = () => {
 
       {/* Profile Photo Options Modal */}
       {isPhotoOptionsOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+        <div
+          className={css({
+            position: "fixed",
+            inset: "0",
+            zIndex: "100",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            p: { base: "6", sm: "0" },
+          })}
+        >
           <div
-            className="absolute inset-0 bg-[#0B0D13]/80 backdrop-blur-xl"
+            className={css({
+              position: "absolute",
+              inset: "0",
+              bg: "rgba(11, 13, 19, 0.8)",
+              backdropFilter: "blur(12px)",
+            })}
             onClick={() => setIsPhotoOptionsOpen(false)}
           />
-          <div className="relative w-full max-w-sm bg-[#0B0D13] border border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="p-8 space-y-6">
-              <div className="space-y-2 text-center">
-                <h3 className="text-xl font-black text-white">
+          <div
+            className={css({
+              position: "relative",
+              w: "full",
+              maxW: "sm",
+              bg: "bg.card",
+              border: "1px solid",
+              borderColor: "whiteAlpha.100",
+              borderRadius: "3xl",
+              overflow: "hidden",
+              boxShadow: "2xl",
+            })}
+          >
+            <div className={css({ p: "8", "& > * + *": { mt: "6" } })}>
+              <div
+                className={css({
+                  textAlign: "center",
+                  "& > * + *": { mt: "2" },
+                })}
+              >
+                <h3
+                  className={css({
+                    fontSize: "xl",
+                    fontWeight: "900",
+                    color: "white",
+                  })}
+                >
                   Photo de profil
                 </h3>
-                <p className="text-sm text-gray-500 font-bold">
+                <p
+                  className={css({
+                    fontSize: "sm",
+                    color: "text.muted",
+                    fontWeight: "bold",
+                  })}
+                >
                   Que souhaitez-vous faire ?
                 </p>
               </div>
 
-              <div className="space-y-3">
+              <div className={css({ "& > * + *": { mt: "3" } })}>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-4 bg-cyan-500 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/20"
+                  className={flex({
+                    w: "full",
+                    py: "4",
+                    bg: "brand.primary",
+                    color: "white",
+                    fontWeight: "900",
+                    borderRadius: "2xl",
+                    align: "center",
+                    justify: "center",
+                    gap: "3",
+                    _hover: { bg: "cyan.400" },
+                    transition: "all",
+                    boxShadow: "0 4px 12px {colors.brand.primary/20}",
+                  })}
                 >
-                  <Camera className="w-5 h-5" />
+                  <Camera className={css({ w: "5", h: "5" })} />
                   Téléverser une photo
                 </button>
 
                 {avatarUrl && (
                   <button
                     onClick={handleDeletePhoto}
-                    className="w-full py-4 bg-red-500/10 text-red-500 border border-red-500/20 font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-red-500 hover:text-white transition-all"
+                    className={flex({
+                      w: "full",
+                      py: "4",
+                      bg: "rgba(239, 68, 68, 0.1)",
+                      color: "red.500",
+                      border: "1px solid",
+                      borderColor: "rgba(239, 68, 68, 0.2)",
+                      fontWeight: "900",
+                      borderRadius: "2xl",
+                      align: "center",
+                      justify: "center",
+                      gap: "3",
+                      _hover: { bg: "red.500", color: "white" },
+                      transition: "all",
+                    })}
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className={css({ w: "5", h: "5" })} />
                     Supprimer la photo
                   </button>
                 )}
 
                 <button
                   onClick={() => setIsPhotoOptionsOpen(false)}
-                  className="w-full py-4 text-gray-500 font-black uppercase tracking-widest text-[10px] hover:text-white transition-colors"
+                  className={css({
+                    w: "full",
+                    py: "4",
+                    color: "text.muted",
+                    fontWeight: "900",
+                    textTransform: "uppercase",
+                    letterSpacing: "widest",
+                    fontSize: "10px",
+                    _hover: { color: "white" },
+                    transition: "colors",
+                  })}
                 >
                   Annuler
                 </button>
@@ -708,7 +1432,7 @@ export const Settings: React.FC = () => {
         ref={fileInputRef}
         onChange={handleFileChange}
         accept="image/*"
-        className="hidden"
+        className={css({ display: "none" })}
       />
 
       <PasswordPromptModal

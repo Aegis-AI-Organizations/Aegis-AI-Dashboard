@@ -9,6 +9,9 @@ interface RoleBadgeProps {
   className?: string;
 }
 
+import { css, cx } from "styled-system/css";
+import { flex } from "styled-system/patterns";
+
 export const RoleBadge: React.FC<RoleBadgeProps> = ({
   role,
   showIcon = true,
@@ -19,7 +22,20 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
   if (!config) {
     return (
       <span
-        className={`px-2 py-0.5 rounded text-[10px] font-bold bg-gray-500/10 text-gray-400 border border-gray-500/20 ${className}`}
+        className={cx(
+          css({
+            px: "2",
+            py: "0.5",
+            borderRadius: "md",
+            fontSize: "10px",
+            fontWeight: "bold",
+            bg: "gray.500/10",
+            color: "gray.400",
+            border: "1px solid",
+            borderColor: "gray.500/20",
+          }),
+          className,
+        )}
       >
         {role}
       </span>
@@ -28,11 +44,41 @@ export const RoleBadge: React.FC<RoleBadgeProps> = ({
 
   const Icon = config.pole === "internal" ? Shield : Building;
 
+  // We map the legacy colorClass logic to Panda CSS
+  const getDynamicStyles = () => {
+    const isInternal = config.pole === "internal";
+    return css({
+      bg: isInternal ? "blue.500/10" : "emerald.500/10",
+      color: isInternal ? "blue.400" : "emerald.400",
+      borderColor: isInternal ? "blue.500/20" : "emerald.500/20",
+      gradientFrom: isInternal ? "blue.500/5" : "emerald.500/5",
+      gradientTo: "transparent",
+    });
+  };
+
   return (
     <div
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border bg-gradient-to-br transition-all duration-300 ${config.colorClass} ${className}`}
+      className={cx(
+        flex({
+          align: "center",
+          gap: "1.5",
+          px: "2.5",
+          py: "1",
+          borderRadius: "full",
+          fontSize: "10px",
+          fontWeight: "900",
+          textTransform: "uppercase",
+          letterSpacing: "wider",
+          border: "1px solid",
+          bgGradient: "to-br",
+          transition: "all",
+          transitionDuration: "300ms",
+        }),
+        getDynamicStyles(),
+        className,
+      )}
     >
-      {showIcon && <Icon className="w-3 h-3" />}
+      {showIcon && <Icon className={css({ w: "3", h: "3" })} />}
       <span>{config.label}</span>
     </div>
   );

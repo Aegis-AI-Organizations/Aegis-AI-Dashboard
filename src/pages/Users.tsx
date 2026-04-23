@@ -16,6 +16,9 @@ import {
   X,
   Globe,
 } from "lucide-react";
+import { css, cx } from "styled-system/css";
+import { flex } from "styled-system/patterns";
+import { pageTitle, button as buttonRecipe } from "styled-system/recipes";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { RoleBadge } from "../components/ui/RoleBadge";
@@ -200,185 +203,468 @@ export const Users: React.FC = () => {
   const canCreateUser = currentUser?.role === "owner"; // Owners still create users in Team page
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">
+    <div
+      className={css({
+        maxW: "7xl",
+        mx: "auto",
+        display: "flex",
+        flexDir: "column",
+        gap: "12",
+        animation: "fadeIn 0.5s ease-out",
+        pb: "20",
+      })}
+    >
       {/* Header & Main Actions */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-        <div className="space-y-3">
-          <h1 className="text-5xl font-black text-white tracking-tighter">
-            Équipes
-          </h1>
-          <p className="text-gray-500 font-bold text-lg max-w-xl leading-relaxed">
+      <div
+        className={flex({
+          direction: { base: "column", md: "row" },
+          justify: "space-between",
+          align: { base: "flex-start", md: "flex-end" },
+          gap: "8",
+        })}
+      >
+        <div className={css({ "& > * + *": { mt: "3" } })}>
+          <h1 className={pageTitle({ size: "2xl" })}>Équipes</h1>
+          <p
+            className={css({
+              color: "text.muted",
+              fontWeight: "bold",
+              fontSize: "lg",
+              maxW: "xl",
+              lineHeight: "relaxed",
+            })}
+          >
             Gérez vos entités clientes et les comptes collaborateurs directement
             depuis ce portail centralisé.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-4">
+        <div className={flex({ flexWrap: "wrap", gap: "4" })}>
           {canCreateUser && (
             <button
               onClick={() => setIsNewUserOpen(true)}
-              className="px-6 py-3.5 bg-white text-black font-black rounded-2xl flex items-center gap-3 hover:bg-gray-200 transition-all shadow-xl shadow-white/5 uppercase tracking-widest text-xs"
+              className={buttonRecipe({ variant: "primary", size: "lg" })}
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className={css({ w: "4", h: "4" })} />
               Créer un Utilisateur
             </button>
           )}
           {canCreateCompany && (
             <button
               onClick={() => setIsNewCompanyOpen(true)}
-              className="px-6 py-3.5 bg-cyan-600 text-white font-black rounded-2xl flex items-center gap-3 hover:bg-cyan-500 transition-all shadow-xl shadow-cyan-600/20 uppercase tracking-widest text-xs"
+              className={buttonRecipe({ variant: "primary", size: "lg" })}
             >
-              <Building2 className="w-4 h-4" />
+              <Building2 className={css({ w: "4", h: "4" })} />
               Nouvelle Entreprise
             </button>
           )}
         </div>
       </div>
-
       {/* Global Search */}
-      <div className="relative group">
-        <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
-          <Search className="w-5 h-5 text-gray-500 group-focus-within:text-cyan-500 transition-colors" />
+      <div className={css({ position: "relative" })}>
+        <div
+          className={css({
+            position: "absolute",
+            insetY: "0",
+            left: "6",
+            display: "flex",
+            alignItems: "center",
+            pointerEvents: "none",
+          })}
+        >
+          <Search className={css({ w: "5", h: "5", color: "gray.500" })} />
         </div>
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Rechercher une entreprise (Nom, ID) ou un collaborateur (Nom, Email, ID)..."
-          className="w-full bg-[#0B0D13] border border-gray-800/60 text-white rounded-3xl pl-16 pr-8 py-6 focus:outline-none focus:border-cyan-500/50 focus:ring-4 focus:ring-cyan-500/5 transition-all font-bold placeholder:text-gray-700 shadow-2xl"
+          className={css({
+            w: "full",
+            bg: "bg.card",
+            border: "1px solid",
+            borderColor: "whiteAlpha.100",
+            color: "white",
+            borderRadius: "3xl",
+            pl: "16",
+            pr: "8",
+            py: "6",
+            fontSize: "lg",
+            fontWeight: "bold",
+            _focus: { outline: "none", borderColor: "brand.primary" },
+            transition: "all",
+            _placeholder: { color: "gray.700" },
+            boxShadow: "2xl",
+          })}
         />
-      </div>
-
+      </div>{" "}
       {/* Hierarchical List */}
-      <div className="space-y-4">
+      <div className={css({ "& > * + *": { mt: "4" } })}>
         {loading && !companies.length ? (
-          <div className="py-20 flex flex-col items-center gap-4 text-gray-600">
-            <Loader2 className="w-10 h-10 animate-spin" />
-            <p className="font-bold uppercase tracking-widest text-xs">
+          <div
+            className={flex({
+              py: "20",
+              direction: "column",
+              align: "center",
+              gap: "4",
+              color: "text.muted",
+            })}
+          >
+            <Loader2
+              className={css({
+                w: "10",
+                h: "10",
+                animation: "spin 1s linear infinite",
+              })}
+            />
+            <p
+              className={css({
+                fontWeight: "bold",
+                textTransform: "uppercase",
+                letterSpacing: "widest",
+                fontSize: "xs",
+              })}
+            >
               Chargement des données...
             </p>
           </div>
         ) : companies.length === 0 ? (
-          <div className="py-20 bg-[#0B0D13]/40 border border-dashed border-gray-800 rounded-[3rem] flex flex-col items-center gap-4 text-gray-600 italic">
-            <Globe className="w-10 h-10 opacity-20" />
+          <div
+            className={flex({
+              py: "20",
+              bg: "whiteAlpha.50",
+              border: "1px dashed",
+              borderColor: "whiteAlpha.100",
+              borderRadius: "3rem",
+              direction: "column",
+              align: "center",
+              gap: "4",
+              color: "text.muted",
+              fontStyle: "italic",
+            })}
+          >
+            <Globe className={css({ w: "10", h: "10", opacity: 0.2 })} />
             <p>Aucun résultat correspondant à votre recherche.</p>
           </div>
         ) : (
           companies.map((company) => (
             <div
               key={company.id}
-              className={`bg-[#0B0D13] border transition-all duration-300 overflow-hidden ${
-                company.isExpanded
-                  ? "border-cyan-500/30 rounded-[2.5rem] shadow-2xl shadow-cyan-500/5"
-                  : "border-gray-800/60 rounded-3xl hover:border-gray-700"
-              }`}
+              className={css({
+                bg: "bg.card",
+                border: "1px solid",
+                borderColor: company.isExpanded
+                  ? "brand.primary/30"
+                  : "whiteAlpha.100",
+                borderRadius: company.isExpanded ? "2.5rem" : "3xl",
+                boxShadow: company.isExpanded ? "2xl" : "none",
+                transition: "all",
+                transitionDuration: "300ms",
+                overflow: "hidden",
+                _hover: {
+                  borderColor: company.isExpanded
+                    ? "brand.primary/30"
+                    : "whiteAlpha.200",
+                },
+              })}
             >
               <div
                 onClick={() => toggleCompany(company.id)}
-                className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer group"
+                className={flex({
+                  p: { base: "6", md: "8" },
+                  direction: { base: "column", md: "row" },
+                  align: { md: "center" },
+                  justify: "space-between",
+                  gap: "6",
+                  cursor: "pointer",
+                })}
               >
-                <div className="flex items-center gap-6">
+                <div className={flex({ align: "center", gap: "6" })}>
                   {company.avatar_url ? (
                     <ProfileCircle
                       size="md"
                       avatarUrl={company.avatar_url}
                       name={company.name}
-                      className="rounded-2xl"
+                      className={css({ borderRadius: "2xl" })}
                     />
                   ) : (
                     <div
-                      className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                      className={cx(
+                        flex({
+                          w: "14",
+                          h: "14",
+                          borderRadius: "2xl",
+                          align: "center",
+                          justify: "center",
+                          transition: "all",
+                          border: "1px solid",
+                        }),
                         company.name === "Aegis AI"
-                          ? "bg-cyan-500/10 text-cyan-400 border border-cyan-400/30"
-                          : "bg-gray-900 text-gray-400 border border-gray-800"
-                      }`}
+                          ? css({
+                              bg: "brand.primary/10",
+                              color: "brand.primary",
+                              borderColor: "brand.primary/30",
+                            })
+                          : css({
+                              bg: "bg.main",
+                              color: "gray.400",
+                              borderColor: "whiteAlpha.100",
+                            }),
+                      )}
                     >
-                      <Building2 className="w-6 h-6" />
+                      <Building2 className={css({ w: "6", h: "6" })} />
                     </div>
                   )}
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-xl font-black text-white tracking-tight group-hover:text-cyan-400 transition-colors">
+                  <div className={css({ "& > * + *": { mt: "1" } })}>
+                    <div className={flex({ align: "center", gap: "3" })}>
+                      <h3
+                        className={css({
+                          fontSize: "xl",
+                          fontWeight: "900",
+                          color: "white",
+                          letterSpacing: "tight",
+                          _groupHover: { color: "brand.primary" },
+                          transition: "colors",
+                        })}
+                      >
                         {company.name}
                       </h3>
                       {company.name === "Aegis AI" && (
-                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-400 text-[10px] font-black uppercase tracking-widest rounded-md border border-cyan-400/20">
+                        <span
+                          className={css({
+                            px: "2",
+                            py: "0.5",
+                            bg: "brand.primary/20",
+                            color: "brand.primary",
+                            fontSize: "10px",
+                            fontWeight: "900",
+                            textTransform: "uppercase",
+                            letterSpacing: "widest",
+                            borderRadius: "md",
+                            border: "1px solid",
+                            borderColor: "brand.primary/20",
+                          })}
+                        >
                           Root
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-4 text-xs font-bold text-gray-600">
-                      <span className="flex items-center gap-1.5">
-                        <Mail className="w-3 h-3" /> {company.owner_email}
+                    <div
+                      className={flex({
+                        align: "center",
+                        gap: "4",
+                        fontSize: "xs",
+                        fontWeight: "bold",
+                        color: "text.muted",
+                      })}
+                    >
+                      <span className={flex({ align: "center", gap: "1.5" })}>
+                        <Mail className={css({ w: "3", h: "3" })} />{" "}
+                        {company.owner_email}
                       </span>
-                      <span className="hidden md:inline text-gray-800">|</span>
-                      <span className="flex items-center gap-1.5 font-mono opacity-50">
+                      <span
+                        className={css({
+                          display: { base: "none", md: "inline" },
+                          color: "whiteAlpha.200",
+                        })}
+                      >
+                        |
+                      </span>
+                      <span
+                        className={flex({
+                          align: "center",
+                          gap: "1.5",
+                          fontFamily: "mono",
+                          opacity: 0.5,
+                        })}
+                      >
                         {company.id.substring(0, 8)}...
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-gray-900 group-hover:bg-cyan-500 group-hover:text-white text-gray-600 transition-all">
+                <div className={flex({ align: "center", gap: "4" })}>
+                  <div
+                    className={css({
+                      p: "3",
+                      borderRadius: "xl",
+                      bg: company.isExpanded
+                        ? "brand.primary"
+                        : "whiteAlpha.100",
+                      color: company.isExpanded ? "white" : "gray.600",
+                      transition: "all",
+                      _groupHover: {
+                        bg: company.isExpanded
+                          ? "brand.primary"
+                          : "brand.primary/20",
+                        color: "white",
+                      },
+                    })}
+                  >
                     {company.isExpanded ? (
-                      <ChevronDown className="w-5 h-5" />
+                      <ChevronDown className={css({ w: "5", h: "5" })} />
                     ) : (
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className={css({ w: "5", h: "5" })} />
                     )}
                   </div>
                 </div>
-              </div>
-
+              </div>{" "}
               {/* Expanded Members List */}
               {company.isExpanded && (
-                <div className="border-t border-gray-800/60 bg-black/20 p-8 pt-4 animate-in slide-in-from-top-4 duration-300">
-                  <div className="flex items-center justify-between mb-6">
-                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                <div
+                  className={css({
+                    borderTop: "1px solid",
+                    borderColor: "whiteAlpha.50",
+                    bg: "blackAlpha.200",
+                    p: "8",
+                    pt: "4",
+                    animation: "slideInFromTop 0.3s ease-out",
+                  })}
+                >
+                  <div
+                    className={flex({
+                      align: "center",
+                      justify: "space-between",
+                      mb: "6",
+                    })}
+                  >
+                    <h4
+                      className={css({
+                        fontSize: "10px",
+                        fontWeight: "900",
+                        color: "text.muted",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.2em",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "2",
+                      })}
+                    >
                       Collaborateurs{" "}
-                      <span className="px-2 py-0.5 bg-gray-800 rounded-full text-gray-400">
+                      <span
+                        className={css({
+                          px: "2",
+                          py: "0.5",
+                          bg: "whiteAlpha.100",
+                          borderRadius: "full",
+                          color: "gray.400",
+                        })}
+                      >
                         {company.members?.length || 0}
                       </span>
                     </h4>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div
+                    className={css({
+                      display: "grid",
+                      gridTemplateColumns: { base: "1", md: "2", lg: "3" },
+                      gap: "4",
+                    })}
+                  >
                     {company.members ? (
                       company.members.map((member) => (
                         <div
                           key={member.id}
-                          className="bg-gray-900/40 border border-gray-800/40 p-5 rounded-2xl flex items-center gap-4 group/user hover:border-cyan-500/30 transition-all"
+                          className={flex({
+                            bg: "whiteAlpha.50",
+                            border: "1px solid",
+                            borderColor: "whiteAlpha.50",
+                            p: "5",
+                            borderRadius: "2xl",
+                            align: "center",
+                            gap: "4",
+                            transition: "all",
+                            _hover: { borderColor: "brand.primary/30" },
+                            position: "relative",
+                          })}
                         >
                           <ProfileCircle
                             size="sm"
                             avatarUrl={member.avatar_url}
                             name={member.name}
                           />
-                          <div className="space-y-1 my-auto flex-1 min-w-0">
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-black text-white truncate">
+                          <div
+                            className={css({
+                              "& > * + *": { mt: "1" },
+                              my: "auto",
+                              flex: "1",
+                              minW: "0",
+                            })}
+                          >
+                            <div
+                              className={flex({ align: "center", gap: "3" })}
+                            >
+                              <span
+                                className={css({
+                                  fontSize: "sm",
+                                  fontWeight: "900",
+                                  color: "white",
+                                  textOverflow: "ellipsis",
+                                  overflow: "hidden",
+                                  whiteSpace: "nowrap",
+                                })}
+                              >
                                 {member.name}
                               </span>
                               <RoleBadge role={member.role} showIcon={false} />
                             </div>
-                            <p className="text-xs text-gray-500 font-bold truncate">
+                            <p
+                              className={css({
+                                fontSize: "xs",
+                                color: "text.muted",
+                                fontWeight: "bold",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                              })}
+                            >
                               {member.email}
                             </p>
-                            <code className="text-[9px] text-gray-700 font-mono block opacity-0 group-hover/user:opacity-100 transition-opacity">
+                            <code
+                              className={css({
+                                fontSize: "9px",
+                                color: "whiteAlpha.300",
+                                fontFamily: "mono",
+                                display: "block",
+                                opacity: { base: 1, md: 0 },
+                                _groupHover: { opacity: 1 },
+                                transition: "opacity",
+                              })}
+                            >
                               ID: {member.id}
                             </code>
                           </div>
                           <button
                             onClick={() => copyToClipboard(member.id)}
-                            className="p-2 text-gray-700 hover:text-cyan-500 transition-colors"
+                            className={css({
+                              p: "2",
+                              color: "gray.700",
+                              _hover: { color: "brand.primary" },
+                              transition: "colors",
+                            })}
                           >
-                            <Copy className="w-3.5 h-3.5" />
+                            <Copy className={css({ w: "3.5", h: "3.5" })} />
                           </button>
                         </div>
                       ))
                     ) : (
-                      <div className="col-span-full py-10 flex justify-center">
-                        <Loader2 className="w-6 h-6 animate-spin text-gray-800" />
+                      <div
+                        className={flex({
+                          gridColumn: "span 1 / -1",
+                          py: "10",
+                          justify: "center",
+                        })}
+                      >
+                        <Loader2
+                          className={css({
+                            w: "6",
+                            h: "6",
+                            animation: "spin 1s linear infinite",
+                            color: "whiteAlpha.200",
+                          })}
+                        />
                       </div>
                     )}
                   </div>
@@ -388,7 +674,6 @@ export const Users: React.FC = () => {
           ))
         )}
       </div>
-
       {/* MODAL: Create Company */}
       {isNewCompanyOpen && (
         <CreateCompanyModal
@@ -400,7 +685,6 @@ export const Users: React.FC = () => {
           }}
         />
       )}
-
       {/* MODAL: Create User */}
       {isNewUserOpen && (
         <CreateUserModal
@@ -415,7 +699,6 @@ export const Users: React.FC = () => {
           companies={companies}
         />
       )}
-
       {/* MODAL: Success Result */}
       {successData && (
         <SuccessModal data={successData} onClose={() => setSuccessData(null)} />
@@ -453,33 +736,102 @@ export const CreateCompanyModal: React.FC<{
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-black/60 overflow-y-auto">
-      <div className="relative w-full max-w-4xl bg-[#0B0D13] border border-gray-800 rounded-[3.5rem] p-12 shadow-2xl animate-in zoom-in-95 duration-300 my-auto">
+    <div
+      className={css({
+        position: "fixed",
+        inset: "0",
+        zIndex: "100",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        p: "6",
+        backdropBlur: "xl",
+        bg: "black/60",
+        overflowY: "auto",
+      })}
+    >
+      <div
+        className={css({
+          position: "relative",
+          w: "full",
+          maxW: "4xl",
+          bg: "bg.card",
+          border: "1px solid",
+          borderColor: "whiteAlpha.100",
+          borderRadius: "3.5rem",
+          p: "12",
+          boxShadow: "2xl",
+          animation: "zoomIn 0.3s ease-out",
+          my: "auto",
+        })}
+      >
         <button
           onClick={onClose}
-          className="absolute top-8 right-8 text-gray-500 hover:text-white transition-colors"
+          className={css({
+            position: "absolute",
+            top: "8",
+            right: "8",
+            color: "gray.500",
+            _hover: { color: "white" },
+            transition: "colors",
+          })}
         >
-          <X className="w-8 h-8" />
+          <X className={css({ w: "8", h: "8" })} />
         </button>
 
-        <div className="space-y-10">
-          <div className="space-y-2">
-            <h2 className="text-4xl font-black text-white tracking-tighter uppercase">
+        <div className={css({ "& > * + *": { mt: "10" } })}>
+          <div className={css({ "& > * + *": { mt: "2" } })}>
+            <h2
+              className={css({
+                fontSize: "4xl",
+                fontWeight: "900",
+                color: "white",
+                letterSpacing: "tight",
+                textTransform: "uppercase",
+              })}
+            >
               Nouvelle Entité Aegis
             </h2>
-            <p className="text-gray-500 font-bold">
+            <p className={css({ color: "text.muted", fontWeight: "bold" })}>
               Configurez une nouvelle entreprise et son compte propriétaire.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="space-y-6">
-                <h3 className="text-xs font-black text-cyan-500 uppercase tracking-widest flex items-center gap-2">
-                  <Building2 className="w-4 h-4" /> Entreprise
+          <form
+            onSubmit={handleSubmit}
+            className={css({ "& > * + *": { mt: "10" } })}
+          >
+            <div
+              className={css({
+                display: "grid",
+                gridTemplateColumns: { base: "1", md: "2" },
+                gap: "10",
+              })}
+            >
+              <div className={css({ "& > * + *": { mt: "6" } })}>
+                <h3
+                  className={flex({
+                    fontSize: "xs",
+                    fontWeight: "900",
+                    color: "brand.primary",
+                    textTransform: "uppercase",
+                    letterSpacing: "widest",
+                    align: "center",
+                    gap: "2",
+                  })}
+                >
+                  <Building2 className={css({ w: "4", h: "4" })} /> Entreprise
                 </h3>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+                <div className={css({ "& > * + *": { mt: "2" } })}>
+                  <label
+                    className={css({
+                      fontSize: "10px",
+                      fontWeight: "900",
+                      color: "text.muted",
+                      textTransform: "uppercase",
+                      px: "1",
+                    })}
+                  >
                     Nom de l'entité
                   </label>
                   <input
@@ -489,15 +841,37 @@ export const CreateCompanyModal: React.FC<{
                       setFormData({ ...formData, company_name: e.target.value })
                     }
                     placeholder="ex: Global CyberSec Inc."
-                    className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-cyan-500 transition-all font-bold"
+                    className={css({
+                      w: "full",
+                      bg: "whiteAlpha.50",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                      color: "white",
+                      borderRadius: "2xl",
+                      px: "6",
+                      py: "4",
+                      _focus: { borderColor: "brand.primary", outline: "none" },
+                      transition: "all",
+                      fontWeight: "bold",
+                    })}
                   />
                 </div>
               </div>
-              <div className="space-y-6">
-                <h3 className="text-xs font-black text-indigo-500 uppercase tracking-widest flex items-center gap-2">
-                  <UserPlus className="w-4 h-4" /> Propriétaire
+              <div className={css({ "& > * + *": { mt: "6" } })}>
+                <h3
+                  className={flex({
+                    fontSize: "xs",
+                    fontWeight: "900",
+                    color: "indigo.500",
+                    textTransform: "uppercase",
+                    letterSpacing: "widest",
+                    align: "center",
+                    gap: "2",
+                  })}
+                >
+                  <UserPlus className={css({ w: "4", h: "4" })} /> Propriétaire
                 </h3>
-                <div className="space-y-4">
+                <div className={css({ "& > * + *": { mt: "4" } })}>
                   <input
                     required
                     value={formData.owner_name}
@@ -505,7 +879,19 @@ export const CreateCompanyModal: React.FC<{
                       setFormData({ ...formData, owner_name: e.target.value })
                     }
                     placeholder="Nom complet"
-                    className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-indigo-500 transition-all font-bold"
+                    className={css({
+                      w: "full",
+                      bg: "whiteAlpha.50",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                      color: "white",
+                      borderRadius: "2xl",
+                      px: "6",
+                      py: "4",
+                      _focus: { borderColor: "indigo.500", outline: "none" },
+                      transition: "all",
+                      fontWeight: "bold",
+                    })}
                   />
                   <input
                     required
@@ -515,7 +901,19 @@ export const CreateCompanyModal: React.FC<{
                       setFormData({ ...formData, owner_email: e.target.value })
                     }
                     placeholder="Email professionnel"
-                    className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-indigo-500 transition-all font-bold"
+                    className={css({
+                      w: "full",
+                      bg: "whiteAlpha.50",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                      color: "white",
+                      borderRadius: "2xl",
+                      px: "6",
+                      py: "4",
+                      _focus: { borderColor: "indigo.500", outline: "none" },
+                      transition: "all",
+                      fontWeight: "bold",
+                    })}
                   />
                   <input
                     required
@@ -528,27 +926,61 @@ export const CreateCompanyModal: React.FC<{
                       })
                     }
                     placeholder="Mot de passe initial"
-                    className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-indigo-500 transition-all font-bold"
+                    className={css({
+                      w: "full",
+                      bg: "whiteAlpha.50",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                      color: "white",
+                      borderRadius: "2xl",
+                      px: "6",
+                      py: "4",
+                      _focus: { borderColor: "indigo.500", outline: "none" },
+                      transition: "all",
+                      fontWeight: "bold",
+                    })}
                   />
                 </div>
               </div>
             </div>
 
             {error && (
-              <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl flex items-center gap-3 font-black text-sm">
-                <AlertCircle className="w-5 h-5" />
+              <div
+                className={flex({
+                  p: "4",
+                  bg: "red.500/10",
+                  border: "1px solid",
+                  borderColor: "red.500/20",
+                  color: "red.500",
+                  borderRadius: "2xl",
+                  align: "center",
+                  gap: "3",
+                  fontWeight: "900",
+                  fontSize: "sm",
+                })}
+              >
+                <AlertCircle className={css({ w: "5", h: "5" })} />
                 {error}
               </div>
             )}
 
             <button
               disabled={loading}
-              className="w-full py-6 bg-cyan-600 hover:bg-cyan-500 text-white font-black rounded-3xl transition-all shadow-xl shadow-cyan-600/20 uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-4"
+              className={cx(
+                buttonRecipe({ variant: "primary", size: "lg" }),
+                css({ w: "full", py: "8!" }),
+              )}
             >
               {loading ? (
-                <Loader2 className="animate-spin w-5 h-5" />
+                <Loader2
+                  className={css({
+                    animation: "spin 1s linear infinite",
+                    w: "5",
+                    h: "5",
+                  })}
+                />
               ) : (
-                <Zap className="w-5 h-5 fill-current" />
+                <Zap className={css({ w: "5", h: "5", fill: "current" })} />
               )}
               Finaliser l'Onboarding
             </button>
@@ -733,12 +1165,27 @@ export const CreateUserModal: React.FC<{
 
             <button
               disabled={loading}
-              className="w-full py-6 bg-white text-black font-black rounded-3xl transition-all shadow-xl hover:bg-gray-200 uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-4"
+              className={cx(
+                buttonRecipe({ variant: "primary", size: "lg" }),
+                css({
+                  w: "full",
+                  py: "8!",
+                  bg: "white!",
+                  color: "black!",
+                  _hover: { bg: "gray.200!" },
+                }),
+              )}
             >
               {loading ? (
-                <Loader2 className="animate-spin w-5 h-5" />
+                <Loader2
+                  className={css({
+                    animation: "spin 1s linear infinite",
+                    w: "5",
+                    h: "5",
+                  })}
+                />
               ) : (
-                <UserPlus className="w-5 h-5" />
+                <UserPlus className={css({ w: "5", h: "5" })} />
               )}
               Créer le Collaborateur
             </button>
@@ -753,52 +1200,188 @@ export const SuccessModal: React.FC<{ data: any; onClose: () => void }> = ({
   data,
   onClose,
 }) => (
-  <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 backdrop-blur-2xl bg-black/80">
-    <div className="relative w-full max-w-3xl bg-[#0B0D13] border border-gray-800 rounded-[3.5rem] p-12 shadow-2xl animate-in zoom-in-95 duration-500">
-      <div className="text-center space-y-8">
-        <div className="w-24 h-24 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto">
-          <CheckCircle2 className="w-12 h-12" />
+  <div
+    className={css({
+      position: "fixed",
+      inset: "0",
+      zIndex: "120",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      p: "6",
+      backdropBlur: "2xl",
+      bg: "black/80",
+    })}
+  >
+    <div
+      className={css({
+        position: "relative",
+        w: "full",
+        maxW: "3xl",
+        bg: "bg.card",
+        border: "1px solid",
+        borderColor: "whiteAlpha.100",
+        borderRadius: "3.5rem",
+        p: "12",
+        boxShadow: "2xl",
+        animation: "zoomIn 0.5s ease-out",
+      })}
+    >
+      <div className={css({ textAlign: "center", spaceY: "8" })}>
+        <div
+          className={flex({
+            w: "24",
+            h: "24",
+            borderRadius: "2rem",
+            bg: "emerald.500/10",
+            border: "1px solid",
+            borderColor: "emerald.500/20",
+            align: "center",
+            justify: "center",
+            color: "emerald.400",
+            mx: "auto",
+          })}
+        >
+          <CheckCircle2 className={css({ w: "12", h: "12" })} />
         </div>
-        <h2 className="text-4xl font-black text-white tracking-tighter uppercase">
+        <h2
+          className={css({
+            fontSize: "4xl",
+            fontWeight: "900",
+            color: "white",
+            letterSpacing: "tight",
+            textTransform: "uppercase",
+          })}
+        >
           Onboarding Réussi !
         </h2>
-        <p className="text-gray-400 font-bold">
+        <p className={css({ color: "gray.400", fontWeight: "bold" })}>
           L'entreprise{" "}
-          <span className="text-emerald-400">{data.company_name}</span> a été
-          provisionnée.
+          <span className={css({ color: "emerald.400" })}>
+            {data.company_name}
+          </span>{" "}
+          a été provisionnée.
         </p>
 
-        <div className="space-y-4 text-left">
-          <div className="bg-gradient-to-br from-[#0B0D13] to-[#151921] border border-cyan-500/20 rounded-3xl p-8 relative overflow-hidden group">
-            <h3 className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-              <Terminal className="w-4 h-4" /> Token de Déploiement
+        <div className={css({ spaceY: "4", textAlign: "left" })}>
+          <div
+            className={css({
+              bgGradient: "to-br",
+              gradientFrom: "bg.main",
+              gradientTo: "whiteAlpha.50",
+              border: "1px solid",
+              borderColor: "brand.primary/20",
+              borderRadius: "3xl",
+              p: "8",
+              position: "relative",
+              overflow: "hidden",
+            })}
+          >
+            <h3
+              className={flex({
+                fontSize: "10px",
+                fontWeight: "900",
+                color: "brand.primary",
+                textTransform: "uppercase",
+                letterSpacing: "widest",
+                mb: "2",
+                align: "center",
+                gap: "2",
+              })}
+            >
+              <Terminal className={css({ w: "4", h: "4" })} /> Token de
+              Déploiement
             </h3>
-            <code className="text-xl text-white font-mono block break-all mb-6">
+            <code
+              className={css({
+                fontSize: "xl",
+                color: "white",
+                fontFamily: "mono",
+                display: "block",
+                wordBreak: "break-all",
+                mb: "6",
+              })}
+            >
               {data.deployment_token}
             </code>
             <button
               onClick={() =>
                 navigator.clipboard.writeText(data.deployment_token)
               }
-              className="w-full py-4 bg-cyan-600 text-white font-black rounded-2xl flex items-center justify-center gap-3 hover:bg-cyan-500 transition-all"
+              className={cx(
+                buttonRecipe({ variant: "primary" }),
+                css({ w: "full", py: "4!" }),
+              )}
             >
-              <Copy className="w-4 h-4" /> Copier le Token
+              <Copy className={css({ w: "4", h: "4" })} /> Copier le Token
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-900/40 p-4 rounded-2xl border border-gray-800/60">
-              <p className="text-[9px] font-black text-gray-500 uppercase mb-1">
+          <div
+            className={css({
+              display: "grid",
+              gridTemplateColumns: "2",
+              gap: "4",
+            })}
+          >
+            <div
+              className={css({
+                bg: "whiteAlpha.50",
+                p: "4",
+                borderRadius: "2xl",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+              })}
+            >
+              <p
+                className={css({
+                  fontSize: "9px",
+                  fontWeight: "900",
+                  color: "gray.500",
+                  textTransform: "uppercase",
+                  mb: "1",
+                })}
+              >
                 ID Entreprise
               </p>
-              <p className="text-xs font-mono text-gray-300 break-all">
+              <p
+                className={css({
+                  fontSize: "xs",
+                  fontFamily: "mono",
+                  color: "gray.300",
+                  wordBreak: "break-all",
+                })}
+              >
                 {data.company_id}
               </p>
             </div>
-            <div className="bg-gray-900/40 p-4 rounded-2xl border border-gray-800/60">
-              <p className="text-[9px] font-black text-gray-500 uppercase mb-1">
+            <div
+              className={css({
+                bg: "whiteAlpha.50",
+                p: "4",
+                borderRadius: "2xl",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+              })}
+            >
+              <p
+                className={css({
+                  fontSize: "9px",
+                  fontWeight: "900",
+                  color: "gray.500",
+                  textTransform: "uppercase",
+                  mb: "1",
+                })}
+              >
                 ID Propriétaire
               </p>
-              <p className="text-xs font-mono text-gray-300 break-all">
+              <p
+                className={css({
+                  fontSize: "xs",
+                  fontFamily: "mono",
+                  color: "gray.300",
+                  wordBreak: "break-all",
+                })}
+              >
                 {data.owner_id}
               </p>
             </div>
@@ -807,7 +1390,19 @@ export const SuccessModal: React.FC<{ data: any; onClose: () => void }> = ({
 
         <button
           onClick={onClose}
-          className="w-full py-5 bg-gray-800 text-white font-black rounded-3xl transition-all uppercase tracking-widest text-xs"
+          className={css({
+            w: "full",
+            py: "5",
+            bg: "whiteAlpha.100",
+            _hover: { bg: "whiteAlpha.200" },
+            color: "white",
+            fontWeight: "900",
+            borderRadius: "3xl",
+            transition: "all",
+            textTransform: "uppercase",
+            letterSpacing: "widest",
+            fontSize: "xs",
+          })}
         >
           Terminer
         </button>

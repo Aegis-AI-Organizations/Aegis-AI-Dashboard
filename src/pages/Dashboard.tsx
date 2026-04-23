@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { STATUS_DETAILS } from "../constants/scan";
 import { useAuthStore } from "../store/AuthStore";
 
-import { css } from "styled-system/css";
+import { css, cx } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
 import { pageTitle, card, sectionTitle } from "styled-system/recipes";
 
@@ -182,24 +182,29 @@ export const Dashboard: React.FC = () => {
             ) : (
               <div
                 className={css({
-                  divideY: "1px",
-                  divideColor: "whiteAlpha.100",
+                  "& > button + button": {
+                    borderTop: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                  },
                 })}
               >
                 {recentScans.map((scan) => (
                   <button
                     key={scan.id}
                     onClick={() => handleScanClick(scan.id)}
-                    className={css({
-                      width: "full",
-                      textAlign: "left",
-                      p: "4",
-                      transition: "colors",
-                      display: "flex",
-                      alignItems: "start",
-                      gap: "4",
-                      _hover: { bg: "whiteAlpha.50" },
-                    })}
+                    className={cx(
+                      "group",
+                      css({
+                        width: "full",
+                        textAlign: "left",
+                        p: "4",
+                        transition: "colors",
+                        display: "flex",
+                        alignItems: "start",
+                        gap: "4",
+                        _hover: { bg: "whiteAlpha.50" },
+                      }),
+                    )}
                   >
                     <div
                       className={css({
@@ -257,7 +262,9 @@ export const Dashboard: React.FC = () => {
                           fontSize: "sm",
                           fontWeight: "medium",
                           color: "text.bright",
-                          truncate: true,
+                          textOverflow: "ellipsis",
+                          overflow: "hidden",
+                          whiteSpace: "nowrap",
                           mb: "0.5",
                         })}
                       >
@@ -269,7 +276,9 @@ export const Dashboard: React.FC = () => {
                             fontFamily: "mono",
                             fontSize: "[10px]",
                             color: "gray.500",
-                            truncate: true,
+                            textOverflow: "ellipsis",
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
                           })}
                         >
                           ID: {scan.id.split("-")[0]}...

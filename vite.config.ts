@@ -17,7 +17,12 @@ export default defineConfig({
       provider: "v8",
       all: true,
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/main.tsx", "src/types/**", "src/vite-env.d.ts"],
+      exclude: [
+        "src/main.tsx",
+        "src/types/**",
+        "src/vite-env.d.ts",
+        "src/styled-system/**",
+      ],
       thresholds: {
         lines: 80,
         statements: 80,
