@@ -209,15 +209,15 @@ describe("Settings Page", () => {
     const newPasswordInput = screen.getByLabelText(/Nouveau mot de passe/i);
 
     // Initially requirements are not met
-    expect(screen.getByText("8+ symb.")).toHaveClass("text-gray-600");
+    expect(screen.getByText("8+ symb.")).toHaveClass("c_gray.600");
 
     // Type a compliant password
     fireEvent.change(newPasswordInput, { target: { value: "Complex1!" } });
 
-    expect(screen.getByText("8+ symb.")).toHaveClass("text-emerald-400");
-    expect(screen.getByText("Majuscule")).toHaveClass("text-emerald-400");
-    expect(screen.getByText("Chiffre")).toHaveClass("text-emerald-400");
-    expect(screen.getByText("Spécial")).toHaveClass("text-emerald-400");
+    expect(screen.getByText("8+ symb.")).toHaveClass("c_emerald.400");
+    expect(screen.getByText("Majuscule")).toHaveClass("c_emerald.400");
+    expect(screen.getByText("Chiffre")).toHaveClass("c_emerald.400");
+    expect(screen.getByText("Spécial")).toHaveClass("c_emerald.400");
   });
 
   it("handles photo deletion successfully", async () => {

@@ -24,14 +24,12 @@ describe("ProfileCircle Component", () => {
   });
 
   it("shows status dot when showStatus is true", () => {
-    const { container } = render(
-      <ProfileCircle name="John" showStatus={true} />,
-    );
-    expect(container.querySelector(".bg-emerald-500")).toBeInTheDocument();
+    render(<ProfileCircle name="John" showStatus={true} />);
+    expect(screen.getByTestId("profile-status-dot")).toBeInTheDocument();
   });
 
   it("applies correct size classes", () => {
     const { container } = render(<ProfileCircle name="John" size="xl" />);
-    expect(container.firstChild?.firstChild).toHaveClass("w-28 h-28");
+    expect(container.firstChild?.firstChild).toHaveClass("w_28 h_28");
   });
 });

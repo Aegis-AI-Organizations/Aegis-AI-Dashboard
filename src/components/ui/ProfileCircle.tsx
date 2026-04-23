@@ -83,6 +83,7 @@ export const ProfileCircle: React.FC<ProfileCircleProps> = ({
 
       {showStatus && (
         <div
+          data-testid="profile-status-dot"
           className={css({
             position: "absolute",
             bottom: "-1",
