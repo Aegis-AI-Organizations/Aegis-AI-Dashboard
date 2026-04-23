@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
-import { css, cx } from "../../styled-system/css";
-import { flex, grid } from "../../styled-system/patterns";
+import { css } from "../styled-system/css";
+import { flex } from "../styled-system/patterns";
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState("");
