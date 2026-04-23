@@ -3,6 +3,7 @@
 FROM public.ecr.aws/docker/library/node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
+COPY panda.config.ts ./
 RUN npm ci || npm install
 COPY . .
 
