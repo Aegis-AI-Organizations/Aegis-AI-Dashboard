@@ -36,7 +36,9 @@ function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/billing" element={<Billing />} />
               <Route
-                element={<RoleRoute allowedRoles={["admin", "superadmin"]} />}
+                element={
+                  <RoleRoute allowedRoles={["admin", "superadmin", "owner"]} />
+                }
               >
                 <Route path="/administration" element={<Administration />} />
               </Route>
