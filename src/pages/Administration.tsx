@@ -32,6 +32,10 @@ export const getActionColor = (action: string) => {
   return "text-gray-400 bg-gray-500/10 border-gray-500/20";
 };
 
+import { css, cx } from "styled-system/css";
+import { flex } from "styled-system/patterns";
+import { pageTitle, card } from "styled-system/recipes";
+
 export const Administration: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,61 +63,143 @@ export const Administration: React.FC = () => {
   }, [offset]);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-500 pb-20">
+    <div
+      className={css({
+        maxWidth: "7xl",
+        mx: "auto",
+        spaceY: "sectionGap",
+        pb: "20",
+      })}
+    >
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8">
-        <div className="space-y-3">
-          <h1 className="text-5xl font-black text-white tracking-tighter">
-            Administration
-          </h1>
-          <p className="text-gray-500 font-bold text-lg max-w-xl leading-relaxed">
+      <div
+        className={flex({
+          flexDir: { base: "column", md: "row" },
+          justify: "space-between",
+          align: { base: "start", md: "end" },
+          gap: "8",
+        })}
+      >
+        <div className={css({ spaceY: "3" })}>
+          <h1 className={pageTitle()}>Administration</h1>
+          <p
+            className={css({
+              color: "text.muted",
+              fontWeight: "bold",
+              fontSize: "lg",
+              maxWidth: "xl",
+              lineHeight: "relaxed",
+            })}
+          >
             Centre de contrôle global du système. Gérez les entités et
             surveillez les actions critiques via l'Audit Trail.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-4">
+        <div className={flex({ flexWrap: "wrap", gap: "4" })}>
           <button
             onClick={() => (window.location.href = "/users?action=new-user")}
-            className="px-6 py-3.5 bg-white text-black font-black rounded-2xl flex items-center gap-3 hover:bg-gray-200 transition-all shadow-xl shadow-white/5 uppercase tracking-widest text-xs"
+            className={css({
+              px: "6",
+              py: "3.5",
+              bg: "white",
+              color: "black",
+              fontWeight: "black",
+              borderRadius: "2xl",
+              display: "flex",
+              alignItems: "center",
+              gap: "3",
+              _hover: { bg: "gray.200" },
+              transition: "all",
+              boxShadow: "xl",
+              textTransform: "uppercase",
+              letterSpacing: "widest",
+              fontSize: "xs",
+            })}
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className={css({ w: "4", h: "4" })} />
             Nouveau Collaborateur
           </button>
           <button
             onClick={() => (window.location.href = "/users?action=new-company")}
-            className="px-6 py-3.5 bg-cyan-600 text-white font-black rounded-2xl flex items-center gap-3 hover:bg-cyan-500 transition-all shadow-xl shadow-cyan-600/20 uppercase tracking-widest text-xs"
+            className={css({
+              px: "6",
+              py: "3.5",
+              bg: "cyan.600",
+              color: "white",
+              fontWeight: "black",
+              borderRadius: "2xl",
+              display: "flex",
+              alignItems: "center",
+              gap: "3",
+              _hover: { bg: "cyan.500" },
+              transition: "all",
+              shadow: "xl",
+              textTransform: "uppercase",
+              letterSpacing: "widest",
+              fontSize: "xs",
+            })}
           >
-            <Building2 className="w-4 h-4" />
+            <Building2 className={css({ w: "4", h: "4" })} />
             Nouvelle Entreprise
           </button>
         </div>
       </div>
 
       {/* Audit Trail Section */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
-            <History className="w-4 h-4" /> Journal d'Audit (Audit Trail)
+      <div className={css({ spaceY: "6" })}>
+        <div className={flex({ align: "center", justify: "space-between" })}>
+          <h2
+            className={css({
+              fontSize: "xs",
+              fontWeight: "black",
+              color: "text.muted",
+              textTransform: "uppercase",
+              letterSpacing: "widest",
+              display: "flex",
+              alignItems: "center",
+              gap: "2",
+            })}
+          >
+            <History className={css({ w: "4", h: "4" })} /> Journal d'Audit
+            (Audit Trail)
           </h2>
-          <div className="flex items-center gap-4 text-xs font-bold text-gray-600">
+          <div
+            className={flex({
+              align: "center",
+              gap: "4",
+              fontSize: "xs",
+              fontWeight: "bold",
+              color: "gray.600",
+            })}
+          >
             <span>Total: {total} logs</span>
-            <div className="flex items-center gap-2">
+            <div className={flex({ align: "center", gap: "2" })}>
               <button
                 onClick={() => setOffset(Math.max(0, offset - limit))}
                 disabled={offset === 0}
-                className="p-2 hover:text-white disabled:opacity-30 transition-colors"
+                className={css({
+                  p: "2",
+                  _hover: { color: "white" },
+                  _disabled: { opacity: 0.3 },
+                  transition: "colors",
+                })}
               >
                 Précédent
               </button>
-              <span className="text-gray-400">
+              <span className={css({ color: "gray.400" })}>
                 {Math.floor(offset / limit) + 1} /{" "}
                 {Math.ceil(total / limit) || 1}
               </span>
               <button
                 onClick={() => setOffset(offset + limit)}
                 disabled={offset + limit >= total}
-                className="p-2 hover:text-white disabled:opacity-30 transition-colors"
+                className={css({
+                  p: "2",
+                  _hover: { color: "white" },
+                  _disabled: { opacity: 0.3 },
+                  transition: "colors",
+                })}
               >
                 Suivant
               </button>
@@ -121,38 +207,120 @@ export const Administration: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#0B0D13] border border-gray-800/60 rounded-[2.5rem] overflow-hidden shadow-2xl">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
+        <div
+          className={cx(
+            card({ p: "0" }),
+            css({ overflow: "hidden", borderRadius: "[2.5rem]" }),
+          )}
+        >
+          <div className={css({ overflowX: "auto" })}>
+            <table className={css({ width: "full", textAlign: "left" })}>
               <thead>
-                <tr className="border-b border-gray-800/60 bg-black/20">
-                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                <tr
+                  className={css({
+                    borderBottom: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                    bg: "whiteAlpha.50",
+                  })}
+                >
+                  <th
+                    className={css({
+                      px: "8",
+                      py: "5",
+                      fontSize: "[10px]",
+                      fontWeight: "black",
+                      color: "gray.500",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                    })}
+                  >
                     Date & Heure
                   </th>
-                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  <th
+                    className={css({
+                      px: "8",
+                      py: "5",
+                      fontSize: "[10px]",
+                      fontWeight: "black",
+                      color: "gray.500",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                    })}
+                  >
                     Acteur
                   </th>
-                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  <th
+                    className={css({
+                      px: "8",
+                      py: "5",
+                      fontSize: "[10px]",
+                      fontWeight: "black",
+                      color: "gray.500",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                    })}
+                  >
                     Action
                   </th>
-                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  <th
+                    className={css({
+                      px: "8",
+                      py: "5",
+                      fontSize: "[10px]",
+                      fontWeight: "black",
+                      color: "gray.500",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                    })}
+                  >
                     Cible
                   </th>
-                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                  <th
+                    className={css({
+                      px: "8",
+                      py: "5",
+                      fontSize: "[10px]",
+                      fontWeight: "black",
+                      color: "gray.500",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                    })}
+                  >
                     IP Address
                   </th>
-                  <th className="px-8 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">
+                  <th
+                    className={css({
+                      px: "8",
+                      py: "5",
+                      fontSize: "[10px]",
+                      fontWeight: "black",
+                      color: "gray.500",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                      textAlign: "right",
+                    })}
+                  >
                     Détails
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/40">
+              <tbody
+                className={css({
+                  divideY: "1px",
+                  divideColor: "whiteAlpha.100",
+                })}
+              >
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
-                    <tr key={i} className="animate-pulse">
+                    <tr key={i} className={css({ animation: "pulse" })}>
                       <td
                         colSpan={6}
-                        className="px-8 py-6 h-16 bg-gray-900/10"
+                        className={css({
+                          px: "8",
+                          py: "6",
+                          h: "16",
+                          bg: "whiteAlpha.50",
+                        })}
                       ></td>
                     </tr>
                   ))
@@ -160,7 +328,13 @@ export const Administration: React.FC = () => {
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-8 py-20 text-center text-gray-600 italic"
+                      className={css({
+                        px: "8",
+                        py: "20",
+                        textAlign: "center",
+                        color: "gray.600",
+                        fontStyle: "italic",
+                      })}
                     >
                       Aucune activité enregistrée dans le journal.
                     </td>
@@ -169,60 +343,142 @@ export const Administration: React.FC = () => {
                   logs.map((log) => (
                     <tr
                       key={log.id}
-                      className="hover:bg-white/[0.02] transition-colors group"
+                      className={css({
+                        _hover: { bg: "whiteAlpha.50" },
+                        transition: "colors",
+                      })}
                     >
-                      <td className="px-8 py-6">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold text-gray-300">
+                      <td className={css({ px: "8", py: "6" })}>
+                        <div className={flex({ flexDir: "column" })}>
+                          <span
+                            className={css({
+                              fontSize: "sm",
+                              fontWeight: "bold",
+                              color: "gray.300",
+                            })}
+                          >
                             {new Date(log.timestamp).toLocaleDateString()}
                           </span>
-                          <span className="text-[10px] font-black text-gray-600 uppercase">
+                          <span
+                            className={css({
+                              fontSize: "[10px]",
+                              fontWeight: "black",
+                              color: "gray.600",
+                              textTransform: "uppercase",
+                            })}
+                          >
                             {new Date(log.timestamp).toLocaleTimeString()}
                           </span>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-500">
-                            <User className="w-4 h-4" />
+                      <td className={css({ px: "8", py: "6" })}>
+                        <div className={flex({ align: "center", gap: "3" })}>
+                          <div
+                            className={flex({
+                              w: "8",
+                              h: "8",
+                              borderRadius: "lg",
+                              bg: "bg.main",
+                              border: "1px solid",
+                              borderColor: "whiteAlpha.100",
+                              align: "center",
+                              justify: "center",
+                              color: "gray.500",
+                            })}
+                          >
+                            <User className={css({ w: "4", h: "4" })} />
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black text-white font-mono">
+                          <div className={flex({ flexDir: "column" })}>
+                            <span
+                              className={css({
+                                fontSize: "xs",
+                                fontWeight: "black",
+                                color: "white",
+                                fontFamily: "mono",
+                              })}
+                            >
                               {log.user_id.substring(0, 8)}...
                             </span>
-                            <span className="text-[9px] font-bold text-gray-600 uppercase">
+                            <span
+                              className={css({
+                                fontSize: "[9px]",
+                                fontWeight: "bold",
+                                color: "gray.600",
+                                textTransform: "uppercase",
+                              })}
+                            >
                               SuperAdmin
                             </span>
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
+                      <td className={css({ px: "8", py: "6" })}>
                         <span
-                          className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getActionColor(
-                            log.action,
-                          )}`}
+                          className={`${getActionColor(log.action)} ${css({
+                            px: "3",
+                            py: "1",
+                            borderRadius: "full",
+                            fontSize: "[9px]",
+                            fontWeight: "black",
+                            textTransform: "uppercase",
+                            letterSpacing: "widest",
+                            border: "1px solid",
+                          })}`}
                         >
                           {log.action.replace(/_/g, " ")}
                         </span>
                       </td>
-                      <td className="px-8 py-6">
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold text-gray-400">
+                      <td className={css({ px: "8", py: "6" })}>
+                        <div className={flex({ flexDir: "column" })}>
+                          <span
+                            className={css({
+                              fontSize: "xs",
+                              fontWeight: "bold",
+                              color: "gray.400",
+                            })}
+                          >
                             {log.target_type}
                           </span>
-                          <span className="text-[10px] font-mono text-gray-600">
+                          <span
+                            className={css({
+                              fontSize: "[10px]",
+                              fontFamily: "mono",
+                              color: "gray.600",
+                            })}
+                          >
                             {log.target_id.substring(0, 12)}...
                           </span>
                         </div>
                       </td>
-                      <td className="px-8 py-6">
-                        <span className="text-xs font-mono text-gray-500">
+                      <td className={css({ px: "8", py: "6" })}>
+                        <span
+                          className={css({
+                            fontSize: "xs",
+                            fontFamily: "mono",
+                            color: "gray.500",
+                          })}
+                        >
                           {log.ip_address || "Internal"}
                         </span>
                       </td>
-                      <td className="px-8 py-6 text-right">
+                      <td
+                        className={css({
+                          px: "8",
+                          py: "6",
+                          textAlign: "right",
+                        })}
+                      >
                         <button
-                          className="p-2 text-gray-600 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-xl transition-all"
+                          className={css({
+                            p: "2",
+                            color: "gray.600",
+                            _hover: {
+                              color: "brand.primary",
+                              bg: "brand.primary/10",
+                            },
+                            borderRadius: "xl",
+                            transition: "all",
+                          })}
                           title="Voir les détails JSON"
                           onClick={() =>
                             alert(
@@ -234,7 +490,7 @@ export const Administration: React.FC = () => {
                             )
                           }
                         >
-                          <Info className="w-4 h-4" />
+                          <Info className={css({ w: "4", h: "4" })} />
                         </button>
                       </td>
                     </tr>

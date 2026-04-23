@@ -84,6 +84,9 @@ const navItems = [
   },
 ];
 
+import { css, cx } from "styled-system/css";
+import { flex } from "styled-system/patterns";
+
 export const Sidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -98,31 +101,82 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`hidden md:flex flex-col bg-[#050810]/95 backdrop-blur-md border-r border-gray-800/60 sticky top-0 h-screen overflow-y-auto transition-all duration-300 ease-in-out z-50 ${
-        isExpanded ? "w-64" : "w-20"
-      }`}
+      className={cx(
+        css({
+          display: { base: "none", md: "flex" },
+          flexDir: "column",
+          bg: "bg.main/95",
+          backdropBlur: "md",
+          borderRight: "1px solid",
+          borderColor: "whiteAlpha.100",
+          position: "sticky",
+          top: "0",
+          h: "screen",
+          overflowY: "auto",
+          transition: "all",
+          transitionDuration: "300ms",
+          zIndex: "50",
+        }),
+        isExpanded ? css({ w: "64" }) : css({ w: "20" }),
+      )}
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      <div className="flex items-center gap-3 px-6 h-16 border-b border-gray-800/60 flex-shrink-0 cursor-pointer overflow-hidden">
+      <div
+        className={flex({
+          align: "center",
+          gap: "3",
+          px: "6",
+          h: "16",
+          borderBottom: "1px solid",
+          borderColor: "whiteAlpha.100",
+          flexShrink: 0,
+          cursor: "pointer",
+          overflow: "hidden",
+        })}
+      >
         <img
           src="/logo.svg"
           alt="Aegis AI Logo"
-          className="w-8 h-8 object-contain shrink-0"
+          className={css({
+            w: "8",
+            h: "8",
+            objectFit: "contain",
+            flexShrink: 0,
+          })}
           onError={(e) => {
             (e.target as HTMLImageElement).src = "/logo.png";
           }}
         />
         <span
-          className={`text-white font-bold text-lg tracking-wider whitespace-nowrap transition-all duration-300 ${
-            isExpanded ? "opacity-100 flex-1" : "opacity-0 w-0"
-          }`}
+          className={cx(
+            css({
+              color: "text.bright",
+              fontWeight: "bold",
+              fontSize: "lg",
+              letterSpacing: "wider",
+              whiteSpace: "nowrap",
+              transition: "all",
+              transitionDuration: "300ms",
+            }),
+            isExpanded
+              ? css({ opacity: 1, flex: 1 })
+              : css({ opacity: 0, w: "0" }),
+          )}
         >
           Aegis AI
         </span>
       </div>
 
-      <nav className="flex-1 py-6 flex flex-col gap-1.5 px-3">
+      <nav
+        className={flex({
+          flex: 1,
+          py: "6",
+          flexDir: "column",
+          gap: "1.5",
+          px: "3",
+        })}
+      >
         {navItems
           .filter((item) => !user || item.roles.includes(user.role))
           .map((item) => (
@@ -130,21 +184,62 @@ export const Sidebar: React.FC = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `group flex items-center gap-0 rounded-lg p-3 text-sm font-medium transition-all duration-200 overflow-hidden ${
+                cx(
+                  css({
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0",
+                    borderRadius: "lg",
+                    p: "3",
+                    fontSize: "sm",
+                    fontWeight: "medium",
+                    transition: "all",
+                    transitionDuration: "200ms",
+                    overflow: "hidden",
+                  }),
                   isActive
-                    ? "bg-cyan-950/30 text-cyan-400 shadow-[inset_2px_0_0_0_rgba(34,211,238,1)]"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/40"
-                }`
+                    ? css({
+                        bg: "brand.primary/10",
+                        color: "brand.primary",
+                        boxShadow: "inset 2px 0 0 0 {colors.brand.primary}",
+                      })
+                    : css({
+                        color: "text.muted",
+                        _hover: { color: "text.main", bg: "whiteAlpha.50" },
+                      }),
+                )
               }
               title={!isExpanded ? item.label : undefined}
             >
-              <div className="w-8 flex justify-center items-center shrink-0">
-                <item.icon className="w-5 h-5 transition-transform duration-200" />
+              <div
+                className={flex({
+                  w: "8",
+                  justify: "center",
+                  align: "center",
+                  flexShrink: 0,
+                })}
+              >
+                <item.icon
+                  className={css({
+                    w: "5",
+                    h: "5",
+                    transition: "transform",
+                    transitionDuration: "200ms",
+                  })}
+                />
               </div>
               <span
-                className={`whitespace-nowrap transition-all duration-300 ease-in-out pl-2 ${
-                  isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0 hidden"
-                }`}
+                className={cx(
+                  css({
+                    whiteSpace: "nowrap",
+                    transition: "all",
+                    transitionDuration: "300ms",
+                    pl: "2",
+                  }),
+                  isExpanded
+                    ? css({ opacity: 1, w: "auto" })
+                    : css({ opacity: 0, w: "0", display: "none" }),
+                )}
               >
                 {item.label}
               </span>
@@ -154,34 +249,73 @@ export const Sidebar: React.FC = () => {
 
       {/* User Profile Mini preview */}
       <div
-        className={`p-4 border-t border-gray-800/60 flex items-center gap-3 transition-opacity overflow-hidden ${
-          isExpanded ? "opacity-100" : "opacity-0 h-0 hidden"
-        }`}
+        className={cx(
+          flex({
+            p: "4",
+            borderTop: "1px solid",
+            borderColor: "whiteAlpha.100",
+            align: "center",
+            gap: "3",
+            transition: "opacity",
+            overflow: "hidden",
+          }),
+          isExpanded
+            ? css({ opacity: 1 })
+            : css({ opacity: 0, h: "0", display: "none" }),
+        )}
       >
         <ProfileCircle size="sm" />
-        <div className="flex flex-col whitespace-nowrap">
-          <span className="text-sm font-bold text-white tracking-tight">
+        <div className={flex({ flexDir: "column", whiteSpace: "nowrap" })}>
+          <span
+            className={css({
+              fontSize: "sm",
+              fontWeight: "bold",
+              color: "text.bright",
+              letterSpacing: "tight",
+            })}
+          >
             {user?.name || user?.email?.split("@")[0] || "Administrateur"}
           </span>
           <RoleBadge role={user?.role || "viewer"} showIcon={false} />
         </div>
         <button
           onClick={() => setIsLogoutModalOpen(true)}
-          className="ml-auto p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+          className={css({
+            ml: "auto",
+            p: "2",
+            color: "gray.500",
+            _hover: { color: "red.400", bg: "red.500/10" },
+            borderRadius: "lg",
+            transition: "all",
+          })}
           title="Déconnexion"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className={css({ w: "5", h: "5" })} />
         </button>
       </div>
 
       {!isExpanded && (
-        <div className="mt-auto p-4 flex justify-center border-t border-gray-800/60">
+        <div
+          className={flex({
+            mt: "auto",
+            p: "4",
+            justify: "center",
+            borderTop: "1px solid",
+            borderColor: "whiteAlpha.100",
+          })}
+        >
           <button
             onClick={() => setIsLogoutModalOpen(true)}
-            className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+            className={css({
+              p: "2",
+              color: "gray.500",
+              _hover: { color: "red.400", bg: "red.500/10" },
+              borderRadius: "lg",
+              transition: "all",
+            })}
             title="Déconnexion"
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className={css({ w: "5", h: "5" })} />
           </button>
         </div>
       )}

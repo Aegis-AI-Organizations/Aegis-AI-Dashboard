@@ -5,6 +5,9 @@ import { useState } from "react";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { ProfileCircle } from "../ui/ProfileCircle";
 
+import { css } from "styled-system/css";
+import { flex } from "styled-system/patterns";
+
 export const Topbar: React.FC = () => {
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const navigate = useNavigate();
@@ -16,54 +19,206 @@ export const Topbar: React.FC = () => {
   };
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 bg-[#0B0D13] border-b border-gray-800/60">
-      <div className="flex items-center">
-        <h1 className="text-white font-medium text-base hidden sm:flex items-center gap-3">
+    <header
+      className={css({
+        h: "16",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        px: "6",
+        bg: "bg.card",
+        borderBottom: "1px solid",
+        borderColor: "whiteAlpha.100",
+      })}
+    >
+      <div className={flex({ align: "center" })}>
+        <h1
+          className={css({
+            color: "white",
+            fontWeight: "medium",
+            fontSize: "base",
+            display: { base: "none", sm: "flex" },
+            alignItems: "center",
+            gap: "3",
+          })}
+        >
           Dashboard
-          <span className="px-2.5 py-1 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-xs font-semibold tracking-wide">
+          <span
+            className={css({
+              px: "2.5",
+              py: "1",
+              borderRadius: "md",
+              bg: "brand.primary/10",
+              color: "brand.primary",
+              border: "1px solid",
+              borderColor: "brand.primary/20",
+              fontSize: "xs",
+              fontWeight: "semibold",
+              letterSpacing: "wide",
+            })}
+          >
             AEGIS
           </span>
         </h1>
         {/* Mobile Logo display when sidebar is hidden */}
-        <div className="sm:hidden flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-blue-950/50 flex flex-col items-center justify-center border border-blue-500/20">
-            <div className="w-2 h-2 bg-cyan-400 rounded-sm"></div>
+        <div
+          className={css({
+            display: { base: "flex", sm: "none" },
+            alignItems: "center",
+            gap: "2",
+          })}
+        >
+          <div
+            className={flex({
+              w: "6",
+              h: "6",
+              borderRadius: "sm",
+              bg: "blue.950/50",
+              flexDir: "column",
+              align: "center",
+              justify: "center",
+              border: "1px solid",
+              borderColor: "blue.500/20",
+            })}
+          >
+            <div
+              className={css({
+                w: "2",
+                h: "2",
+                bg: "brand.primary",
+                borderRadius: "xs",
+              })}
+            ></div>
           </div>
-          <span className="text-white font-semibold">Aegis AI</span>
+          <span className={css({ color: "white", fontWeight: "semibold" })}>
+            Aegis AI
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-4 sm:gap-6">
-        <div className="relative group hidden sm:block">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="w-4 h-4 text-gray-500 group-focus-within:text-cyan-400 transition-colors" />
+      <div className={flex({ align: "center", gap: { base: "4", sm: "6" } })}>
+        <div
+          className={css({
+            position: "relative",
+            display: { base: "none", sm: "block" },
+          })}
+        >
+          <div
+            className={css({
+              position: "absolute",
+              insetY: "0",
+              left: "0",
+              pl: "3",
+              display: "flex",
+              alignItems: "center",
+              pointerEvents: "none",
+            })}
+          >
+            <Search
+              className={css({
+                w: "4",
+                h: "4",
+                color: "gray.500",
+                _focusWithin: { color: "brand.primary" },
+                transition: "colors",
+              })}
+            />
           </div>
           <input
             type="text"
             placeholder="Rechercher..."
-            className="w-48 lg:w-64 bg-[#13151A] border border-gray-800 text-sm rounded-lg pl-10 pr-10 py-1.5 text-gray-200 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder-gray-600"
+            className={css({
+              w: { lg: "64", base: "48" },
+              bg: "whiteAlpha.50",
+              border: "1px solid",
+              borderColor: "whiteAlpha.100",
+              fontSize: "sm",
+              borderRadius: "lg",
+              pl: "10",
+              pr: "10",
+              py: "1.5",
+              color: "text.main",
+              _focus: {
+                outline: "none",
+                borderColor: "brand.primary",
+                ring: "1px",
+                ringColor: "brand.primary",
+              },
+              transition: "all",
+              _placeholder: { color: "gray.600" },
+            })}
           />
-          <div className="absolute inset-y-0 right-0 pr-2 flex items-center pointer-events-none">
-            <span className="text-xs text-gray-600 font-medium bg-[#1A1D24] px-1.5 py-0.5 rounded border border-gray-800">
+          <div
+            className={css({
+              position: "absolute",
+              insetY: "0",
+              right: "0",
+              pr: "2",
+              display: "flex",
+              alignItems: "center",
+              pointerEvents: "none",
+            })}
+          >
+            <span
+              className={css({
+                fontSize: "xs",
+                color: "gray.600",
+                fontWeight: "medium",
+                bg: "whiteAlpha.100",
+                px: "1.5",
+                py: "0.5",
+                borderRadius: "xs",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+              })}
+            >
               K
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 border-2 border-[#0B0D13] rounded-full"></span>
+        <div className={flex({ align: "center", gap: "4" })}>
+          <button
+            className={css({
+              position: "relative",
+              p: "2",
+              color: "text.muted",
+              _hover: { color: "white" },
+              transition: "colors",
+            })}
+          >
+            <Bell className={css({ w: "5", h: "5" })} />
+            <span
+              className={css({
+                position: "absolute",
+                top: "1.5",
+                right: "1.5",
+                w: "2",
+                h: "2",
+                bg: "red.500",
+                border: "2px solid",
+                borderColor: "bg.card",
+                borderRadius: "full",
+              })}
+            ></span>
           </button>
 
-          <div className="flex items-center gap-2 cursor-pointer group">
+          <div
+            className={flex({ align: "center", gap: "2", cursor: "pointer" })}
+          >
             <ProfileCircle size="sm" showStatus />
             <button
               onClick={() => setIsLogoutModalOpen(true)}
-              className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+              className={css({
+                p: "2",
+                color: "text.muted",
+                _hover: { color: "red.400", bg: "red.500/10" },
+                borderRadius: "lg",
+                transition: "all",
+              })}
               title="Déconnexion"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className={css({ w: "4", h: "4" })} />
             </button>
           </div>
         </div>

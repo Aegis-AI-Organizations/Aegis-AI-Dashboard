@@ -4,14 +4,40 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { MobileNav } from "./MobileNav";
 
+import { css } from "styled-system/css";
+
 export const AdminLayout: React.FC = () => {
   return (
-    <div className="flex bg-[#050810] min-h-screen text-gray-200 font-sans selection:bg-cyan-500/30 selection:text-cyan-200">
+    <div
+      className={css({
+        display: "flex",
+        bg: "bg.main",
+        minHeight: "screen",
+        color: "text.main",
+        fontFamily: "sans",
+        _selection: { bg: "brand.primary/30", color: "cyan.200" },
+      })}
+    >
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
+      <div
+        className={css({
+          flex: "1",
+          display: "flex",
+          flexDir: "column",
+          minWidth: "0",
+        })}
+      >
         <Topbar />
         {/* Main Content Area */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 lg:p-8 pb-32 md:pb-8">
+        <main
+          className={css({
+            flex: "1",
+            overflowX: "hidden",
+            overflowY: "auto",
+            p: "pagePadding",
+            pb: { base: "32", md: "8" },
+          })}
+        >
           <Outlet />
         </main>
       </div>
