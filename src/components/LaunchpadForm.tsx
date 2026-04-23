@@ -149,6 +149,7 @@ export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
         >
           {isLoading ? (
             <Loader2
+              data-testid="loading-spinner"
               className={css({ w: "5", h: "5", animation: "spin", mr: "2" })}
             />
           ) : (

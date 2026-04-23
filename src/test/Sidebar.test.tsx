@@ -28,7 +28,7 @@ describe("Sidebar Component", () => {
     );
 
     const dashboardLink = screen.getByTitle("Tableau de Bord").closest("a");
-    expect(dashboardLink).toHaveClass("text-cyan-400");
+    expect(dashboardLink).toHaveAttribute("aria-current", "page");
   });
 
   it("handles logout", async () => {
