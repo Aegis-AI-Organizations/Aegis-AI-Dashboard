@@ -3,7 +3,6 @@ import { CreditCard, Receipt, TrendingUp, ShieldCheck } from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
 import {
-  pageTitle,
   card,
   sectionTitle,
   button as buttonRecipe,

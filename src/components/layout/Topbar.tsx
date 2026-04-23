@@ -38,7 +38,7 @@ export const Topbar: React.FC = () => {
           className={css({
             color: "white",
             fontWeight: "medium",
-            fontSize: "base",
+            fontSize: "1rem",
             display: { base: "none", sm: "flex" },
             alignItems: "center",
             gap: "3",
@@ -143,8 +143,7 @@ export const Topbar: React.FC = () => {
               _focus: {
                 outline: "none",
                 borderColor: "brand.primary",
-                ring: "1px",
-                ringColor: "brand.primary",
+                boxShadow: "0 0 0 1px {colors.brand.primary}",
               },
               transition: "all",
               _placeholder: { color: "gray.600" },

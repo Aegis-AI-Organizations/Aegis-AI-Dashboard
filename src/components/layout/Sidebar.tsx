@@ -204,7 +204,17 @@ export const Sidebar: React.FC = () => {
                     ? css({
                         bg: "brand.primary/10",
                         color: "brand.primary",
-                        boxShadow: "inset 2px 0 0 0 {colors.brand.primary}",
+                        position: "relative",
+                        _before: {
+                          content: '""',
+                          position: "absolute",
+                          left: 0,
+                          top: "2",
+                          bottom: "2",
+                          width: "2px",
+                          bg: "brand.primary",
+                          borderRadius: "full",
+                        },
                       })
                     : css({
                         color: "text.muted",

@@ -362,7 +362,7 @@ export const Settings: React.FC = () => {
                   activeTab === tab.id
                     ? css({
                         bg: "brand.primary",
-                        color: "white",
+                        color: "slate.950",
                         boxShadow: "0 4px 12px {colors.brand.primary/20}",
                       })
                     : css({
