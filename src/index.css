@@ -1,5 +1,4 @@
 @layer reset, base, tokens, recipes, utilities;
-@import "tailwindcss";
 
 @theme {
   --color-cyan-400: #00f2ff;

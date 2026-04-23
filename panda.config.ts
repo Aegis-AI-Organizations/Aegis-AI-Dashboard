@@ -3,6 +3,7 @@ import { defineConfig } from "@pandacss/dev";
 export default defineConfig({
   // Whether to use css reset
   preflight: true,
+  presets: ["@pandacss/dev/presets"],
 
   // Where to look for your css declarations
   include: ["./src/**/*.{js,jsx,ts,tsx}"],
@@ -52,6 +53,20 @@ export default defineConfig({
           dark: {
             900: { value: "#050810" },
             800: { value: "#0B0D13" },
+          },
+          whiteAlpha: {
+            50: { value: "rgba(255, 255, 255, 0.05)" },
+            100: { value: "rgba(255, 255, 255, 0.1)" },
+            200: { value: "rgba(255, 255, 255, 0.2)" },
+            300: { value: "rgba(255, 255, 255, 0.3)" },
+          },
+          slate: {
+            950: { value: "#020617" },
+          },
+          red: {
+            200: { value: "#fecaca" },
+            400: { value: "#f87171" },
+            500: { value: "#ef4444" },
           },
         },
         fonts: {
@@ -180,7 +195,7 @@ export default defineConfig({
   },
 
   // The output directory for your css system
-  outdir: "styled-system",
+  outdir: "src/styled-system",
 
   // Enable JSX support
   jsxFramework: "react",
