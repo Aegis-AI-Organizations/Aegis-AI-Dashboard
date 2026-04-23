@@ -198,7 +198,7 @@ export const Login: React.FC = () => {
               >
                 Email
               </label>
-              <div className={css({ position: "relative", group: true })}>
+              <div className={`group ${css({ position: "relative" })}`}>
                 <div
                   className={flex({
                     position: "absolute",
@@ -264,7 +264,7 @@ export const Login: React.FC = () => {
               >
                 Mot de passe
               </label>
-              <div className={css({ position: "relative", group: true })}>
+              <div className={`group ${css({ position: "relative" })}`}>
                 <div
                   className={flex({
                     position: "absolute",
