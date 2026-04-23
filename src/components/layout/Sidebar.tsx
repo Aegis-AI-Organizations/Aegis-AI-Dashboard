@@ -105,8 +105,8 @@ export const Sidebar: React.FC = () => {
         css({
           display: { base: "none", md: "flex" },
           flexDir: "column",
-          bg: "bg.main/95",
-          backdropBlur: "md",
+          bg: "rgba(5, 8, 16, 0.8)",
+          backdropBlur: "xl",
           borderRight: "1px solid",
           borderColor: "whiteAlpha.100",
           position: "sticky",
@@ -116,6 +116,7 @@ export const Sidebar: React.FC = () => {
           transition: "all",
           transitionDuration: "300ms",
           zIndex: "50",
+          boxShadow: "20px 0 50px rgba(0,0,0,0.5)",
         }),
         isExpanded ? css({ w: "64" }) : css({ w: "20" }),
       )}
@@ -151,13 +152,15 @@ export const Sidebar: React.FC = () => {
         <span
           className={cx(
             css({
-              color: "text.bright",
-              fontWeight: "bold",
-              fontSize: "lg",
-              letterSpacing: "wider",
+              color: "white",
+              fontWeight: "900",
+              fontSize: "xl",
+              fontFamily: "orbitron",
+              letterSpacing: "widest",
               whiteSpace: "nowrap",
               transition: "all",
               transitionDuration: "300ms",
+              textShadow: "0 0 10px rgba(0,242,255,0.3)",
             }),
             isExpanded
               ? css({ opacity: 1, flex: 1 })

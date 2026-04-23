@@ -26,9 +26,11 @@ export const Topbar: React.FC = () => {
         alignItems: "center",
         justifyContent: "space-between",
         px: "6",
-        bg: "bg.card",
+        bg: "rgba(11, 13, 19, 0.7)",
+        backdropBlur: "xl",
         borderBottom: "1px solid",
         borderColor: "whiteAlpha.100",
+        zIndex: "40",
       })}
     >
       <div className={flex({ align: "center" })}>
