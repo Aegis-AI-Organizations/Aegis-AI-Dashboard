@@ -335,7 +335,7 @@ export const Vulnerabilities: React.FC = () => {
                 className={flex({
                   direction: "column",
                   pb: "8",
-                  gap: "6",
+                  gap: "3",
                   flex: "1",
                 })}
               >
