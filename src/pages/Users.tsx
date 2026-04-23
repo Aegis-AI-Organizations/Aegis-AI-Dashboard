@@ -44,8 +44,6 @@ interface User {
   avatar_url?: string;
 }
 
-import { AuditTrail } from "../components/AuditTrail";
-
 export const Users: React.FC = () => {
   const { user: currentUser } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
