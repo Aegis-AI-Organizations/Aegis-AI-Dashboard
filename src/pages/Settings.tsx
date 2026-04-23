@@ -22,7 +22,7 @@ import { PasswordPromptModal } from "../components/ui/PasswordPromptModal";
 import { RoleBadge } from "../components/ui/RoleBadge";
 import { css, cx } from "styled-system/css";
 import { flex, grid, circle } from "styled-system/patterns";
-import { card } from "styled-system/recipes";
+import { card, pageTitle } from "styled-system/recipes";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
@@ -258,18 +258,10 @@ export const Settings: React.FC = () => {
   ];
 
   return (
-    <div
-      className={css({
-        maxWidth: "6xl",
-        mx: "auto",
-        px: "4",
-        py: "8",
-      })}
-    >
+    <div className={css({ "& > * + *": { mt: "sectionGap" } })}>
       {/* Premium Header */}
       <div
         className={flex({
-          mb: "12",
           direction: { base: "column", md: "row" },
           justify: "space-between",
           align: { base: "start", md: "end" },
@@ -277,16 +269,7 @@ export const Settings: React.FC = () => {
         })}
       >
         <div className={css({ "& > * + *": { mt: "2" } })}>
-          <h1
-            className={css({
-              fontSize: "5xl",
-              fontWeight: "900",
-              color: "white",
-              letterSpacing: "tighter",
-            })}
-          >
-            Paramètres
-          </h1>
+          <h1 className={pageTitle()}>Paramètres</h1>
           <p
             className={css({
               color: "text.muted",

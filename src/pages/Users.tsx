@@ -44,6 +44,8 @@ interface User {
   avatar_url?: string;
 }
 
+import { AuditTrail } from "../components/AuditTrail";
+
 export const Users: React.FC = () => {
   const { user: currentUser } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -54,6 +56,26 @@ export const Users: React.FC = () => {
   const expandedIdsRef = useRef<Set<string>>(expandedIds);
   expandedIdsRef.current = expandedIds;
   const [loading, setLoading] = useState(true);
+
+  // Tabs state for SuperAdmin
+  const [activeTab, setActiveTab] = useState<"teams" | "audit">(
+    (searchParams.get("tab") as "audit") || "teams",
+  );
+
+  // Update URL when tab changes
+  useEffect(() => {
+    if (currentUser?.role === "superadmin") {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (activeTab === "audit") next.set("tab", "audit");
+          else next.delete("tab");
+          return next;
+        },
+        { replace: true },
+      );
+    }
+  }, [activeTab, setSearchParams, currentUser]);
 
   // Reference to prevent unnecessary refetches of members during company list updates
   const companiesRef = useRef<Company[]>([]);
@@ -224,7 +246,7 @@ export const Users: React.FC = () => {
         })}
       >
         <div className={css({ "& > * + *": { mt: "3" } })}>
-          <h1 className={pageTitle({ size: "2xl" })}>Équipes</h1>
+          <h1 className={pageTitle()}>Équipes</h1>
           <p
             className={css({
               color: "text.muted",
@@ -240,6 +262,53 @@ export const Users: React.FC = () => {
         </div>
 
         <div className={flex({ flexWrap: "wrap", gap: "4" })}>
+          {currentUser?.role === "superadmin" && (
+            <div
+              className={flex({
+                bg: "whiteAlpha.50",
+                p: "1",
+                borderRadius: "2xl",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+                mr: "4",
+              })}
+            >
+              <button
+                onClick={() => setActiveTab("teams")}
+                className={css({
+                  px: "6",
+                  py: "2.5",
+                  borderRadius: "xl",
+                  fontSize: "xs",
+                  fontWeight: "900",
+                  textTransform: "uppercase",
+                  letterSpacing: "widest",
+                  transition: "all",
+                  bg: activeTab === "teams" ? "brand.primary" : "transparent",
+                  color: activeTab === "teams" ? "slate.950" : "text.muted",
+                })}
+              >
+                Équipes
+              </button>
+              <button
+                onClick={() => setActiveTab("audit")}
+                className={css({
+                  px: "6",
+                  py: "2.5",
+                  borderRadius: "xl",
+                  fontSize: "xs",
+                  fontWeight: "900",
+                  textTransform: "uppercase",
+                  letterSpacing: "widest",
+                  transition: "all",
+                  bg: activeTab === "audit" ? "brand.primary" : "transparent",
+                  color: activeTab === "audit" ? "slate.950" : "text.muted",
+                })}
+              >
+                Audit
+              </button>
+            </div>
+          )}
           {canCreateUser && (
             <button
               onClick={() => setIsNewUserOpen(true)}
@@ -260,420 +329,436 @@ export const Users: React.FC = () => {
           )}
         </div>
       </div>
-      {/* Global Search */}
-      <div className={css({ position: "relative" })}>
-        <div
-          className={css({
-            position: "absolute",
-            insetY: "0",
-            left: "6",
-            display: "flex",
-            alignItems: "center",
-            pointerEvents: "none",
-          })}
-        >
-          <Search className={css({ w: "5", h: "5", color: "gray.500" })} />
-        </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Rechercher une entreprise (Nom, ID) ou un collaborateur (Nom, Email, ID)..."
-          className={css({
-            w: "full",
-            bg: "bg.card",
-            border: "1px solid",
-            borderColor: "whiteAlpha.100",
-            color: "white",
-            borderRadius: "3xl",
-            pl: "16",
-            pr: "8",
-            py: "6",
-            fontSize: "lg",
-            fontWeight: "bold",
-            _focus: { outline: "none", borderColor: "brand.primary" },
-            transition: "all",
-            _placeholder: { color: "gray.700" },
-            boxShadow: "2xl",
-          })}
-        />
-      </div>{" "}
-      {/* Hierarchical List */}
-      <div className={css({ "& > * + *": { mt: "4" } })}>
-        {loading && !companies.length ? (
-          <div
-            className={flex({
-              py: "20",
-              direction: "column",
-              align: "center",
-              gap: "4",
-              color: "text.muted",
-            })}
-          >
-            <Loader2
+
+      {activeTab === "audit" ? (
+        <AuditTrail />
+      ) : (
+        <>
+          {/* Global Search */}
+          <div className={css({ position: "relative" })}>
+            <div
               className={css({
-                w: "10",
-                h: "10",
-                animation: "spin 1s linear infinite",
-              })}
-            />
-            <p
-              className={css({
-                fontWeight: "bold",
-                textTransform: "uppercase",
-                letterSpacing: "widest",
-                fontSize: "xs",
+                position: "absolute",
+                insetY: "0",
+                left: "6",
+                display: "flex",
+                alignItems: "center",
+                pointerEvents: "none",
               })}
             >
-              Chargement des données...
-            </p>
-          </div>
-        ) : companies.length === 0 ? (
-          <div
-            className={flex({
-              py: "20",
-              bg: "whiteAlpha.50",
-              border: "1px dashed",
-              borderColor: "whiteAlpha.100",
-              borderRadius: "3rem",
-              direction: "column",
-              align: "center",
-              gap: "4",
-              color: "text.muted",
-              fontStyle: "italic",
-            })}
-          >
-            <Globe className={css({ w: "10", h: "10", opacity: 0.2 })} />
-            <p>Aucun résultat correspondant à votre recherche.</p>
-          </div>
-        ) : (
-          companies.map((company) => (
-            <div
-              key={company.id}
+              <Search className={css({ w: "5", h: "5", color: "gray.500" })} />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher une entreprise (Nom, ID) ou un collaborateur (Nom, Email, ID)..."
               className={css({
+                w: "full",
                 bg: "bg.card",
                 border: "1px solid",
-                borderColor: company.isExpanded
-                  ? "brand.primary/30"
-                  : "whiteAlpha.100",
-                borderRadius: company.isExpanded ? "2.5rem" : "3xl",
-                boxShadow: company.isExpanded ? "2xl" : "none",
+                borderColor: "whiteAlpha.100",
+                color: "white",
+                borderRadius: "3xl",
+                pl: "16",
+                pr: "8",
+                py: "6",
+                fontSize: "lg",
+                fontWeight: "bold",
+                _focus: { outline: "none", borderColor: "brand.primary" },
                 transition: "all",
-                transitionDuration: "300ms",
-                overflow: "hidden",
-                _hover: {
-                  borderColor: company.isExpanded
-                    ? "brand.primary/30"
-                    : "whiteAlpha.200",
-                },
+                _placeholder: { color: "gray.700" },
+                boxShadow: "2xl",
               })}
-            >
+            />
+          </div>{" "}
+          {/* Hierarchical List */}
+          <div className={css({ "& > * + *": { mt: "4" } })}>
+            {loading && !companies.length ? (
               <div
-                onClick={() => toggleCompany(company.id)}
                 className={flex({
-                  p: { base: "6", md: "8" },
-                  direction: { base: "column", md: "row" },
-                  align: { md: "center" },
-                  justify: "space-between",
-                  gap: "6",
-                  cursor: "pointer",
+                  py: "20",
+                  direction: "column",
+                  align: "center",
+                  gap: "4",
+                  color: "text.muted",
                 })}
               >
-                <div className={flex({ align: "center", gap: "6" })}>
-                  {company.avatar_url ? (
-                    <ProfileCircle
-                      size="md"
-                      avatarUrl={company.avatar_url}
-                      name={company.name}
-                      className={css({ borderRadius: "2xl" })}
-                    />
-                  ) : (
-                    <div
-                      className={cx(
-                        flex({
-                          w: "14",
-                          h: "14",
-                          borderRadius: "2xl",
-                          align: "center",
-                          justify: "center",
-                          transition: "all",
-                          border: "1px solid",
-                        }),
-                        company.name === "Aegis AI"
-                          ? css({
-                              bg: "brand.primary/10",
-                              color: "brand.primary",
-                              borderColor: "brand.primary/30",
-                            })
-                          : css({
-                              bg: "bg.main",
-                              color: "gray.400",
-                              borderColor: "whiteAlpha.100",
-                            }),
-                      )}
-                    >
-                      <Building2 className={css({ w: "6", h: "6" })} />
-                    </div>
-                  )}
-                  <div className={css({ "& > * + *": { mt: "1" } })}>
-                    <div className={flex({ align: "center", gap: "3" })}>
-                      <h3
-                        className={css({
-                          fontSize: "xl",
-                          fontWeight: "900",
-                          color: "white",
-                          letterSpacing: "tight",
-                          _groupHover: { color: "brand.primary" },
-                          transition: "colors",
-                        })}
-                      >
-                        {company.name}
-                      </h3>
-                      {company.name === "Aegis AI" && (
-                        <span
-                          className={css({
-                            px: "2",
-                            py: "0.5",
-                            bg: "brand.primary/20",
-                            color: "brand.primary",
-                            fontSize: "10px",
-                            fontWeight: "900",
-                            textTransform: "uppercase",
-                            letterSpacing: "widest",
-                            borderRadius: "md",
-                            border: "1px solid",
-                            borderColor: "brand.primary/20",
-                          })}
-                        >
-                          Root
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className={flex({
-                        align: "center",
-                        gap: "4",
-                        fontSize: "xs",
-                        fontWeight: "bold",
-                        color: "text.muted",
-                      })}
-                    >
-                      <span className={flex({ align: "center", gap: "1.5" })}>
-                        <Mail className={css({ w: "3", h: "3" })} />{" "}
-                        {company.owner_email}
-                      </span>
-                      <span
-                        className={css({
-                          display: { base: "none", md: "inline" },
-                          color: "whiteAlpha.200",
-                        })}
-                      >
-                        |
-                      </span>
-                      <span
-                        className={flex({
-                          align: "center",
-                          gap: "1.5",
-                          fontFamily: "mono",
-                          opacity: 0.5,
-                        })}
-                      >
-                        {company.id.substring(0, 8)}...
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={flex({ align: "center", gap: "4" })}>
-                  <div
-                    className={css({
-                      p: "3",
-                      borderRadius: "xl",
-                      bg: company.isExpanded
-                        ? "brand.primary"
-                        : "whiteAlpha.100",
-                      color: company.isExpanded ? "white" : "gray.600",
-                      transition: "all",
-                      _groupHover: {
-                        bg: company.isExpanded
-                          ? "brand.primary"
-                          : "brand.primary/20",
-                        color: "white",
-                      },
-                    })}
-                  >
-                    {company.isExpanded ? (
-                      <ChevronDown className={css({ w: "5", h: "5" })} />
-                    ) : (
-                      <ChevronRight className={css({ w: "5", h: "5" })} />
-                    )}
-                  </div>
-                </div>
-              </div>{" "}
-              {/* Expanded Members List */}
-              {company.isExpanded && (
-                <div
+                <Loader2
                   className={css({
-                    borderTop: "1px solid",
-                    borderColor: "whiteAlpha.50",
-                    bg: "blackAlpha.200",
-                    p: "8",
-                    pt: "4",
-                    animation: "slideInFromTop 0.3s ease-out",
+                    w: "10",
+                    h: "10",
+                    animation: "spin 1s linear infinite",
+                  })}
+                />
+                <p
+                  className={css({
+                    fontWeight: "bold",
+                    textTransform: "uppercase",
+                    letterSpacing: "widest",
+                    fontSize: "xs",
+                  })}
+                >
+                  Chargement des données...
+                </p>
+              </div>
+            ) : companies.length === 0 ? (
+              <div
+                className={flex({
+                  py: "20",
+                  bg: "whiteAlpha.50",
+                  border: "1px dashed",
+                  borderColor: "whiteAlpha.100",
+                  borderRadius: "3rem",
+                  direction: "column",
+                  align: "center",
+                  gap: "4",
+                  color: "text.muted",
+                  fontStyle: "italic",
+                })}
+              >
+                <Globe className={css({ w: "10", h: "10", opacity: 0.2 })} />
+                <p>Aucun résultat correspondant à votre recherche.</p>
+              </div>
+            ) : (
+              companies.map((company) => (
+                <div
+                  key={company.id}
+                  className={css({
+                    bg: "bg.card",
+                    border: "1px solid",
+                    borderColor: company.isExpanded
+                      ? "brand.primary/30"
+                      : "whiteAlpha.100",
+                    borderRadius: company.isExpanded ? "2.5rem" : "3xl",
+                    boxShadow: company.isExpanded ? "2xl" : "none",
+                    transition: "all",
+                    transitionDuration: "300ms",
+                    overflow: "hidden",
+                    _hover: {
+                      borderColor: company.isExpanded
+                        ? "brand.primary/30"
+                        : "whiteAlpha.200",
+                    },
                   })}
                 >
                   <div
+                    onClick={() => toggleCompany(company.id)}
                     className={flex({
-                      align: "center",
+                      p: { base: "6", md: "8" },
+                      direction: { base: "column", md: "row" },
+                      align: { md: "center" },
                       justify: "space-between",
-                      mb: "6",
+                      gap: "6",
+                      cursor: "pointer",
                     })}
                   >
-                    <h4
-                      className={css({
-                        fontSize: "10px",
-                        fontWeight: "900",
-                        color: "text.muted",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.2em",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "2",
-                      })}
-                    >
-                      Collaborateurs{" "}
-                      <span
-                        className={css({
-                          px: "2",
-                          py: "0.5",
-                          bg: "whiteAlpha.100",
-                          borderRadius: "full",
-                          color: "gray.400",
-                        })}
-                      >
-                        {company.members?.length || 0}
-                      </span>
-                    </h4>
-                  </div>
-
-                  <div
-                    className={css({
-                      display: "grid",
-                      gridTemplateColumns: { base: "1", md: "2", lg: "3" },
-                      gap: "4",
-                    })}
-                  >
-                    {company.members ? (
-                      company.members.map((member) => (
+                    <div className={flex({ align: "center", gap: "6" })}>
+                      {company.avatar_url ? (
+                        <ProfileCircle
+                          size="md"
+                          avatarUrl={company.avatar_url}
+                          name={company.name}
+                          className={css({ borderRadius: "2xl" })}
+                        />
+                      ) : (
                         <div
-                          key={member.id}
-                          className={flex({
-                            bg: "whiteAlpha.50",
-                            border: "1px solid",
-                            borderColor: "whiteAlpha.50",
-                            p: "5",
-                            borderRadius: "2xl",
-                            align: "center",
-                            gap: "4",
-                            transition: "all",
-                            _hover: { borderColor: "brand.primary/30" },
-                            position: "relative",
-                          })}
+                          className={cx(
+                            flex({
+                              w: "14",
+                              h: "14",
+                              borderRadius: "2xl",
+                              align: "center",
+                              justify: "center",
+                              transition: "all",
+                              border: "1px solid",
+                            }),
+                            company.name === "Aegis AI"
+                              ? css({
+                                  bg: "brand.primary/10",
+                                  color: "brand.primary",
+                                  borderColor: "brand.primary/30",
+                                })
+                              : css({
+                                  bg: "bg.main",
+                                  color: "gray.400",
+                                  borderColor: "whiteAlpha.100",
+                                }),
+                          )}
                         >
-                          <ProfileCircle
-                            size="sm"
-                            avatarUrl={member.avatar_url}
-                            name={member.name}
-                          />
-                          <div
+                          <Building2 className={css({ w: "6", h: "6" })} />
+                        </div>
+                      )}
+                      <div className={css({ "& > * + *": { mt: "1" } })}>
+                        <div className={flex({ align: "center", gap: "3" })}>
+                          <h3
                             className={css({
-                              "& > * + *": { mt: "1" },
-                              my: "auto",
-                              flex: "1",
-                              minW: "0",
-                            })}
-                          >
-                            <div
-                              className={flex({ align: "center", gap: "3" })}
-                            >
-                              <span
-                                className={css({
-                                  fontSize: "sm",
-                                  fontWeight: "900",
-                                  color: "white",
-                                  textOverflow: "ellipsis",
-                                  overflow: "hidden",
-                                  whiteSpace: "nowrap",
-                                })}
-                              >
-                                {member.name}
-                              </span>
-                              <RoleBadge role={member.role} showIcon={false} />
-                            </div>
-                            <p
-                              className={css({
-                                fontSize: "xs",
-                                color: "text.muted",
-                                fontWeight: "bold",
-                                textOverflow: "ellipsis",
-                                overflow: "hidden",
-                                whiteSpace: "nowrap",
-                              })}
-                            >
-                              {member.email}
-                            </p>
-                            <code
-                              className={css({
-                                fontSize: "9px",
-                                color: "whiteAlpha.300",
-                                fontFamily: "mono",
-                                display: "block",
-                                opacity: { base: 1, md: 0 },
-                                _groupHover: { opacity: 1 },
-                                transition: "opacity",
-                              })}
-                            >
-                              ID: {member.id}
-                            </code>
-                          </div>
-                          <button
-                            onClick={() => copyToClipboard(member.id)}
-                            className={css({
-                              p: "2",
-                              color: "gray.700",
-                              _hover: { color: "brand.primary" },
+                              fontSize: "xl",
+                              fontWeight: "900",
+                              color: "white",
+                              letterSpacing: "tight",
+                              _groupHover: { color: "brand.primary" },
                               transition: "colors",
                             })}
                           >
-                            <Copy className={css({ w: "3.5", h: "3.5" })} />
-                          </button>
+                            {company.name}
+                          </h3>
+                          {company.name === "Aegis AI" && (
+                            <span
+                              className={css({
+                                px: "2",
+                                py: "0.5",
+                                bg: "brand.primary/20",
+                                color: "brand.primary",
+                                fontSize: "10px",
+                                fontWeight: "900",
+                                textTransform: "uppercase",
+                                letterSpacing: "widest",
+                                borderRadius: "md",
+                                border: "1px solid",
+                                borderColor: "brand.primary/20",
+                              })}
+                            >
+                              Root
+                            </span>
+                          )}
                         </div>
-                      ))
-                    ) : (
+                        <div
+                          className={flex({
+                            align: "center",
+                            gap: "4",
+                            fontSize: "xs",
+                            fontWeight: "bold",
+                            color: "text.muted",
+                          })}
+                        >
+                          <span
+                            className={flex({ align: "center", gap: "1.5" })}
+                          >
+                            <Mail className={css({ w: "3", h: "3" })} />{" "}
+                            {company.owner_email}
+                          </span>
+                          <span
+                            className={css({
+                              display: { base: "none", md: "inline" },
+                              color: "whiteAlpha.200",
+                            })}
+                          >
+                            |
+                          </span>
+                          <span
+                            className={flex({
+                              align: "center",
+                              gap: "1.5",
+                              fontFamily: "mono",
+                              opacity: 0.5,
+                            })}
+                          >
+                            {company.id.substring(0, 8)}...
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={flex({ align: "center", gap: "4" })}>
                       <div
-                        className={flex({
-                          gridColumn: "span 1 / -1",
-                          py: "10",
-                          justify: "center",
+                        className={css({
+                          p: "3",
+                          borderRadius: "xl",
+                          bg: company.isExpanded
+                            ? "brand.primary"
+                            : "whiteAlpha.100",
+                          color: company.isExpanded ? "white" : "gray.600",
+                          transition: "all",
+                          _groupHover: {
+                            bg: company.isExpanded
+                              ? "brand.primary"
+                              : "brand.primary/20",
+                            color: "white",
+                          },
                         })}
                       >
-                        <Loader2
-                          className={css({
-                            w: "6",
-                            h: "6",
-                            animation: "spin 1s linear infinite",
-                            color: "whiteAlpha.200",
-                          })}
-                        />
+                        {company.isExpanded ? (
+                          <ChevronDown className={css({ w: "5", h: "5" })} />
+                        ) : (
+                          <ChevronRight className={css({ w: "5", h: "5" })} />
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  </div>{" "}
+                  {/* Expanded Members List */}
+                  {company.isExpanded && (
+                    <div
+                      className={css({
+                        borderTop: "1px solid",
+                        borderColor: "whiteAlpha.50",
+                        bg: "blackAlpha.200",
+                        p: "8",
+                        pt: "4",
+                        animation: "slideInFromTop 0.3s ease-out",
+                      })}
+                    >
+                      <div
+                        className={flex({
+                          align: "center",
+                          justify: "space-between",
+                          mb: "6",
+                        })}
+                      >
+                        <h4
+                          className={css({
+                            fontSize: "10px",
+                            fontWeight: "900",
+                            color: "text.muted",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.2em",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "2",
+                          })}
+                        >
+                          Collaborateurs{" "}
+                          <span
+                            className={css({
+                              px: "2",
+                              py: "0.5",
+                              bg: "whiteAlpha.100",
+                              borderRadius: "full",
+                              color: "gray.400",
+                            })}
+                          >
+                            {company.members?.length || 0}
+                          </span>
+                        </h4>
+                      </div>
+
+                      <div
+                        className={css({
+                          display: "grid",
+                          gridTemplateColumns: { base: "1", md: "2", lg: "3" },
+                          gap: "4",
+                        })}
+                      >
+                        {company.members ? (
+                          company.members.map((member) => (
+                            <div
+                              key={member.id}
+                              className={flex({
+                                bg: "whiteAlpha.50",
+                                border: "1px solid",
+                                borderColor: "whiteAlpha.50",
+                                p: "5",
+                                borderRadius: "2xl",
+                                align: "center",
+                                gap: "4",
+                                transition: "all",
+                                _hover: { borderColor: "brand.primary/30" },
+                                position: "relative",
+                              })}
+                            >
+                              <ProfileCircle
+                                size="sm"
+                                avatarUrl={member.avatar_url}
+                                name={member.name}
+                              />
+                              <div
+                                className={css({
+                                  "& > * + *": { mt: "1" },
+                                  my: "auto",
+                                  flex: "1",
+                                  minW: "0",
+                                })}
+                              >
+                                <div
+                                  className={flex({
+                                    align: "center",
+                                    gap: "3",
+                                  })}
+                                >
+                                  <span
+                                    className={css({
+                                      fontSize: "sm",
+                                      fontWeight: "900",
+                                      color: "white",
+                                      textOverflow: "ellipsis",
+                                      overflow: "hidden",
+                                      whiteSpace: "nowrap",
+                                    })}
+                                  >
+                                    {member.name}
+                                  </span>
+                                  <RoleBadge
+                                    role={member.role}
+                                    showIcon={false}
+                                  />
+                                </div>
+                                <p
+                                  className={css({
+                                    fontSize: "xs",
+                                    color: "text.muted",
+                                    fontWeight: "bold",
+                                    textOverflow: "ellipsis",
+                                    overflow: "hidden",
+                                    whiteSpace: "nowrap",
+                                  })}
+                                >
+                                  {member.email}
+                                </p>
+                                <code
+                                  className={css({
+                                    fontSize: "9px",
+                                    color: "whiteAlpha.300",
+                                    fontFamily: "mono",
+                                    display: "block",
+                                    opacity: { base: 1, md: 0 },
+                                    _groupHover: { opacity: 1 },
+                                    transition: "opacity",
+                                  })}
+                                >
+                                  ID: {member.id}
+                                </code>
+                              </div>
+                              <button
+                                onClick={() => copyToClipboard(member.id)}
+                                className={css({
+                                  p: "2",
+                                  color: "gray.700",
+                                  _hover: { color: "brand.primary" },
+                                  transition: "colors",
+                                })}
+                              >
+                                <Copy className={css({ w: "3.5", h: "3.5" })} />
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div
+                            className={flex({
+                              gridColumn: "span 1 / -1",
+                              py: "10",
+                              justify: "center",
+                            })}
+                          >
+                            <Loader2
+                              className={css({
+                                w: "6",
+                                h: "6",
+                                animation: "spin 1s linear infinite",
+                                color: "whiteAlpha.200",
+                              })}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))
-        )}
-      </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
+
       {/* MODAL: Create Company */}
       {isNewCompanyOpen && (
         <CreateCompanyModal

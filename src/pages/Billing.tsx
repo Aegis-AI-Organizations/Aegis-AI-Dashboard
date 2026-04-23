@@ -5,6 +5,7 @@ import { flex, grid } from "styled-system/patterns";
 import {
   card,
   sectionTitle,
+  pageTitle,
   button as buttonRecipe,
 } from "styled-system/recipes";
 
@@ -12,7 +13,7 @@ export const Billing: React.FC = () => {
   return (
     <div
       className={css({
-        maxWidth: "6xl",
+        maxWidth: "7xl",
         mx: "auto",
         px: "4",
         py: "8",
@@ -28,16 +29,7 @@ export const Billing: React.FC = () => {
         })}
       >
         <div className={css({ "& > * + *": { mt: "2" } })}>
-          <h1
-            className={css({
-              fontSize: "5xl",
-              fontWeight: "900",
-              color: "white",
-              letterSpacing: "tighter",
-            })}
-          >
-            Facturation
-          </h1>
+          <h1 className={pageTitle()}>Facturation</h1>
           <p
             className={css({
               color: "text.muted",

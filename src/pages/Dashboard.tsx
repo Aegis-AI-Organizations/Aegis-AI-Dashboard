@@ -43,8 +43,8 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className={css({ minHeight: "calc(100vh - 8rem)" })}>
-      <div className={css({ mb: "12" })}>
+    <div className={css({ "& > * + *": { mt: "sectionGap" } })}>
+      <div>
         <h1 className={pageTitle()}>Tableau de Bord Sécurité</h1>
         <p className={css({ color: "text.muted", fontSize: "lg" })}>
           Aperçu complet de votre posture de sécurité et des opérations de

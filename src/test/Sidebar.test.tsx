@@ -13,10 +13,17 @@ describe("Sidebar Component", () => {
       </MemoryRouter>,
     );
 
-    // Sidebar needs to be expanded or we need to find by title since labels are hidden when collapsed
-    expect(screen.getByTitle("Tableau de Bord")).toBeInTheDocument();
-    expect(screen.getByTitle("Équipe")).toBeInTheDocument();
-    expect(screen.getByTitle("Administration")).toBeInTheDocument();
+    // Sidebar queries should be robust to expanded/collapsed state
+    // getByRole with name works because it looks at both inner text and title attribute
+    expect(
+      screen.getByRole("link", { name: "Tableau de Bord" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Gestion & Audit" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Facturation" }),
+    ).toBeInTheDocument();
   });
 
   it("highlights active link", () => {
@@ -27,7 +34,7 @@ describe("Sidebar Component", () => {
       </MemoryRouter>,
     );
 
-    const dashboardLink = screen.getByTitle("Tableau de Bord").closest("a");
+    const dashboardLink = screen.getByRole("link", { name: "Tableau de Bord" });
     expect(dashboardLink).toHaveAttribute("aria-current", "page");
   });
 

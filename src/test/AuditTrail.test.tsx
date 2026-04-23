@@ -1,10 +1,10 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  Administration,
+  AuditTrail,
   getActionColor,
   parseDetails,
-} from "../pages/Administration";
+} from "../components/AuditTrail";
 import { api } from "../api/Axios";
 import { MemoryRouter } from "react-router-dom";
 
@@ -14,7 +14,7 @@ vi.mock("../api/Axios", () => ({
   },
 }));
 
-describe("Administration Helpers", () => {
+describe("AuditTrail Helpers", () => {
   it("getActionColor returns correct colors", () => {
     expect(getActionColor("START_SCAN")).toBe("cyan.400");
     expect(getActionColor("CREATE_COMPANY")).toBe("emerald.400");
@@ -56,20 +56,19 @@ const mockLogs = {
   total: 2,
 };
 
-describe("Administration Page", () => {
+describe("AuditTrail Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(api.get).mockResolvedValue({ data: mockLogs });
   });
 
-  it("renders the administration header and audit trail section", async () => {
+  it("renders the journal d'audit section", async () => {
     render(
       <MemoryRouter>
-        <Administration />
+        <AuditTrail />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Administration")).toBeInTheDocument();
     expect(screen.getByText(/Journal d'Audit/i)).toBeInTheDocument();
 
     await waitFor(
@@ -86,7 +85,7 @@ describe("Administration Page", () => {
 
     render(
       <MemoryRouter>
-        <Administration />
+        <AuditTrail />
       </MemoryRouter>,
     );
 
@@ -101,7 +100,7 @@ describe("Administration Page", () => {
   it("triggers alert with parsed details when clicking info button", async () => {
     render(
       <MemoryRouter>
-        <Administration />
+        <AuditTrail />
       </MemoryRouter>,
     );
 
@@ -124,7 +123,7 @@ describe("Administration Page", () => {
 
     render(
       <MemoryRouter>
-        <Administration />
+        <AuditTrail />
       </MemoryRouter>,
     );
 
@@ -134,28 +133,4 @@ describe("Administration Page", () => {
       ).toBeInTheDocument();
     });
   }, 15000);
-
-  it("shows action buttons that link to users page", () => {
-    render(
-      <MemoryRouter>
-        <Administration />
-      </MemoryRouter>,
-    );
-    expect(screen.getByText("Nouveau Collaborateur")).toBeInTheDocument();
-    expect(screen.getByText("Nouvelle Entreprise")).toBeInTheDocument();
-  });
-
-  describe("Helper Functions", () => {
-    it("getActionColor returns correct tokens", () => {
-      expect(getActionColor("CREATE_USER")).toBe("emerald.400");
-      expect(getActionColor("START_SCAN")).toBe("cyan.400");
-      expect(getActionColor("DELETE_USER")).toBe("red.400");
-      expect(getActionColor("UNKNOWN")).toBe("text.muted");
-    });
-
-    it("parseDetails handles JSON correctly", () => {
-      expect(parseDetails('{"a": 1}')).toEqual({ a: 1 });
-      expect(parseDetails("not a json")).toBe("not a json");
-    });
-  });
 });

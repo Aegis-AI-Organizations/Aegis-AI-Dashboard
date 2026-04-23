@@ -74,13 +74,12 @@ export const Vulnerabilities: React.FC = () => {
   const isDrawerOpen = selectedVuln !== null;
 
   return (
-    <div className={flex({ direction: "column", h: "calc(100vh - 8rem)" })}>
+    <div className={css({ "& > * + *": { mt: "sectionGap" } })}>
       <div
         className={flex({
-          mb: "6",
           direction: { base: "column", md: "row" },
           justify: "space-between",
-          align: { base: "flex-start", md: "flex-end" },
+          align: { base: "start", md: "end" },
           gap: "4",
         })}
       >

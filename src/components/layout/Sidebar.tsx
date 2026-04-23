@@ -6,7 +6,6 @@ import {
   Users,
   Settings,
   Shield,
-  Gavel,
 } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
 
@@ -44,14 +43,8 @@ const navItems = [
   },
   {
     icon: Users,
-    label: "Équipe",
+    label: "Gestion & Audit",
     path: "/users",
-    roles: ["superadmin", "admin", "owner"],
-  },
-  {
-    icon: Gavel,
-    label: "Administration",
-    path: "/administration",
     roles: ["superadmin", "admin", "owner"],
   },
   {
@@ -91,8 +84,8 @@ export const Sidebar: React.FC = () => {
         css({
           display: { base: "none", md: "flex" },
           flexDir: "column",
-          bg: "rgba(5, 8, 16, 0.8)",
-          backdropBlur: "xl",
+          bg: "bg.main/95",
+          backdropBlur: "md",
           position: "sticky",
           top: "0",
           h: "screen",
@@ -100,7 +93,6 @@ export const Sidebar: React.FC = () => {
           transition: "all",
           transitionDuration: "300ms",
           zIndex: "50",
-          boxShadow: "20px 0 50px rgba(0,0,0,0.5)",
         }),
         isExpanded ? css({ w: "64" }) : css({ w: "20" }),
       )}

@@ -1,14 +1,14 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { LayoutDashboard, Shield, Users, Settings } from "lucide-react";
-import { css, cx } from "../../styled-system/css";
-import { flex } from "../../styled-system/patterns";
+import { css, cx } from "styled-system/css";
+import { flex } from "styled-system/patterns";
 
 const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Shield, label: "Vulns", path: "/vulnerabilities" },
-  { icon: Users, label: "Users", path: "/users" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: LayoutDashboard, label: "Tableau de Bord", path: "/" },
+  { icon: Shield, label: "Historique des Scans", path: "/vulnerabilities" },
+  { icon: Users, label: "Gestion & Audit", path: "/users" },
+  { icon: Settings, label: "Paramètres", path: "/settings" },
 ];
 
 export const MobileNav: React.FC = () => {
@@ -20,7 +20,7 @@ export const MobileNav: React.FC = () => {
         bottom: 0,
         left: 0,
         right: 0,
-        bg: "#0B0D13",
+        bg: "bg.card",
         pb: "env(safe-area-inset-bottom)",
         zIndex: 50,
       })}

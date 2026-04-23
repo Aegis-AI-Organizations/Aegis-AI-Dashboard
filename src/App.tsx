@@ -6,7 +6,6 @@ import { Users } from "./pages/Users";
 import { Settings } from "./pages/Settings";
 import { Billing } from "./pages/Billing";
 import { Login } from "./pages/Login";
-import { Administration } from "./pages/Administration";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleRoute } from "./components/auth/RoleRoute";
 import { AuthHydrator } from "./components/auth/AuthHydrator";
@@ -36,12 +35,9 @@ function App() {
               <Route path="/users" element={<Users />} />
               <Route path="/billing" element={<Billing />} />
               <Route
-                element={
-                  <RoleRoute allowedRoles={["admin", "superadmin", "owner"]} />
-                }
-              >
-                <Route path="/administration" element={<Administration />} />
-              </Route>
+                path="/administration"
+                element={<Navigate to="/users?tab=audit" replace />}
+              />
             </Route>
 
             {/* All except Viewer for Settings */}

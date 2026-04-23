@@ -26,8 +26,10 @@ export const Topbar: React.FC = () => {
         alignItems: "center",
         justifyContent: "space-between",
         px: "6",
-        bg: "rgba(11, 13, 19, 0.7)",
-        backdropBlur: "xl",
+        bg: "bg.main/95",
+        backdropBlur: "md",
+        borderBottom: "1px solid",
+        borderColor: "whiteAlpha.100",
         zIndex: "40",
       })}
     >
