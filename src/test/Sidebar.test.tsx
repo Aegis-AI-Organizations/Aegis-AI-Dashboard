@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
 import { Sidebar } from "../components/layout/Sidebar";
 import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "../store/AuthStore";
@@ -31,8 +31,7 @@ describe("Sidebar Component", () => {
     expect(dashboardLink).toHaveAttribute("aria-current", "page");
   });
 
-  it("handles logout", async () => {
-    const clearAuthSpy = vi.spyOn(useAuthStore.getState(), "clearAuth");
+  it("does not render the removed logout button", () => {
     useAuthStore.getState().setAuth("token", { role: "superadmin" } as any);
 
     render(
@@ -41,15 +40,6 @@ describe("Sidebar Component", () => {
       </MemoryRouter>,
     );
 
-    // Click logout in the collapsed view (bottom button)
-    const logoutButtons = screen.getAllByTitle("Déconnexion");
-    fireEvent.click(logoutButtons[logoutButtons.length - 1]);
-
-    expect(
-      screen.getByText(/Êtes-vous sûr de vouloir vous déconnecter/i),
-    ).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Se déconnecter" }));
-    expect(clearAuthSpy).toHaveBeenCalled();
+    expect(screen.queryByTitle("Déconnexion")).not.toBeInTheDocument();
   });
 });

@@ -28,40 +28,10 @@ export const Topbar: React.FC = () => {
         px: "6",
         bg: "rgba(11, 13, 19, 0.7)",
         backdropBlur: "xl",
-        borderBottom: "1px solid",
-        borderColor: "whiteAlpha.100",
         zIndex: "40",
       })}
     >
       <div className={flex({ align: "center" })}>
-        <h1
-          className={css({
-            color: "white",
-            fontWeight: "medium",
-            fontSize: "1rem",
-            display: { base: "none", sm: "flex" },
-            alignItems: "center",
-            gap: "3",
-          })}
-        >
-          Dashboard
-          <span
-            className={css({
-              px: "2.5",
-              py: "1",
-              borderRadius: "md",
-              bg: "brand.primary/10",
-              color: "brand.primary",
-              border: "1px solid",
-              borderColor: "brand.primary/20",
-              fontSize: "xs",
-              fontWeight: "semibold",
-              letterSpacing: "wide",
-            })}
-          >
-            AEGIS
-          </span>
-        </h1>
         {/* Mobile Logo display when sidebar is hidden */}
         <div
           className={css({

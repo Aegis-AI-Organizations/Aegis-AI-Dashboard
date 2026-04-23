@@ -21,8 +21,6 @@ export const MobileNav: React.FC = () => {
         left: 0,
         right: 0,
         bg: "#0B0D13",
-        borderTop: "1px solid",
-        borderColor: "whiteAlpha.100",
         pb: "env(safe-area-inset-bottom)",
         zIndex: 50,
       })}

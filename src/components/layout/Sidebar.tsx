@@ -6,14 +6,9 @@ import {
   Users,
   Settings,
   Shield,
-  LogOut,
   Gavel,
 } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
-import { ConfirmationModal } from "../ui/ConfirmationModal";
-import { useNavigate } from "react-router-dom";
-import { ProfileCircle } from "../ui/ProfileCircle";
-import { RoleBadge } from "../ui/RoleBadge";
 
 const navItems = [
   {
@@ -89,16 +84,7 @@ import { flex } from "styled-system/patterns";
 
 export const Sidebar: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    clearAuth();
-    navigate("/login");
-  };
-
   return (
     <aside
       className={cx(
@@ -107,8 +93,6 @@ export const Sidebar: React.FC = () => {
           flexDir: "column",
           bg: "rgba(5, 8, 16, 0.8)",
           backdropBlur: "xl",
-          borderRight: "1px solid",
-          borderColor: "whiteAlpha.100",
           position: "sticky",
           top: "0",
           h: "screen",
@@ -129,8 +113,6 @@ export const Sidebar: React.FC = () => {
           gap: "3",
           px: "6",
           h: "16",
-          borderBottom: "1px solid",
-          borderColor: "whiteAlpha.100",
           flexShrink: 0,
           cursor: "pointer",
           overflow: "hidden",
@@ -259,89 +241,6 @@ export const Sidebar: React.FC = () => {
             </NavLink>
           ))}
       </nav>
-
-      {/* User Profile Mini preview */}
-      <div
-        className={cx(
-          flex({
-            p: "4",
-            borderTop: "1px solid",
-            borderColor: "whiteAlpha.100",
-            align: "center",
-            gap: "3",
-            transition: "opacity",
-            overflow: "hidden",
-          }),
-          isExpanded
-            ? css({ opacity: 1 })
-            : css({ opacity: 0, h: "0", display: "none" }),
-        )}
-      >
-        <ProfileCircle size="sm" />
-        <div className={flex({ flexDir: "column", whiteSpace: "nowrap" })}>
-          <span
-            className={css({
-              fontSize: "sm",
-              fontWeight: "bold",
-              color: "text.bright",
-              letterSpacing: "tight",
-            })}
-          >
-            {user?.name || user?.email?.split("@")[0] || "Administrateur"}
-          </span>
-          <RoleBadge role={user?.role || "viewer"} showIcon={false} />
-        </div>
-        <button
-          onClick={() => setIsLogoutModalOpen(true)}
-          className={css({
-            ml: "auto",
-            p: "2",
-            color: "gray.500",
-            _hover: { color: "red.400", bg: "red.500/10" },
-            borderRadius: "lg",
-            transition: "all",
-          })}
-          title="Déconnexion"
-        >
-          <LogOut className={css({ w: "5", h: "5" })} />
-        </button>
-      </div>
-
-      {!isExpanded && (
-        <div
-          className={flex({
-            mt: "auto",
-            p: "4",
-            justify: "center",
-            borderTop: "1px solid",
-            borderColor: "whiteAlpha.100",
-          })}
-        >
-          <button
-            onClick={() => setIsLogoutModalOpen(true)}
-            className={css({
-              p: "2",
-              color: "gray.500",
-              _hover: { color: "red.400", bg: "red.500/10" },
-              borderRadius: "lg",
-              transition: "all",
-            })}
-            title="Déconnexion"
-          >
-            <LogOut className={css({ w: "5", h: "5" })} />
-          </button>
-        </div>
-      )}
-
-      <ConfirmationModal
-        isOpen={isLogoutModalOpen}
-        onClose={() => setIsLogoutModalOpen(false)}
-        onConfirm={handleLogout}
-        title="Déconnexion"
-        message="Êtes-vous sûr de vouloir vous déconnecter ? Votre session sera terminée."
-        confirmText="Se déconnecter"
-        cancelText="Annuler"
-      />
     </aside>
   );
 };
