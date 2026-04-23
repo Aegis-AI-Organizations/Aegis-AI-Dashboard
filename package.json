@@ -10,7 +10,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "coverage": "vitest run --coverage",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prepare": "panda codegen"
   },
   "dependencies": {
     "axios": "^1.14.0",
@@ -24,9 +25,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
+    "@pandacss/dev": "^1.10.0",
     "@tailwindcss/vite": "^4.2.1",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
+    "@types/node": "^25.6.0",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",

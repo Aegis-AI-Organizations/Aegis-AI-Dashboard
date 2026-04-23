@@ -31,3 +31,7 @@ dist-ssr
 .env.production.local
 coverage/
 build/
+
+## Panda
+styled-system
+styled-system-studio
