@@ -57,7 +57,7 @@ const navItems = [
     icon: Gavel,
     label: "Administration",
     path: "/administration",
-    roles: ["superadmin", "admin"],
+    roles: ["superadmin", "admin", "owner"],
   },
   {
     icon: Shield,

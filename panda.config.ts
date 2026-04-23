@@ -92,6 +92,7 @@ export default defineConfig({
             letterSpacing: "tighter",
             lineHeight: "tight",
             mb: "2",
+            textShadow: "0 0 20px rgba(0, 242, 255, 0.2)",
           },
         },
         sectionTitle: {

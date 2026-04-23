@@ -4,6 +4,7 @@ import { useCreateScan } from "../hooks/useCreateScan";
 import { ScanProgressTracker } from "./ScanProgressTracker";
 import { css } from "styled-system/css";
 import { flex } from "styled-system/patterns";
+import { button as buttonRecipe } from "styled-system/recipes";
 
 interface LaunchpadFormProps {
   onScanUpdate?: () => void;
@@ -125,27 +126,8 @@ export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
         <button
           type="submit"
           disabled={isLoading}
-          className={css({
-            width: "full",
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bg: "brand.primary",
-            _hover: {
-              bg: "brand.accent",
-              shadow: "0 0 20px rgba(34,211,238,0.3)",
-            },
-            color: "slate.950",
-            fontWeight: "semibold",
-            borderRadius: "lg",
-            px: "6",
-            py: "3",
-            transition: "all",
-            transitionDuration: "200ms",
-            boxShadow: "0 0 15px rgba(34,211,238,0.15)",
-            _disabled: { opacity: 0.75, cursor: "not-allowed" },
-          })}
+          className={buttonRecipe({ variant: "primary", size: "lg" })}
+          style={{ width: "100%" }}
         >
           {isLoading ? (
             <Loader2

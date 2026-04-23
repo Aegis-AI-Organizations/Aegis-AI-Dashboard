@@ -9,7 +9,7 @@ import { useAuthStore } from "../store/AuthStore";
 
 import { css } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
-import { pageTitle, card } from "styled-system/recipes";
+import { pageTitle, card, sectionTitle } from "styled-system/recipes";
 
 export const Dashboard: React.FC = () => {
   const { scans, isLoading, error, refetch } = useScans();
@@ -23,10 +23,11 @@ export const Dashboard: React.FC = () => {
   // Take the top 3 most recent scans
   const recentScans = scans.slice(0, 3);
 
-  const getStatusStyle = (status: string) => {
-    const detail = STATUS_DETAILS[status] || STATUS_DETAILS.PENDING;
-    const colorClass = detail.color.replace("text-", "");
-    return `text-${colorClass} bg-${colorClass}/10 border-${colorClass}/20`;
+  const getStatusColor = (status: string) => {
+    if (status === "COMPLETED") return "cyan.400";
+    if (status === "RUNNING") return "purple.400";
+    if (status === "FAILED") return "red.400";
+    return "text.muted";
   };
 
   const formatDate = (dateString?: string) => {
@@ -43,9 +44,9 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className={css({ minHeight: "calc(100vh - 8rem)" })}>
-      <div className={css({ mb: "sectionGap" })}>
+      <div className={css({ mb: "12" })}>
         <h1 className={pageTitle()}>Tableau de Bord Sécurité</h1>
-        <p className={css({ color: "text.muted" })}>
+        <p className={css({ color: "text.muted", fontSize: "lg" })}>
           Aperçu complet de votre posture de sécurité et des opérations de
           pentest.
         </p>
@@ -61,19 +62,8 @@ export const Dashboard: React.FC = () => {
         {/* Launchpad Form on the left/top - Only for roles with scan permission */}
         {canScan && (
           <div className={css({ width: "full", maxWidth: "xl" })}>
-            <div className={css({ mb: "4" })}>
-              <h2
-                className={css({
-                  fontSize: "lg",
-                  fontWeight: "bold",
-                  color: "text.bright",
-                  textTransform: "uppercase",
-                  letterSpacing: "widest",
-                  opacity: 0.8,
-                })}
-              >
-                Nouvelle Analyse
-              </h2>
+            <div className={css({ mb: "2" })}>
+              <h2 className={sectionTitle()}>Nouvelle Analyse</h2>
             </div>
 
             <div className={card()}>
@@ -103,18 +93,7 @@ export const Dashboard: React.FC = () => {
               justify: "space-between",
             })}
           >
-            <h2
-              className={css({
-                fontSize: "lg",
-                fontWeight: "bold",
-                color: "text.bright",
-                textTransform: "uppercase",
-                letterSpacing: "widest",
-                opacity: 0.8,
-              })}
-            >
-              Derniers Pentests
-            </h2>
+            <h2 className={sectionTitle()}>Derniers Pentests</h2>
             <button
               onClick={() => navigate("/vulnerabilities")}
               className={css({
@@ -246,16 +225,19 @@ export const Dashboard: React.FC = () => {
                         })}
                       >
                         <span
-                          className={`${getStatusStyle(scan.status)} ${css({
-                            px: "1.5",
-                            py: "0.5",
-                            borderRadius: "xs",
-                            fontSize: "[9px]",
-                            fontWeight: "bold",
+                          className={css({
+                            px: "2.5",
+                            py: "1",
+                            borderRadius: "full",
+                            fontSize: "[10px]",
+                            fontWeight: "black",
                             textTransform: "uppercase",
-                            letterSpacing: "wider",
+                            letterSpacing: "widest",
                             border: "1px solid",
-                          })}`}
+                            borderColor: `${getStatusColor(scan.status)}/20`,
+                            bg: `${getStatusColor(scan.status)}/10`,
+                            color: getStatusColor(scan.status),
+                          })}
                         >
                           {STATUS_DETAILS[scan.status]?.label || scan.status}
                         </span>

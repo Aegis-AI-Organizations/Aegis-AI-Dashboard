@@ -23,18 +23,20 @@ export const parseDetails = (detailsStr: string) => {
 };
 
 export const getActionColor = (action: string) => {
-  if (action.includes("CREATE"))
-    return "text-emerald-400 bg-emerald-500/10 border-emerald-500/20";
-  if (action.includes("START"))
-    return "text-cyan-400 bg-cyan-500/10 border-cyan-500/20";
-  if (action.includes("STOP") || action.includes("DELETE"))
-    return "text-red-400 bg-red-500/10 border-red-500/20";
-  return "text-gray-400 bg-gray-500/10 border-gray-500/20";
+  if (action.includes("CREATE")) return "emerald.400";
+  if (action.includes("START")) return "cyan.400";
+  if (action.includes("STOP") || action.includes("DELETE")) return "red.400";
+  return "text.muted";
 };
 
 import { css, cx } from "styled-system/css";
 import { flex } from "styled-system/patterns";
-import { pageTitle, card } from "styled-system/recipes";
+import {
+  pageTitle,
+  card,
+  sectionTitle,
+  button as buttonRecipe,
+} from "styled-system/recipes";
 
 export const Administration: React.FC = () => {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -99,46 +101,14 @@ export const Administration: React.FC = () => {
         <div className={flex({ flexWrap: "wrap", gap: "4" })}>
           <button
             onClick={() => (window.location.href = "/users?action=new-user")}
-            className={css({
-              px: "6",
-              py: "3.5",
-              bg: "white",
-              color: "black",
-              fontWeight: "black",
-              borderRadius: "2xl",
-              display: "flex",
-              alignItems: "center",
-              gap: "3",
-              _hover: { bg: "gray.200" },
-              transition: "all",
-              boxShadow: "xl",
-              textTransform: "uppercase",
-              letterSpacing: "widest",
-              fontSize: "xs",
-            })}
+            className={buttonRecipe({ variant: "secondary" })}
           >
             <UserPlus className={css({ w: "4", h: "4" })} />
             Nouveau Collaborateur
           </button>
           <button
             onClick={() => (window.location.href = "/users?action=new-company")}
-            className={css({
-              px: "6",
-              py: "3.5",
-              bg: "cyan.600",
-              color: "white",
-              fontWeight: "black",
-              borderRadius: "2xl",
-              display: "flex",
-              alignItems: "center",
-              gap: "3",
-              _hover: { bg: "cyan.500" },
-              transition: "all",
-              shadow: "xl",
-              textTransform: "uppercase",
-              letterSpacing: "widest",
-              fontSize: "xs",
-            })}
+            className={buttonRecipe({ variant: "primary" })}
           >
             <Building2 className={css({ w: "4", h: "4" })} />
             Nouvelle Entreprise
@@ -149,18 +119,7 @@ export const Administration: React.FC = () => {
       {/* Audit Trail Section */}
       <div className={css({ spaceY: "6" })}>
         <div className={flex({ align: "center", justify: "space-between" })}>
-          <h2
-            className={css({
-              fontSize: "xs",
-              fontWeight: "black",
-              color: "text.muted",
-              textTransform: "uppercase",
-              letterSpacing: "widest",
-              display: "flex",
-              alignItems: "center",
-              gap: "2",
-            })}
-          >
+          <h2 className={sectionTitle()}>
             <History className={css({ w: "4", h: "4" })} /> Journal d'Audit
             (Audit Trail)
           </h2>
@@ -414,7 +373,7 @@ export const Administration: React.FC = () => {
                       </td>
                       <td className={css({ px: "8", py: "6" })}>
                         <span
-                          className={`${getActionColor(log.action)} ${css({
+                          className={css({
                             px: "3",
                             py: "1",
                             borderRadius: "full",
@@ -423,7 +382,10 @@ export const Administration: React.FC = () => {
                             textTransform: "uppercase",
                             letterSpacing: "widest",
                             border: "1px solid",
-                          })}`}
+                            borderColor: `${getActionColor(log.action)}/20`,
+                            bg: `${getActionColor(log.action)}/10`,
+                            color: getActionColor(log.action),
+                          })}
                         >
                           {log.action.replace(/_/g, " ")}
                         </span>

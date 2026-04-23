@@ -1,44 +1,46 @@
 @layer reset, base, tokens, recipes, utilities;
 
-@theme {
-  --color-cyan-400: #00f2ff;
-  --color-cyan-500: #00d9e6;
-  --color-cyan-900: #00484c;
-  --color-purple-400: #8e33ff;
-  --color-purple-500: #7000ff;
-  --color-purple-600: #5700cc;
-  --color-indigo-500: #6366f1;
+@layer base {
+  body {
+    margin: 0;
+    min-width: 320px;
+    min-height: 100vh;
+    background-color: #050810;
+    color: #e5e7eb;
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  }
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-orbitron: "Orbitron", ui-sans-serif, system-ui, sans-serif;
+  /* Global scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
 }
 
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background-color: #050810;
-  color: #e5e7eb;
-}
-
-/*
-  ========================================
-  Severity Badges (Modular UI)
-  ========================================
-*/
+/* Custom global utility classes if needed, though Panda is preferred */
 .severity-critical {
-  @apply text-red-500 border-red-500/30 bg-red-500/10;
+  color: var(--colors-red-400);
 }
-
 .severity-high {
-  @apply text-orange-500 border-orange-500/30 bg-orange-500/10;
-}
-
+  color: #f97316;
+} /* orange.500 */
 .severity-medium {
-  @apply text-blue-400 border-blue-500/30 bg-blue-500/10;
+  color: var(--colors-cyan-400);
 }
-
 .severity-low,
 .severity-info {
-  @apply text-gray-400 border-gray-400/30 bg-gray-400/10;
+  color: #9ca3af;
 }

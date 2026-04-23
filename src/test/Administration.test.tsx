@@ -16,9 +16,9 @@ vi.mock("../api/Axios", () => ({
 
 describe("Administration Helpers", () => {
   it("getActionColor returns correct colors", () => {
-    expect(getActionColor("START_SCAN")).toContain("text-cyan-400");
-    expect(getActionColor("CREATE_COMPANY")).toContain("text-emerald-400");
-    expect(getActionColor("DELETE_USER")).toContain("text-red-400");
+    expect(getActionColor("START_SCAN")).toBe("cyan.400");
+    expect(getActionColor("CREATE_COMPANY")).toBe("emerald.400");
+    expect(getActionColor("DELETE_USER")).toBe("red.400");
   });
 
   it("parseDetails parses various input types", () => {
@@ -146,11 +146,11 @@ describe("Administration Page", () => {
   });
 
   describe("Helper Functions", () => {
-    it("getActionColor returns correct classes", () => {
-      expect(getActionColor("CREATE_USER")).toContain("emerald");
-      expect(getActionColor("START_SCAN")).toContain("cyan");
-      expect(getActionColor("DELETE_USER")).toContain("red");
-      expect(getActionColor("UNKNOWN")).toContain("gray");
+    it("getActionColor returns correct tokens", () => {
+      expect(getActionColor("CREATE_USER")).toBe("emerald.400");
+      expect(getActionColor("START_SCAN")).toBe("cyan.400");
+      expect(getActionColor("DELETE_USER")).toBe("red.400");
+      expect(getActionColor("UNKNOWN")).toBe("text.muted");
     });
 
     it("parseDetails handles JSON correctly", () => {
