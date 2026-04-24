@@ -478,7 +478,7 @@ export const Users: React.FC = () => {
                           opacity: 0.5,
                         })}
                       >
-                        {company.id.substring(0, 8)}...
+                        {company.id}
                       </span>
                     </div>
                   </div>
