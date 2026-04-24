@@ -563,7 +563,11 @@ export const Users: React.FC = () => {
                   <div
                     className={css({
                       display: "grid",
-                      gridTemplateColumns: { base: "1", md: "2", lg: "3" },
+                      gridTemplateColumns: {
+                        base: "1fr",
+                        md: "repeat(2, 1fr)",
+                        lg: "repeat(3, 1fr)",
+                      },
                       gap: "4",
                     })}
                   >
@@ -596,11 +600,11 @@ export const Users: React.FC = () => {
                           <div
                             className={css({
                               flex: "1",
-                              minW: "0",
+                              minWidth: "0",
                               display: "flex",
                               flexDir: "column",
                               justifyContent: "center",
-                              gap: "1",
+                              gap: "0.5",
                             })}
                           >
                             <div
@@ -810,7 +814,7 @@ export const CreateCompanyModal: React.FC<{
             <div
               className={css({
                 display: "grid",
-                gridTemplateColumns: { base: "1", md: "2" },
+                gridTemplateColumns: { base: "1fr", md: "repeat(2, 1fr)" },
                 gap: "10",
               })}
             >
@@ -1040,28 +1044,81 @@ export const CreateUserModal: React.FC<{
   const isAegisUser = ["superadmin", "admin"].includes(currentUser?.role || "");
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-black/60 overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-[#0B0D13] border border-gray-800 rounded-[3.5rem] p-12 shadow-2xl animate-in zoom-in-95 duration-300 my-auto">
+    <div
+      className={css({
+        position: "fixed",
+        inset: "0",
+        zIndex: "100",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        p: "6",
+        backdropBlur: "xl",
+        bg: "black/60",
+        overflowY: "auto",
+      })}
+    >
+      <div
+        className={css({
+          position: "relative",
+          w: "full",
+          maxW: "2xl",
+          bg: "bg.card",
+          border: "1px solid",
+          borderColor: "whiteAlpha.100",
+          borderRadius: "3.5rem",
+          p: "12",
+          boxShadow: "2xl",
+          animation: "zoomIn 0.3s ease-out",
+          my: "auto",
+        })}
+      >
         <button
           onClick={onClose}
-          className="absolute top-8 right-8 text-gray-500 hover:text-white transition-colors"
+          className={css({
+            position: "absolute",
+            top: "8",
+            right: "8",
+            color: "gray.500",
+            _hover: { color: "white" },
+            transition: "colors",
+          })}
         >
-          <X className="w-8 h-8" />
+          <X className={css({ w: "8", h: "8" })} />
         </button>
 
-        <div className="space-y-10">
-          <div className="space-y-2">
-            <h2 className="text-4xl font-black text-white tracking-tighter uppercase">
+        <div className={css({ "& > * + *": { mt: "10" } })}>
+          <div className={css({ "& > * + *": { mt: "2" } })}>
+            <h2
+              className={css({
+                fontSize: "4xl",
+                fontWeight: "900",
+                color: "white",
+                letterSpacing: "tighter",
+                textTransform: "uppercase",
+              })}
+            >
               Nouveau Collaborateur
             </h2>
-            <p className="text-gray-500 font-bold">
+            <p className={css({ color: "text.muted", fontWeight: "bold" })}>
               Ajoutez un nouvel utilisateur à votre organisation.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+          <form
+            onSubmit={handleSubmit}
+            className={css({ "& > * + *": { mt: "6" } })}
+          >
+            <div className={css({ "& > * + *": { mt: "2" } })}>
+              <label
+                className={css({
+                  fontSize: "10px",
+                  fontWeight: "900",
+                  color: "text.muted",
+                  textTransform: "uppercase",
+                  px: "1",
+                })}
+              >
                 Choix de l'Entreprise
               </label>
               <select
@@ -1070,7 +1127,22 @@ export const CreateUserModal: React.FC<{
                   setFormData({ ...formData, company_id: e.target.value })
                 }
                 disabled={!isAegisUser}
-                className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-cyan-500 transition-all font-bold appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className={css({
+                  w: "full",
+                  bg: "whiteAlpha.50",
+                  border: "1px solid",
+                  borderColor: "whiteAlpha.100",
+                  color: "white",
+                  borderRadius: "2xl",
+                  px: "6",
+                  py: "4",
+                  _focus: { borderColor: "brand.primary", outline: "none" },
+                  transition: "all",
+                  fontWeight: "bold",
+                  appearance: "none",
+                  cursor: "pointer",
+                  _disabled: { opacity: 0.5, cursor: "not-allowed" },
+                })}
               >
                 <option value="">Sélectionnez une entreprise...</option>
                 {companies.map((c) => (
@@ -1086,9 +1158,23 @@ export const CreateUserModal: React.FC<{
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+            <div
+              className={css({
+                display: "grid",
+                gridTemplateColumns: { base: "1fr", md: "repeat(2, 1fr)" },
+                gap: "6",
+              })}
+            >
+              <div className={css({ "& > * + *": { mt: "2" } })}>
+                <label
+                  className={css({
+                    fontSize: "10px",
+                    fontWeight: "900",
+                    color: "text.muted",
+                    textTransform: "uppercase",
+                    px: "1",
+                  })}
+                >
                   Nom Complet
                 </label>
                 <input
@@ -1098,11 +1184,31 @@ export const CreateUserModal: React.FC<{
                     setFormData({ ...formData, name: e.target.value })
                   }
                   placeholder="Prénom Nom"
-                  className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-cyan-500 transition-all font-bold"
+                  className={css({
+                    w: "full",
+                    bg: "whiteAlpha.50",
+                    border: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                    color: "white",
+                    borderRadius: "2xl",
+                    px: "6",
+                    py: "4",
+                    _focus: { borderColor: "brand.primary", outline: "none" },
+                    transition: "all",
+                    fontWeight: "bold",
+                  })}
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+              <div className={css({ "& > * + *": { mt: "2" } })}>
+                <label
+                  className={css({
+                    fontSize: "10px",
+                    fontWeight: "900",
+                    color: "text.muted",
+                    textTransform: "uppercase",
+                    px: "1",
+                  })}
+                >
                   Rôle
                 </label>
                 <select
@@ -1110,7 +1216,19 @@ export const CreateUserModal: React.FC<{
                   onChange={(e) =>
                     setFormData({ ...formData, role: e.target.value })
                   }
-                  className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-cyan-500 transition-all font-bold"
+                  className={css({
+                    w: "full",
+                    bg: "whiteAlpha.50",
+                    border: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                    color: "white",
+                    borderRadius: "2xl",
+                    px: "6",
+                    py: "4",
+                    _focus: { borderColor: "brand.primary", outline: "none" },
+                    transition: "all",
+                    fontWeight: "bold",
+                  })}
                 >
                   <option value="viewer">Lecteur (Viewer)</option>
                   <option value="operateur">Opérateur</option>
@@ -1325,7 +1443,7 @@ export const SuccessModal: React.FC<{ data: any; onClose: () => void }> = ({
           <div
             className={css({
               display: "grid",
-              gridTemplateColumns: "2",
+              gridTemplateColumns: "repeat(2, 1fr)",
               gap: "4",
             })}
           >

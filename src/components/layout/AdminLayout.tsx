@@ -12,7 +12,7 @@ export const AdminLayout: React.FC = () => {
       className={css({
         display: "flex",
         bg: "bg.main",
-        h: "full",
+        minH: "100vh",
         w: "full",
         overflow: "hidden",
         color: "text.main",
@@ -27,6 +27,7 @@ export const AdminLayout: React.FC = () => {
           display: "flex",
           flexDir: "column",
           minWidth: "0",
+          minH: "0",
         })}
       >
         <Topbar />
