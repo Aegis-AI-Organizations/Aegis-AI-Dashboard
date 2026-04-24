@@ -19,7 +19,7 @@ export interface UsageDay {
   total_consumed: number;
 }
 
-export const useBilling = () => {
+export const useBilling = (targetCompanyId?: string) => {
   const [balance, setBalance] = useState<number | null>(null);
   const [ledger, setLedger] = useState<LedgerEntry[]>([]);
   const [stats, setStats] = useState<UsageDay[]>([]);
@@ -28,11 +28,16 @@ export const useBilling = () => {
 
   const fetchBillingData = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
+      const baseUrl = targetCompanyId
+        ? `/admin/companies/${targetCompanyId}/billing`
+        : "/billing";
+
       const [balanceRes, ledgerRes, statsRes] = await Promise.all([
-        api.get<Balance>("/billing/balance"),
-        api.get<{ entries: LedgerEntry[] }>("/billing/ledger"),
-        api.get<{ days: UsageDay[] }>("/billing/stats"),
+        api.get<Balance>(`${baseUrl}/balance`),
+        api.get<{ entries: LedgerEntry[] }>(`${baseUrl}/ledger`),
+        api.get<{ days: UsageDay[] }>(`${baseUrl}/stats`),
       ]);
 
       setBalance(balanceRes.data.balance);
@@ -46,7 +51,7 @@ export const useBilling = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [targetCompanyId]);
 
   const adjustTokens = async (
     companyId: string,

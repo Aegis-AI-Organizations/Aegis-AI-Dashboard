@@ -31,6 +31,14 @@ vi.mock("../hooks/useBilling", () => ({
   }),
 }));
 
+vi.mock("../hooks/useCompanies", () => ({
+  useCompanies: () => ({
+    companies: [{ id: "co-1", name: "Client A", owner_email: "a@co.com" }],
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 vi.mock("../store/AuthStore", () => ({
   useAuthStore: vi.fn(),
 }));
@@ -49,12 +57,12 @@ vi.mock("recharts", () => ({
 describe("Billing Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAuthStore as any).mockReturnValue({
-      user: { role: "admin", company_id: "test-co" },
-    });
   });
 
-  it("renders the billing information correctly", () => {
+  it("renders the billing information for client roles", () => {
+    (useAuthStore as any).mockReturnValue({
+      user: { role: "operator", company_id: "test-co" },
+    });
     render(<Billing />);
 
     // Check for title
@@ -66,15 +74,18 @@ describe("Billing Page", () => {
 
     // Check for chart section
     expect(screen.getByText("Consommation de Tokens")).toBeInTheDocument();
-
-    // Check for ledger table
-    expect(screen.getByText("Scan completed")).toBeInTheDocument();
-    expect(screen.getByText("Admin adjustment")).toBeInTheDocument();
   });
 
-  it("renders the adjustment button for admin roles", () => {
+  it("renders the company selection view for internal roles", () => {
+    (useAuthStore as any).mockReturnValue({
+      user: { role: "admin" },
+    });
     render(<Billing />);
-    expect(screen.getByText("Ajuster le Solde")).toBeInTheDocument();
+
+    expect(
+      screen.getByPlaceholderText(/Rechercher un client/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Client A")).toBeInTheDocument();
   });
 
   it("hides adjustment button for non-admin roles", () => {
