@@ -729,6 +729,30 @@ export const Users: React.FC = () => {
   );
 };
 
+const LICENSE_PLANS = [
+  {
+    id: "starter",
+    name: "Starter",
+    price: "99 €",
+    tokens: 200,
+    description: "La toute petite startup (1-2 scans/mois).",
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    price: "249 €",
+    tokens: 600,
+    description: "PME tech standard. Intégrations Slack/Jira.",
+  },
+  {
+    id: "scale",
+    name: "Scale / Business",
+    price: "699 €",
+    tokens: 2000,
+    description: "Scale-ups, ETI, nombreuses API.",
+  },
+];
+
 // Sub-components for Modals
 export const CreateCompanyModal: React.FC<{
   onClose: () => void;
@@ -741,6 +765,7 @@ export const CreateCompanyModal: React.FC<{
     owner_name: "",
     owner_email: "",
     owner_password: "",
+    plan_id: "pro",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -963,6 +988,109 @@ export const CreateCompanyModal: React.FC<{
                     })}
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Plan Selection */}
+            <div className={css({ "& > * + *": { mt: "6" } })}>
+              <h3
+                className={flex({
+                  fontSize: "xs",
+                  fontWeight: "900",
+                  color: "emerald.500",
+                  textTransform: "uppercase",
+                  letterSpacing: "widest",
+                  align: "center",
+                  gap: "2",
+                })}
+              >
+                <Shield className={css({ w: "4", h: "4" })} /> Plan de Licence
+              </h3>
+              <div
+                className={grid({
+                  columns: { base: 1, md: 3 },
+                  gap: "4",
+                })}
+              >
+                {LICENSE_PLANS.map((plan) => (
+                  <div
+                    key={plan.id}
+                    onClick={() =>
+                      setFormData({ ...formData, plan_id: plan.id })
+                    }
+                    className={css({
+                      p: "6",
+                      bg:
+                        formData.plan_id === plan.id
+                          ? "emerald.500/10"
+                          : "whiteAlpha.50",
+                      border: "1px solid",
+                      borderColor:
+                        formData.plan_id === plan.id
+                          ? "emerald.500"
+                          : "whiteAlpha.100",
+                      borderRadius: "2xl",
+                      cursor: "pointer",
+                      transition: "all",
+                      _hover: {
+                        borderColor:
+                          formData.plan_id === plan.id
+                            ? "emerald.500"
+                            : "whiteAlpha.300",
+                      },
+                    })}
+                  >
+                    <div
+                      className={flex({
+                        justify: "space-between",
+                        align: "start",
+                        mb: "4",
+                      })}
+                    >
+                      <h4
+                        className={css({
+                          fontWeight: "bold",
+                          color:
+                            formData.plan_id === plan.id
+                              ? "emerald.500"
+                              : "white",
+                        })}
+                      >
+                        {plan.name}
+                      </h4>
+                      <p
+                        className={css({
+                          fontSize: "lg",
+                          fontWeight: "900",
+                          color: "white",
+                        })}
+                      >
+                        {plan.price}
+                      </p>
+                    </div>
+                    <p
+                      className={css({
+                        fontSize: "xs",
+                        color: "text.muted",
+                        mb: "4",
+                        minH: "32px",
+                      })}
+                    >
+                      {plan.description}
+                    </p>
+                    <div
+                      className={css({
+                        fontSize: "10px",
+                        fontWeight: "900",
+                        color: "emerald.500",
+                        textTransform: "uppercase",
+                        letterSpacing: "wider",
+                      })}
+                    >
+                      {plan.tokens} Tokens / mois
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

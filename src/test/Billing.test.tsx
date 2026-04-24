@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Billing } from "../pages/Billing";
+import { MemoryRouter } from "react-router-dom";
 import { useAuthStore } from "../store/AuthStore";
 import { useBilling } from "../hooks/useBilling";
 
@@ -65,7 +66,11 @@ describe("Billing Page", () => {
     (useAuthStore as any).mockReturnValue({
       user: { role: "operator", company_id: "test-co" },
     });
-    render(<Billing />);
+    render(
+      <MemoryRouter>
+        <Billing />
+      </MemoryRouter>,
+    );
 
     // Check for title
     expect(screen.getByText("Facturation & Licences")).toBeInTheDocument();
@@ -82,7 +87,11 @@ describe("Billing Page", () => {
     (useAuthStore as any).mockReturnValue({
       user: { role: "admin" },
     });
-    render(<Billing />);
+    render(
+      <MemoryRouter>
+        <Billing />
+      </MemoryRouter>,
+    );
 
     expect(
       screen.getByPlaceholderText(/Rechercher un client/i),
@@ -94,7 +103,11 @@ describe("Billing Page", () => {
     (useAuthStore as any).mockReturnValue({
       user: { role: "admin" },
     });
-    render(<Billing />);
+    render(
+      <MemoryRouter>
+        <Billing />
+      </MemoryRouter>,
+    );
 
     const companyCard = screen.getByText("Client A");
     fireEvent.click(companyCard);
@@ -119,7 +132,11 @@ describe("Billing Page", () => {
     (useAuthStore as any).mockReturnValue({
       user: { role: "operator", company_id: "test-co" },
     });
-    render(<Billing />);
+    render(
+      <MemoryRouter>
+        <Billing />
+      </MemoryRouter>,
+    );
 
     const refreshButton = screen.getByText("Actualiser");
     fireEvent.click(refreshButton);
@@ -131,7 +148,11 @@ describe("Billing Page", () => {
     (useAuthStore as any).mockReturnValue({
       user: { role: "admin" },
     });
-    render(<Billing />);
+    render(
+      <MemoryRouter>
+        <Billing />
+      </MemoryRouter>,
+    );
 
     // First select a company
     fireEvent.click(screen.getByText("Client A"));

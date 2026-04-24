@@ -29,7 +29,14 @@ function App() {
             <Route
               element={
                 <RoleRoute
-                  allowedRoles={["admin", "superadmin", "commercial", "owner"]}
+                  allowedRoles={[
+                    "admin",
+                    "superadmin",
+                    "commercial",
+                    "owner",
+                    "billing_aegis",
+                    "billing_client",
+                  ]}
                 />
               }
             >

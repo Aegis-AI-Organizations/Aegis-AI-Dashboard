@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../api/Axios";
+import { useAuthStore } from "../store/AuthStore";
 
 export interface Balance {
   company_id: string;
@@ -27,6 +28,18 @@ export const useBilling = (targetCompanyId?: string) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchBillingData = useCallback(async () => {
+    // If we're an admin but no targetCompanyId is provided yet, don't fetch anything
+    // (the selection view handles this)
+    if (
+      !targetCompanyId &&
+      ["admin", "superadmin", "billing_aegis"].includes(
+        useAuthStore.getState().user?.role || "",
+      )
+    ) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CreditCard,
   Receipt,
@@ -17,6 +17,7 @@ import {
   card,
   button as buttonRecipe,
 } from "styled-system/recipes";
+import { useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../store/AuthStore";
 import { useBilling } from "../hooks/useBilling";
 import { useCompanies } from "../hooks/useCompanies";
@@ -28,6 +29,9 @@ import { LoadingPage } from "../components/ui/LoadingPage";
 
 export const Billing: React.FC = () => {
   const { user } = useAuthStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialCompanyId = searchParams.get("company_id");
+
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [companySearch, setCompanySearch] = useState("");
 
@@ -39,7 +43,7 @@ export const Billing: React.FC = () => {
     error: billingError,
     refresh,
     adjustTokens,
-  } = useBilling(selectedCompany?.id);
+  } = useBilling(selectedCompany?.id || initialCompanyId || undefined);
 
   const {
     companies,
@@ -53,9 +57,16 @@ export const Billing: React.FC = () => {
     user?.role || "",
   );
 
-  // If internal and no company selected, show selection view
-  const showSelectionView = isInternal && !selectedCompany;
+  // If we have an initialCompanyId but it's loaded, and we want to change company
+  const handleClearSelection = () => {
+    setSelectedCompany(null);
+    setSearchParams({});
+  };
 
+  // If internal and no company selected/provided in URL, show selection view
+  const showSelectionView = isInternal && !selectedCompany && !initialCompanyId;
+
+  if (!user) return <LoadingPage />;
   if (isBillingLoading && !showSelectionView) return <LoadingPage />;
 
   return (
@@ -81,9 +92,9 @@ export const Billing: React.FC = () => {
           </p>
         </div>
         <div className={flex({ gap: "3" })}>
-          {selectedCompany && (
+          {(selectedCompany || initialCompanyId) && (
             <button
-              onClick={() => setSelectedCompany(null)}
+              onClick={handleClearSelection}
               className={buttonRecipe({ variant: "secondary" })}
             >
               Changer d'entreprise
