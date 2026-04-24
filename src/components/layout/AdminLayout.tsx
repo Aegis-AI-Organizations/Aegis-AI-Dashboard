@@ -12,7 +12,7 @@ export const AdminLayout: React.FC = () => {
       className={css({
         display: "flex",
         bg: "bg.main",
-        minH: "100vh",
+        h: "100vh",
         w: "full",
         overflow: "hidden",
         color: "text.main",
@@ -27,7 +27,8 @@ export const AdminLayout: React.FC = () => {
           display: "flex",
           flexDir: "column",
           minWidth: "0",
-          minH: "0",
+          h: "full",
+          position: "relative",
         })}
       >
         <Topbar />
@@ -39,6 +40,7 @@ export const AdminLayout: React.FC = () => {
             overflowY: "auto",
             p: "pagePadding",
             pb: { base: "32", md: "8" },
+            minH: "0", // Critical for flex scrolling
           })}
         >
           <Outlet />
