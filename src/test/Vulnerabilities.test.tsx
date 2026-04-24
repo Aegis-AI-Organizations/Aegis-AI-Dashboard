@@ -8,6 +8,22 @@ vi.mock("../hooks/useScans", () => ({
   useScans: vi.fn(),
 }));
 
+vi.mock("../hooks/useVulnerabilities", () => ({
+  useVulnerabilities: vi.fn(() => ({
+    vulnerabilities: [],
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+vi.mock("../hooks/useEvidences", () => ({
+  useEvidences: vi.fn(() => ({
+    evidences: [],
+    isLoading: false,
+    error: null,
+  })),
+}));
+
 const mockScans = [
   {
     id: "scan-1",
