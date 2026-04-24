@@ -80,6 +80,17 @@ export default defineConfig({
           subtitle: { value: "1.25rem" },
           section: { value: "1.5rem" },
         },
+        animations: {
+          pulse: { value: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite" },
+          spin: { value: "spin 1s linear infinite" },
+          fadeIn: { value: "fadeIn 0.5s ease-out" },
+          zoomIn: { value: "zoomIn 0.3s ease-out" },
+          slideInFromTop: { value: "slideInFromTop 0.3s ease-out" },
+          slideInFromRight: { value: "slideInFromRight 0.3s ease-out" },
+          slideInFromBottom: { value: "slideInFromBottom 0.3s ease-out" },
+          ping: { value: "ping 3s cubic-bezier(0, 0, 0.2, 1) infinite" },
+          bounce: { value: "bounce 1s infinite" },
+        },
       },
       recipes: {
         pageTitle: {
@@ -189,6 +200,52 @@ export default defineConfig({
             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)",
             position: "relative",
             overflow: "hidden",
+          },
+        },
+      },
+      keyframes: {
+        pulse: {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        spin: {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
+        },
+        fadeIn: {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        zoomIn: {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        slideInFromTop: {
+          from: { opacity: "0", transform: "translateY(-10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        slideInFromRight: {
+          from: { opacity: "0", transform: "translateX(20px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        slideInFromBottom: {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        ping: {
+          "75%, 100%": {
+            transform: "scale(2)",
+            opacity: "0",
+          },
+        },
+        bounce: {
+          "0%, 100%": {
+            transform: "translateY(-25%)",
+            animationTimingFunction: "cubic-bezier(0.8,0,1,1)",
+          },
+          "50%": {
+            transform: "none",
+            animationTimingFunction: "cubic-bezier(0,0,0.2,1)",
           },
         },
       },

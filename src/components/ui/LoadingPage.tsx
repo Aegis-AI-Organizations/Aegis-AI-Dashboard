@@ -1,5 +1,7 @@
 import React from "react";
 import { Shield } from "lucide-react";
+import { css, cx } from "styled-system/css";
+import { flex } from "styled-system/patterns";
 
 interface LoadingPageProps {
   message?: string;
@@ -9,33 +11,144 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
   message = "Initialisation du Système",
 }) => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050810] relative overflow-hidden">
+    <div
+      className={cx(
+        flex({ align: "center", justify: "center" }),
+        css({
+          minH: "screen",
+          bg: "#050810",
+          position: "relative",
+          overflow: "hidden",
+        }),
+      )}
+    >
       {/* Background radial glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(34,211,238,0.05)_0%,_transparent_70%)]" />
+      <div
+        className={css({
+          position: "absolute",
+          inset: "0",
+          bg: "radial-gradient(circle at center, rgba(34,211,238,0.05) 0%, transparent 70%)",
+        })}
+      />
 
-      <div className="relative flex flex-col items-center">
+      <div
+        className={cx(
+          flex({ direction: "column", align: "center" }),
+          css({ position: "relative" }),
+        )}
+      >
         {/* Animated logo container */}
-        <div className="relative">
+        <div className={css({ position: "relative" })}>
           {/* Pulsing ring layers */}
-          <div className="absolute inset-0 rounded-full bg-cyan-500/20 animate-ping duration-[3000ms]" />
-          <div className="absolute inset-0 rounded-full bg-cyan-400/10 animate-pulse duration-[2000ms]" />
+          <div
+            className={css({
+              position: "absolute",
+              inset: "0",
+              borderRadius: "full",
+              bg: "cyan.500/20",
+              animation: "ping",
+            })}
+          />
+          <div
+            className={css({
+              position: "absolute",
+              inset: "0",
+              borderRadius: "full",
+              bg: "cyan.400/10",
+              animation: "pulse",
+            })}
+          />
 
-          <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-cyan-500/10 border border-cyan-500/20 shadow-2xl shadow-cyan-500/10 animate-in zoom-in duration-700">
-            <Shield className="w-12 h-12 text-cyan-400 animate-pulse" />
+          <div
+            className={cx(
+              flex({ align: "center", justify: "center" }),
+              css({
+                position: "relative",
+                w: "24",
+                h: "24",
+                borderRadius: "3xl",
+                bg: "cyan.500/10",
+                border: "1px solid",
+                borderColor: "cyan.500/20",
+                shadow: "2xl",
+                boxShadow: "0 0 40px rgba(0, 242, 255, 0.1)",
+                animation: "zoomIn",
+              }),
+            )}
+          >
+            <Shield
+              className={css({
+                w: "12",
+                h: "12",
+                color: "cyan.400",
+                animation: "pulse",
+              })}
+            />
           </div>
         </div>
 
-        <div className="mt-8 text-center animate-in slide-in-from-bottom-4 duration-1000">
-          <h1 className="text-2xl font-bold text-white tracking-tighter mb-2">
+        <div
+          className={css({
+            mt: "8",
+            textAlign: "center",
+            animation: "slideInFromBottom",
+          })}
+        >
+          <h1
+            className={css({
+              textStyle: "2xl",
+              fontWeight: "bold",
+              color: "white",
+              letterSpacing: "tighter",
+              mb: "2",
+              fontFamily: "orbitron",
+            })}
+          >
             AEGIS AI
           </h1>
-          <div className="flex items-center gap-2 justify-center">
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce [animation-delay:-0.3s]" />
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce [animation-delay:-0.15s]" />
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-bounce" />
+          <div
+            className={flex({ align: "center", gap: "2", justify: "center" })}
+          >
+            <div className={flex({ gap: "1" })}>
+              <div
+                className={css({
+                  w: "1.5",
+                  h: "1.5",
+                  borderRadius: "full",
+                  bg: "cyan.500",
+                  animation: "bounce",
+                  animationDelay: "-0.3s",
+                })}
+              />
+              <div
+                className={css({
+                  w: "1.5",
+                  h: "1.5",
+                  borderRadius: "full",
+                  bg: "cyan.500",
+                  animation: "bounce",
+                  animationDelay: "-0.15s",
+                })}
+              />
+              <div
+                className={css({
+                  w: "1.5",
+                  h: "1.5",
+                  borderRadius: "full",
+                  bg: "cyan.500",
+                  animation: "bounce",
+                })}
+              />
             </div>
-            <span className="text-gray-500 text-xs font-semibold uppercase tracking-[0.2em]">
+            <span
+              className={css({
+                color: "gray.500",
+                fontSize: "xs",
+                fontWeight: "black",
+                textTransform: "uppercase",
+                letterSpacing: "[0.2em]",
+              })}
+            >
               {message}
             </span>
           </div>
@@ -43,7 +156,19 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
       </div>
 
       {/* Version badge at footer */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-[10px] text-gray-700 font-bold tracking-widest uppercase">
+      <div
+        className={css({
+          position: "absolute",
+          bottom: "10",
+          left: "1/2",
+          transform: "translateX(-50%)",
+          fontSize: "[10px]",
+          color: "gray.700",
+          fontWeight: "bold",
+          letterSpacing: "widest",
+          textTransform: "uppercase",
+        })}
+      >
         V2.4 :: SECURE PROTOCOL ACTIVE
       </div>
     </div>

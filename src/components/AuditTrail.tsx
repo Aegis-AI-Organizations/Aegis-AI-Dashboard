@@ -212,17 +212,20 @@ export const AuditTrail: React.FC = () => {
               })}
             >
               {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
+                Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className={css({ animation: "pulse" })}>
-                    <td
-                      colSpan={6}
-                      className={css({
-                        px: "8",
-                        py: "6",
-                        h: "16",
-                        bg: "whiteAlpha.50",
-                      })}
-                    ></td>
+                    <td colSpan={6} className={css({ px: "8", py: "4" })}>
+                      <div
+                        className={css({
+                          h: "12",
+                          w: "full",
+                          bg: "whiteAlpha.50",
+                          borderRadius: "xl",
+                          border: "1px solid",
+                          borderColor: "whiteAlpha.100",
+                        })}
+                      ></div>
+                    </td>
                   </tr>
                 ))
               ) : logs.length === 0 ? (

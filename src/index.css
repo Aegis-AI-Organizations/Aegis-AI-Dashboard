@@ -8,6 +8,7 @@
     background-color: #050810;
     color: #e5e7eb;
     font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    overflow: hidden;
   }
 
   /* Global scrollbar styling */

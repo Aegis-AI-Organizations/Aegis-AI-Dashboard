@@ -313,17 +313,14 @@ export const Settings: React.FC = () => {
         className={flex({ direction: { base: "column", lg: "row" }, gap: "8" })}
       >
         {/* Modern Sidebar Tabs */}
-        <aside className={css({ lg: { w: "72" }, flexShrink: "0" })}>
+        <aside className={css({ lg: { w: "64" }, flexShrink: "0" })}>
           <nav
             className={flex({
               direction: { base: "row", lg: "column" },
-              gap: "2",
-              p: "1.5",
-              bg: "whiteAlpha.50",
-              border: "1px solid",
-              borderColor: "whiteAlpha.100",
-              borderRadius: { lg: "3xl", base: "2xl" },
+              gap: "1",
               overflowX: "auto",
+              "&::-webkit-scrollbar": { display: "none" },
+              scrollbarWidth: "none",
             })}
           >
             {tabs.map((tab) => (
@@ -335,22 +332,24 @@ export const Settings: React.FC = () => {
                     display: "flex",
                     alignItems: "center",
                     gap: "4",
-                    px: "6",
-                    py: "4",
-                    borderRadius: "full",
+                    px: "5",
+                    py: "3.5",
+                    borderRadius: "2xl",
                     transition: "all",
                     transitionDuration: "300ms",
                     minW: "max-content",
+                    textAlign: "left",
+                    w: "full",
                   }),
                   activeTab === tab.id
                     ? css({
-                        bg: "brand.primary",
-                        color: "slate.950",
-                        boxShadow: "0 4px 12px {colors.brand.primary/20}",
+                        bg: "brand.primary/10",
+                        color: "brand.primary",
+                        boxShadow: "inset 0 0 0 1px {colors.brand.primary/20}",
                       })
                     : css({
                         color: "text.muted",
-                        _hover: { color: "text.main", bg: "whiteAlpha.100" },
+                        _hover: { color: "text.main", bg: "whiteAlpha.50" },
                       }),
                 )}
               >
@@ -358,13 +357,13 @@ export const Settings: React.FC = () => {
                   className={cx(
                     css({ w: "5", h: "5" }),
                     activeTab === tab.id
-                      ? css({ transform: "scale(1.1)" })
+                      ? css({ transform: "scale(1.1)", color: "brand.primary" })
                       : "",
                   )}
                 />
                 <span
                   className={css({
-                    fontSize: "sm",
+                    fontSize: "xs",
                     fontWeight: "900",
                     textTransform: "uppercase",
                     letterSpacing: "widest",

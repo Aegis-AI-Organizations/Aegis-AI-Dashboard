@@ -198,9 +198,13 @@ export const Users: React.FC = () => {
     navigator.clipboard.writeText(text);
   };
 
-  // RBAC Helpers - Admins/SuperAdmins use the Administration page for these
-  const canCreateCompany = false; // Only in Admin page now
-  const canCreateUser = currentUser?.role === "owner"; // Owners still create users in Team page
+  // RBAC Helpers - Consolidated management hub for Platform Admins and Organization Owners
+  const canCreateCompany = ["superadmin", "admin"].includes(
+    currentUser?.role || "",
+  );
+  const canCreateUser = ["superadmin", "admin", "owner"].includes(
+    currentUser?.role || "",
+  );
 
   return (
     <div
@@ -609,22 +613,24 @@ export const Users: React.FC = () => {
                                   whiteSpace: "nowrap",
                                 })}
                               >
-                                {member.name}
+                                {member.name || "Utilisateur sans nom"}
                               </span>
                               <RoleBadge role={member.role} showIcon={false} />
                             </div>
-                            <p
-                              className={css({
-                                fontSize: "xs",
-                                color: "text.muted",
-                                fontWeight: "bold",
-                                textOverflow: "ellipsis",
-                                overflow: "hidden",
-                                whiteSpace: "nowrap",
-                              })}
-                            >
-                              {member.email}
-                            </p>
+                            {member.email && (
+                              <p
+                                className={css({
+                                  fontSize: "xs",
+                                  color: "text.muted",
+                                  fontWeight: "bold",
+                                  textOverflow: "ellipsis",
+                                  overflow: "hidden",
+                                  whiteSpace: "nowrap",
+                                })}
+                              >
+                                {member.email}
+                              </p>
+                            )}
                             <code
                               className={css({
                                 fontSize: "9px",

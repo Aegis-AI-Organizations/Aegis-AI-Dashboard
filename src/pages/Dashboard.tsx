@@ -126,11 +126,14 @@ export const Dashboard: React.FC = () => {
                   className={css({
                     animation: "spin",
                     borderRadius: "full",
-                    h: "6",
-                    w: "6",
-                    borderBottom: "2px solid",
+                    h: "8",
+                    w: "8",
+                    borderTop: "2px solid",
+                    borderRight: "2px solid",
                     borderColor: "brand.primary",
-                    mb: "3",
+                    borderLeft: "2px solid",
+                    borderLeftColor: "transparent",
+                    mb: "4",
                   })}
                 ></div>
                 <p className={css({ fontSize: "sm", color: "gray.500" })}>
