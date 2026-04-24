@@ -12,7 +12,9 @@ export const AdminLayout: React.FC = () => {
       className={css({
         display: "flex",
         bg: "bg.main",
-        minHeight: "screen",
+        h: "full",
+        w: "full",
+        overflow: "hidden",
         color: "text.main",
         fontFamily: "sans",
         _selection: { bg: "brand.primary/30", color: "cyan.200" },

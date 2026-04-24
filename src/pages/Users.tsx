@@ -571,36 +571,43 @@ export const Users: React.FC = () => {
                       company.members.map((member) => (
                         <div
                           key={member.id}
-                          className={flex({
+                          className={css({
                             bg: "whiteAlpha.50",
                             border: "1px solid",
                             borderColor: "whiteAlpha.50",
-                            p: "5",
+                            p: "4",
                             borderRadius: "2xl",
-                            align: "center",
-                            gap: "4",
                             transition: "all",
-                            _hover: { borderColor: "brand.primary/30" },
-                            position: "relative",
+                            _hover: {
+                              borderColor: "brand.primary/30",
+                              bg: "whiteAlpha.100",
+                            },
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "4",
+                            minH: "80px",
                           })}
                         >
                           <ProfileCircle
-                            size="sm"
+                            size="md"
                             avatarUrl={member.avatar_url}
                             name={member.name}
                           />
                           <div
                             className={css({
-                              "& > * + *": { mt: "1" },
-                              my: "auto",
                               flex: "1",
                               minW: "0",
+                              display: "flex",
+                              flexDir: "column",
+                              justifyContent: "center",
+                              gap: "1",
                             })}
                           >
                             <div
                               className={flex({
                                 align: "center",
-                                gap: "3",
+                                gap: "2",
+                                flexWrap: "wrap",
                               })}
                             >
                               <span
@@ -611,6 +618,7 @@ export const Users: React.FC = () => {
                                   textOverflow: "ellipsis",
                                   overflow: "hidden",
                                   whiteSpace: "nowrap",
+                                  maxW: "full",
                                 })}
                               >
                                 {member.name || "Utilisateur sans nom"}
@@ -631,19 +639,6 @@ export const Users: React.FC = () => {
                                 {member.email}
                               </p>
                             )}
-                            <code
-                              className={css({
-                                fontSize: "9px",
-                                color: "whiteAlpha.300",
-                                fontFamily: "mono",
-                                display: "block",
-                                opacity: { base: 1, md: 0 },
-                                _groupHover: { opacity: 1 },
-                                transition: "opacity",
-                              })}
-                            >
-                              ID: {member.id}
-                            </code>
                           </div>
                           <button
                             onClick={() => copyToClipboard(member.id)}
@@ -652,7 +647,9 @@ export const Users: React.FC = () => {
                               color: "gray.700",
                               _hover: { color: "brand.primary" },
                               transition: "colors",
+                              flexShrink: 0,
                             })}
+                            title="Copier l'ID"
                           >
                             <Copy className={css({ w: "3.5", h: "3.5" })} />
                           </button>

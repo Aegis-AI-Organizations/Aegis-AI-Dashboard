@@ -219,8 +219,6 @@ export const Vulnerabilities: React.FC = () => {
           className={css({
             transition: "all",
             transitionDuration: "300ms",
-            h: "full",
-            overflowY: "auto",
             pr: { base: "1", md: "2" },
             display: "flex",
             flexDir: "column",
