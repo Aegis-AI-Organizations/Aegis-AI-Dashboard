@@ -123,14 +123,14 @@ describe("Users Page", () => {
     );
   });
 
-  it("hides creation buttons for superadmin (moved to Administration)", () => {
+  it("shows creation buttons for superadmin (consolidated hub)", () => {
     render(
       <MemoryRouter>
         <Users />
       </MemoryRouter>,
     );
-    expect(screen.queryByText("Créer un Utilisateur")).toBeNull();
-    expect(screen.queryByText("Nouvelle Entreprise")).toBeNull();
+    expect(screen.getByText("Créer un Utilisateur")).toBeInTheDocument();
+    expect(screen.getByText("Nouvelle Entreprise")).toBeInTheDocument();
   });
 
   it("toggles company expansion and avoids re-fetching if members exist", async () => {
