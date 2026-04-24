@@ -53,12 +53,9 @@ describe("useCompanies Hook", () => {
   it("debounces search query changes", async () => {
     (api.get as any).mockResolvedValue({ data: [] });
 
-    const { result, rerender } = renderHook(
-      ({ query }) => useCompanies(query),
-      {
-        initialProps: { query: "a" },
-      },
-    );
+    const { rerender } = renderHook(({ query }) => useCompanies(query), {
+      initialProps: { query: "a" },
+    });
 
     rerender({ query: "ab" });
     rerender({ query: "abc" });

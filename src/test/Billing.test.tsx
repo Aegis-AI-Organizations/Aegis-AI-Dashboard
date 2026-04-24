@@ -94,7 +94,7 @@ describe("Billing Page", () => {
     (useAuthStore as any).mockReturnValue({
       user: { role: "admin" },
     });
-    const { rerender } = render(<Billing />);
+    render(<Billing />);
 
     const companyCard = screen.getByText("Client A");
     fireEvent.click(companyCard);
