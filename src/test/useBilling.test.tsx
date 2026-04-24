@@ -63,7 +63,15 @@ describe("useBilling Hook", () => {
     const mockLedger = { data: { entries: [] } };
     const mockStats = { data: { days: [] } };
 
-    (api.get as any).mockResolvedValue(mockBalance);
+    (api.get as any)
+      .mockResolvedValueOnce(mockBalance)
+      .mockResolvedValueOnce(mockLedger)
+      .mockResolvedValueOnce(mockStats)
+      // Mock second fetch after adjustment
+      .mockResolvedValueOnce(mockBalance)
+      .mockResolvedValueOnce(mockLedger)
+      .mockResolvedValueOnce(mockStats);
+
     (api.post as any).mockResolvedValue({ data: { success: true } });
 
     const { result } = renderHook(() => useBilling());
