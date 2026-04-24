@@ -15,9 +15,10 @@ import {
   CheckCircle2,
   X,
   Globe,
+  Shield,
 } from "lucide-react";
 import { css, cx } from "styled-system/css";
-import { flex } from "styled-system/patterns";
+import { flex, grid } from "styled-system/patterns";
 import {
   pageTitle,
   pageSubtitle,
