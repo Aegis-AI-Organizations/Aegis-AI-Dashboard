@@ -22,7 +22,7 @@ import { PasswordPromptModal } from "../components/ui/PasswordPromptModal";
 import { RoleBadge } from "../components/ui/RoleBadge";
 import { css, cx } from "styled-system/css";
 import { flex, grid, circle } from "styled-system/patterns";
-import { card, pageTitle } from "styled-system/recipes";
+import { card, pageTitle, pageSubtitle } from "styled-system/recipes";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 

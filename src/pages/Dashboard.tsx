@@ -9,7 +9,12 @@ import { useAuthStore } from "../store/AuthStore";
 
 import { css, cx } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
-import { pageTitle, card, sectionTitle } from "styled-system/recipes";
+import {
+  pageTitle,
+  pageSubtitle,
+  card,
+  sectionTitle,
+} from "styled-system/recipes";
 
 export const Dashboard: React.FC = () => {
   const { scans, isLoading, error, refetch } = useScans();

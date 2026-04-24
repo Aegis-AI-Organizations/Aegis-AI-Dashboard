@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { css } from "styled-system/css";
 import { flex } from "styled-system/patterns";
-import { pageTitle } from "styled-system/recipes";
+import { pageTitle, pageSubtitle } from "styled-system/recipes";
 import type { Vulnerability } from "../types/vulnerability";
 import type { ScanStatusResponse } from "../types/scan";
 import { useScans } from "../hooks/useScans";

@@ -18,7 +18,11 @@ import {
 } from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex } from "styled-system/patterns";
-import { pageTitle, button as buttonRecipe } from "styled-system/recipes";
+import {
+  pageTitle,
+  pageSubtitle,
+  button as buttonRecipe,
+} from "styled-system/recipes";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
 import { RoleBadge } from "../components/ui/RoleBadge";

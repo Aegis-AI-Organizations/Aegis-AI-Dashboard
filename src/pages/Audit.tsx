@@ -1,6 +1,6 @@
 import React from "react";
 import { AuditTrail } from "../components/AuditTrail";
-import { pageTitle } from "styled-system/recipes";
+import { pageTitle, pageSubtitle } from "styled-system/recipes";
 import { css } from "styled-system/css";
 
 export const Audit: React.FC = () => {
