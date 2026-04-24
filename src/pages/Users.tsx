@@ -229,15 +229,7 @@ export const Users: React.FC = () => {
       >
         <div className={css({ "& > * + *": { mt: "3" } })}>
           <h1 className={pageTitle()}>Équipes</h1>
-          <p
-            className={css({
-              color: "text.muted",
-              fontWeight: "bold",
-              fontSize: "lg",
-              maxW: "xl",
-              lineHeight: "relaxed",
-            })}
-          >
+          <p className={pageSubtitle()}>
             Gérez vos entités clientes et les comptes collaborateurs directement
             depuis ce portail centralisé.
           </p>
@@ -247,18 +239,18 @@ export const Users: React.FC = () => {
           {canCreateUser && (
             <button
               onClick={() => setIsNewUserOpen(true)}
-              className={buttonRecipe({ variant: "primary", size: "lg" })}
+              className={buttonRecipe({ variant: "primary", size: "md" })}
             >
-              <UserPlus className={css({ w: "4", h: "4" })} />
+              <UserPlus className={css({ w: "3.5", h: "3.5" })} />
               Créer un Utilisateur
             </button>
           )}
           {canCreateCompany && (
             <button
               onClick={() => setIsNewCompanyOpen(true)}
-              className={buttonRecipe({ variant: "primary", size: "lg" })}
+              className={buttonRecipe({ variant: "primary", size: "md" })}
             >
-              <Building2 className={css({ w: "4", h: "4" })} />
+              <Building2 className={css({ w: "3.5", h: "3.5" })} />
               Nouvelle Entreprise
             </button>
           )}
@@ -638,11 +630,27 @@ export const Users: React.FC = () => {
                                   textOverflow: "ellipsis",
                                   overflow: "hidden",
                                   whiteSpace: "nowrap",
+                                  mb: "0.5",
                                 })}
                               >
                                 {member.email}
                               </p>
                             )}
+                            <code
+                              className={css({
+                                fontSize: "9px",
+                                fontFamily: "mono",
+                                color: "gray.600",
+                                display: "block",
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                                whiteSpace: "nowrap",
+                                mt: "0.5",
+                                fontWeight: "medium",
+                              })}
+                            >
+                              ID: {member.id}
+                            </code>
                           </div>
                           <button
                             onClick={() => copyToClipboard(member.id)}
@@ -802,7 +810,7 @@ export const CreateCompanyModal: React.FC<{
             >
               Nouvelle Entité Aegis
             </h2>
-            <p className={css({ color: "text.muted", fontWeight: "bold" })}>
+            <p className={pageSubtitle()}>
               Configurez une nouvelle entreprise et son compte propriétaire.
             </p>
           </div>
@@ -1100,7 +1108,7 @@ export const CreateUserModal: React.FC<{
             >
               Nouveau Collaborateur
             </h2>
-            <p className={css({ color: "text.muted", fontWeight: "bold" })}>
+            <p className={pageSubtitle()}>
               Ajoutez un nouvel utilisateur à votre organisation.
             </p>
           </div>

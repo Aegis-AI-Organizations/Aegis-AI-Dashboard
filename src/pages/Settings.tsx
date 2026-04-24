@@ -270,15 +270,7 @@ export const Settings: React.FC = () => {
       >
         <div className={css({ "& > * + *": { mt: "2" } })}>
           <h1 className={pageTitle()}>Paramètres</h1>
-          <p
-            className={css({
-              color: "text.muted",
-              fontSize: "lg",
-              fontWeight: "medium",
-              maxW: "xl",
-              lineHeight: "relaxed",
-            })}
-          >
+          <p className={pageSubtitle()}>
             Gérez votre identité numérique, sécurisez votre accès et configurez
             vos préférences Aegis AI.
           </p>
@@ -668,7 +660,7 @@ export const Settings: React.FC = () => {
                       disabled={nameLoading}
                       className={css({
                         w: "full",
-                        py: "5",
+                        py: "3.5",
                         bg: "brand.primary/10",
                         _hover: { bg: "brand.primary", color: "white" },
                         border: "1px solid",
@@ -811,7 +803,7 @@ export const Settings: React.FC = () => {
                       disabled={emailLoading}
                       className={css({
                         w: "full",
-                        py: "5",
+                        py: "3.5",
                         bg: "brand.primary/10",
                         _hover: { bg: "brand.primary", color: "white" },
                         border: "1px solid",

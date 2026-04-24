@@ -8,7 +8,7 @@ export const Audit: React.FC = () => {
     <div className={css({ "& > * + *": { mt: "sectionGap" } })}>
       <div>
         <h1 className={pageTitle()}>Logs d'Audit</h1>
-        <p className={css({ color: "text.muted", fontSize: "sm" })}>
+        <p className={pageSubtitle()}>
           Consultez l'historique complet des actions effectuées sur la
           plateforme.
         </p>

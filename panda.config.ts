@@ -106,6 +106,16 @@ export default defineConfig({
             textShadow: "0 0 20px rgba(0, 242, 255, 0.2)",
           },
         },
+        pageSubtitle: {
+          className: "pageSubtitle",
+          base: {
+            color: "text.muted",
+            fontSize: "md",
+            fontWeight: "medium",
+            maxW: "2xl",
+            lineHeight: "relaxed",
+          },
+        },
         sectionTitle: {
           className: "sectionTitle",
           base: {
