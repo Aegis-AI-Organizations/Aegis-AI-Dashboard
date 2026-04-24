@@ -212,6 +212,85 @@ export default defineConfig({
             overflow: "hidden",
           },
         },
+        input: {
+          className: "input",
+          base: {
+            bg: "whiteAlpha.50",
+            border: "1px solid",
+            borderColor: "whiteAlpha.100",
+            borderRadius: "xl",
+            p: "3.5",
+            color: "white",
+            fontSize: "sm",
+            w: "full",
+            transition: "all",
+            _focus: {
+              borderColor: "brand.primary",
+              outline: "none",
+              bg: "whiteAlpha.100",
+            },
+            _placeholder: { color: "text.muted" },
+          },
+        },
+        badge: {
+          className: "badge",
+          base: {
+            px: "2.5",
+            py: "0.5",
+            borderRadius: "md",
+            fontSize: "[10px]",
+            fontWeight: "black",
+            textTransform: "uppercase",
+            letterSpacing: "widest",
+            display: "inline-flex",
+            alignItems: "center",
+          },
+          variants: {
+            variant: {
+              success: { bg: "emerald.500/10", color: "emerald.400" },
+              danger: { bg: "rose.500/10", color: "rose.400" },
+              warning: { bg: "amber.500/10", color: "amber.400" },
+              info: { bg: "brand.primary/10", color: "brand.primary" },
+            },
+          },
+        },
+        table: {
+          className: "table",
+          base: {
+            w: "full",
+            textAlign: "left",
+            borderCollapse: "separate",
+            borderSpacing: "0 8px",
+            "& thead th": {
+              fontSize: "xs",
+              fontWeight: "black",
+              color: "text.muted",
+              textTransform: "uppercase",
+              letterSpacing: "widest",
+              px: "4",
+              py: "2",
+            },
+            "& tbody tr": {
+              bg: "whiteAlpha.50",
+              _hover: { bg: "whiteAlpha.100" },
+              transition: "background 0.2s",
+            },
+            "& tbody td": {
+              px: "4",
+              py: "4",
+              color: "text.main",
+              fontSize: "sm",
+              "&:first-child": {
+                borderTopLeftRadius: "xl",
+                borderBottomLeftRadius: "xl",
+              },
+              "&:last-child": {
+                borderTopRightRadius: "xl",
+                borderBottomRightRadius: "xl",
+              },
+            },
+          },
+        },
       },
       keyframes: {
         pulse: {

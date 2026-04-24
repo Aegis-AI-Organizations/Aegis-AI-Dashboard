@@ -1,24 +1,34 @@
-import React from "react";
-import { CreditCard, Receipt, TrendingUp, ShieldCheck } from "lucide-react";
+import React, { useState } from "react";
+import { CreditCard, Receipt, Plus, RefreshCw, Search } from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
 import {
-  card,
-  sectionTitle,
   pageTitle,
+  sectionTitle,
+  card,
   button as buttonRecipe,
 } from "styled-system/recipes";
+import { useAuthStore } from "../store/AuthStore";
+import { useBilling } from "../hooks/useBilling";
+import { BillingUsageChart } from "../components/billing/BillingUsageChart";
+import { BillingLedgerTable } from "../components/billing/BillingLedgerTable";
+import { BillingTokenAdjustmentModal } from "../components/billing/BillingTokenAdjustmentModal";
+import { LoadingPage } from "../components/ui/LoadingPage";
 
 export const Billing: React.FC = () => {
+  const { user } = useAuthStore();
+  const { balance, ledger, stats, isLoading, error, refresh, adjustTokens } =
+    useBilling();
+  const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+
+  const isAdmin = ["superadmin", "admin", "billing_aegis"].includes(
+    user?.role || "",
+  );
+
+  if (isLoading) return <LoadingPage />;
+
   return (
-    <div
-      className={css({
-        maxWidth: "7xl",
-        mx: "auto",
-        px: "4",
-        py: "8",
-      })}
-    >
+    <div className={css({ maxWidth: "7xl", mx: "auto", px: "4", py: "8" })}>
       <div
         className={flex({
           mb: "12",
@@ -29,7 +39,7 @@ export const Billing: React.FC = () => {
         })}
       >
         <div className={css({ "& > * + *": { mt: "2" } })}>
-          <h1 className={pageTitle()}>Facturation</h1>
+          <h1 className={pageTitle()}>Facturation & Licences</h1>
           <p
             className={css({
               color: "text.muted",
@@ -39,15 +49,24 @@ export const Billing: React.FC = () => {
               lineHeight: "relaxed",
             })}
           >
-            Gérez votre abonnement, vos factures et vos méthodes de paiement.
+            {isAdmin
+              ? "Interface de gestion financière globale et remédiation client."
+              : "Suivez votre consommation de tokens et gérez vos plans."}
           </p>
         </div>
+        <button
+          onClick={() => refresh()}
+          className={buttonRecipe({ variant: "secondary" })}
+        >
+          <RefreshCw className={css({ w: "4", h: "4", mr: "2" })} />
+          Actualiser
+        </button>
       </div>
 
-      <div className={grid({ columns: { base: 1, md: 3 }, gap: "6" })}>
-        {/* Status Card */}
+      <div className={grid({ columns: { base: 1, lg: 3 }, gap: "6" })}>
+        {/* Main Stats Card */}
         <div
-          className={cx(card(), css({ gridColumn: { md: "span 2" }, p: "8" }))}
+          className={cx(card(), css({ gridColumn: { lg: "span 2" }, p: "8" }))}
         >
           <div
             className={flex({
@@ -57,252 +76,260 @@ export const Billing: React.FC = () => {
             })}
           >
             <div className={css({ "& > * + *": { mt: "1" } })}>
-              <h2 className={sectionTitle()}>Plan Actuel</h2>
+              <h2 className={sectionTitle()}>Consommation de Tokens</h2>
               <p className={css({ color: "text.muted", fontSize: "sm" })}>
-                Votre abonnement se renouvelle le 12 Mai 2026.
+                Utilisation cumulée sur les 30 derniers jours.
               </p>
             </div>
-            <span
-              className={css({
-                px: "3",
-                py: "1",
-                borderRadius: "full",
-                bg: "brand.primary/10",
-                color: "brand.primary",
-                border: "1px solid",
-                borderColor: "brand.primary/20",
-                fontSize: "xs",
-                fontWeight: "bold",
-                textTransform: "uppercase",
-                letterSpacing: "wider",
-              })}
-            >
-              Premium Enterprise
-            </span>
-          </div>
-
-          <div className={grid({ columns: { base: 1, sm: 2 }, gap: "8" })}>
-            <div
-              className={flex({
-                p: "6",
-                bg: "whiteAlpha.50",
-                borderRadius: "xl",
-                border: "1px solid",
-                borderColor: "whiteAlpha.100",
-                align: "center",
-                gap: "4",
-              })}
-            >
-              <div
-                className={flex({
-                  w: "12",
-                  h: "12",
-                  borderRadius: "lg",
-                  bg: "brand.primary/10",
-                  align: "center",
-                  justify: "center",
+            <div className={flex({ direction: "column", align: "end" })}>
+              <span
+                className={css({
+                  fontSize: "3xl",
+                  fontWeight: "black",
                   color: "brand.primary",
                 })}
               >
-                <TrendingUp className={css({ w: "6", h: "6" })} />
-              </div>
-              <div>
-                <p
-                  className={css({
-                    fontSize: "xs",
-                    color: "text.muted",
-                    textTransform: "uppercase",
-                    fontWeight: "bold",
-                    letterSpacing: "tight",
-                  })}
-                >
-                  Usage Mensuel
-                </p>
-                <div className={flex({ align: "baseline", gap: "2" })}>
-                  <span
-                    className={css({
-                      fontSize: "2xl",
-                      fontWeight: "bold",
-                      color: "white",
-                    })}
-                  >
-                    1,248
-                  </span>
-                  <span
-                    className={css({ fontSize: "sm", color: "text.muted" })}
-                  >
-                    / 5,000 scans
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className={flex({
-                p: "6",
-                bg: "whiteAlpha.50",
-                borderRadius: "xl",
-                border: "1px solid",
-                borderColor: "whiteAlpha.100",
-                align: "center",
-                gap: "4",
-              })}
-            >
-              <div
-                className={flex({
-                  w: "12",
-                  h: "12",
-                  borderRadius: "lg",
-                  bg: "orange.500/10",
-                  align: "center",
-                  justify: "center",
-                  color: "orange.400",
+                {balance?.toLocaleString()}
+              </span>
+              <span
+                className={css({
+                  fontSize: "xs",
+                  color: "text.muted",
+                  textTransform: "uppercase",
+                  letterSpacing: "widest",
                 })}
               >
-                <Receipt className={css({ w: "6", h: "6" })} />
-              </div>
-              <div>
-                <p
-                  className={css({
-                    fontSize: "xs",
-                    color: "text.muted",
-                    textTransform: "uppercase",
-                    fontWeight: "bold",
-                    letterSpacing: "tight",
-                  })}
-                >
-                  Dernière Facture
-                </p>
-                <div className={flex({ align: "baseline", gap: "2" })}>
-                  <span
-                    className={css({
-                      fontSize: "2xl",
-                      fontWeight: "bold",
-                      color: "white",
-                    })}
-                  >
-                    499.00€
-                  </span>
-                  <span
-                    className={css({ fontSize: "sm", color: "emerald.400" })}
-                  >
-                    Payé
-                  </span>
-                </div>
-              </div>
+                Jetons disponibles
+              </span>
             </div>
           </div>
 
+          <BillingUsageChart data={stats} />
+
           <div className={flex({ mt: "10", gap: "4" })}>
-            <button className={buttonRecipe({ variant: "primary" })}>
-              Changer de Plan
-            </button>
+            {!isAdmin && (
+              <button className={buttonRecipe({ variant: "primary" })}>
+                Acheter des Tokens
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => setIsAdjustModalOpen(true)}
+                className={buttonRecipe({ variant: "primary" })}
+              >
+                <Plus className={css({ w: "4", h: "4", mr: "2" })} />
+                Ajuster le Solde
+              </button>
+            )}
             <button className={buttonRecipe({ variant: "secondary" })}>
-              Historique des Paiements
+              Voir les Factures
             </button>
           </div>
         </div>
 
-        {/* Payment Method Card */}
-        <div className={cx(card(), flex({ direction: "column", p: "8" }))}>
-          <div className={flex({ align: "center", gap: "3", mb: "6" })}>
-            <CreditCard
-              className={css({ w: "5", h: "5", color: "brand.primary" })}
-            />
-            <h2 className={sectionTitle()}>Méthode de Paiement</h2>
-          </div>
-
-          <div
-            className={flex({
-              flex: "1",
-              direction: "column",
-              justify: "center",
-              align: "center",
-              textAlign: "center",
-              p: "6",
-              border: "2px dashed",
-              borderColor: "whiteAlpha.100",
-              borderRadius: "xl",
-              bg: "whiteAlpha.50",
-              mb: "6",
-            })}
-          >
+        {/* Sidebar Info */}
+        <div className={flex({ direction: "column", gap: "6" })}>
+          {/* Plan Info */}
+          <div className={cx(card(), css({ p: "6" }))}>
+            <h3
+              className={css({
+                fontSize: "xs",
+                fontWeight: "bold",
+                color: "text.muted",
+                textTransform: "uppercase",
+                mb: "4",
+                letterSpacing: "widest",
+              })}
+            >
+              Plan de Licence
+            </h3>
             <div
               className={flex({
-                w: "16",
-                h: "10",
-                bg: "brand.primary/10",
-                borderRadius: "md",
-                border: "1px solid",
-                borderColor: "brand.primary/20",
                 align: "center",
-                justify: "center",
+                justify: "space-between",
                 mb: "4",
               })}
             >
               <span
                 className={css({
-                  color: "white",
+                  fontSize: "lg",
                   fontWeight: "bold",
-                  fontSize: "xs",
-                  textTransform: "uppercase",
+                  color: "white",
                 })}
               >
-                Visa
+                Premium Pro
+              </span>
+              <span
+                className={css({
+                  px: "2",
+                  py: "0.5",
+                  bg: "emerald.500/10",
+                  color: "emerald.400",
+                  borderRadius: "md",
+                  fontSize: "xs",
+                  fontWeight: "bold",
+                })}
+              >
+                ACTIF
               </span>
             </div>
             <p
-              className={css({
-                fontSize: "sm",
-                color: "white",
-                fontWeight: "medium",
-                mb: "1",
-              })}
+              className={css({ fontSize: "sm", color: "text.muted", mb: "6" })}
             >
-              •••• •••• •••• 4242
+              Renouvellement automatique le 24 Mai 2026.
             </p>
-            <p className={css({ fontSize: "xs", color: "text.muted" })}>
-              Expire le 04/28
-            </p>
+            <button
+              className={cx(
+                buttonRecipe({ variant: "secondary" }),
+                css({ w: "full" }),
+              )}
+            >
+              Changer de Plan
+            </button>
           </div>
 
-          <button
-            className={cx(
-              buttonRecipe({ variant: "secondary" }),
-              css({ w: "full" }),
-            )}
-          >
-            Modifier la Carte
-          </button>
+          {/* Payment Method */}
+          <div className={cx(card(), css({ p: "6" }))}>
+            <div className={flex({ align: "center", gap: "3", mb: "4" })}>
+              <CreditCard
+                className={css({ w: "4", h: "4", color: "brand.primary" })}
+              />
+              <h3
+                className={css({
+                  fontSize: "xs",
+                  fontWeight: "bold",
+                  color: "text.muted",
+                  textTransform: "uppercase",
+                  letterSpacing: "widest",
+                })}
+              >
+                Moyen de Paiement
+              </h3>
+            </div>
+            <div
+              className={flex({
+                p: "4",
+                bg: "whiteAlpha.50",
+                borderRadius: "lg",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+                align: "center",
+                gap: "3",
+              })}
+            >
+              <div
+                className={flex({
+                  w: "10",
+                  h: "6",
+                  bg: "white",
+                  borderRadius: "sm",
+                  align: "center",
+                  justify: "center",
+                  color: "blue.800",
+                  fontWeight: "bold",
+                  fontSize: "10px",
+                })}
+              >
+                VISA
+              </div>
+              <div className={css({ flex: 1 })}>
+                <p
+                  className={css({
+                    fontSize: "sm",
+                    fontWeight: "bold",
+                    color: "white",
+                  })}
+                >
+                  •••• 4242
+                </p>
+                <p className={css({ fontSize: "xs", color: "text.muted" })}>
+                  Exp: 04/28
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Security Banner */}
-      <div
-        className={flex({
-          align: "center",
-          gap: "4",
-          p: "4",
-          bg: "emerald.500/5",
-          border: "1px solid",
-          borderColor: "emerald.500/20",
-          borderRadius: "xl",
-        })}
-      >
-        <ShieldCheck
-          className={css({ w: "5", h: "5", color: "emerald.500" })}
-        />
-        <p
-          className={css({
-            fontSize: "xs",
-            color: "emerald.500/80",
-            fontWeight: "medium",
+      {/* Ledger Section */}
+      <div className={cx(card(), css({ mt: "8", p: "8" }))}>
+        <div
+          className={flex({
+            justify: "space-between",
+            align: "center",
+            mb: "6",
           })}
         >
-          Vos informations de paiement sont sécurisées par chiffrement de bout
-          en bout conforme aux normes PCI-DSS.
-        </p>
+          <div className={flex({ align: "center", gap: "3" })}>
+            <Receipt
+              className={css({ w: "5", h: "5", color: "brand.primary" })}
+            />
+            <h2 className={sectionTitle()}>
+              Historique du Registre (Token Ledger)
+            </h2>
+          </div>
+          {isAdmin && (
+            <div
+              className={flex({
+                align: "center",
+                bg: "whiteAlpha.50",
+                px: "3",
+                py: "1.5",
+                borderRadius: "md",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+              })}
+            >
+              <Search
+                className={css({
+                  w: "4",
+                  h: "4",
+                  color: "text.muted",
+                  mr: "2",
+                })}
+              />
+              <input
+                type="text"
+                placeholder="Rechercher une transaction..."
+                className={css({
+                  bg: "transparent",
+                  border: "none",
+                  outline: "none",
+                  color: "white",
+                  fontSize: "sm",
+                  w: "200px",
+                })}
+              />
+            </div>
+          )}
+        </div>
+
+        {error ? (
+          <div
+            className={css({
+              py: "12",
+              textAlign: "center",
+              color: "rose.400",
+            })}
+          >
+            {error}
+          </div>
+        ) : (
+          <BillingLedgerTable entries={ledger} />
+        )}
       </div>
+
+      {/* Modals */}
+      <BillingTokenAdjustmentModal
+        isOpen={isAdjustModalOpen}
+        onClose={() => setIsAdjustModalOpen(false)}
+        onSubmit={async (amount, reason) => {
+          if (user?.company_id) {
+            await adjustTokens(user.company_id, amount, reason);
+          }
+        }}
+        companyName={user?.company_id ? "Client Actuel" : "N/A"}
+      />
     </div>
   );
 };
