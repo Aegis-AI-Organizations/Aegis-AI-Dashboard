@@ -42,7 +42,7 @@ describe("BillingTokenAdjustmentModal", () => {
     );
 
     const amountInput = screen.getByPlaceholderText("Ex: 50 ou -20");
-    const reasonInput = screen.getByPlaceholderText(/Geste commercial/i);
+    const reasonInput = screen.getByPlaceholderText(/Ajustement manuel/i);
 
     fireEvent.change(amountInput, { target: { value: "50" } });
     fireEvent.change(reasonInput, { target: { value: "Reason for test" } });
@@ -85,7 +85,7 @@ describe("BillingTokenAdjustmentModal", () => {
     );
 
     const amountInput = screen.getByPlaceholderText("Ex: 50 ou -20");
-    const reasonInput = screen.getByPlaceholderText(/Geste commercial/i);
+    const reasonInput = screen.getByPlaceholderText(/Ajustement manuel/i);
 
     fireEvent.change(amountInput, { target: { value: "10" } });
     fireEvent.change(reasonInput, { target: { value: "no" } });

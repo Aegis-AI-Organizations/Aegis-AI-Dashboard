@@ -155,7 +155,7 @@ export const BillingTokenAdjustmentModal: React.FC<Props> = ({
                   minH: "100px",
                   _focus: { outline: "none", borderColor: "brand.primary" },
                 })}
-                placeholder="Ex: Geste commercial ou remboursement scan #123"
+                placeholder="Ex: Ajustement manuel ou remboursement scan #123"
                 required
               />
             </div>

@@ -32,7 +32,6 @@ function App() {
                   allowedRoles={[
                     "admin",
                     "superadmin",
-                    "commercial",
                     "owner",
                     "billing_aegis",
                     "billing_client",
@@ -52,7 +51,6 @@ function App() {
                   allowedRoles={[
                     "admin",
                     "superadmin",
-                    "commercial",
                     "owner",
                     "operateur",
                     "viewer",
