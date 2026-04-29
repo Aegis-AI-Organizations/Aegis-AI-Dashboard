@@ -10,6 +10,13 @@ export default defineConfig({
       "styled-system": path.resolve(__dirname, "src/styled-system"),
     },
   },
+  server: {
+    host: true,
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
+  },
   test: {
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
