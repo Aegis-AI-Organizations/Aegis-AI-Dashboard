@@ -5,11 +5,12 @@ import { Vulnerabilities } from "./pages/Vulnerabilities";
 import { Users } from "./pages/Users";
 import { Settings } from "./pages/Settings";
 import { Billing } from "./pages/Billing";
+import { Audit } from "./pages/Audit";
 import { Login } from "./pages/Login";
+import { SetupPassword } from "./pages/SetupPassword";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleRoute } from "./components/auth/RoleRoute";
 import { AuthHydrator } from "./components/auth/AuthHydrator";
-import { Administration } from "./pages/Administration";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/setup-password" element={<SetupPassword />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
@@ -25,17 +27,23 @@ function App() {
             <Route path="/vulnerabilities" element={<Vulnerabilities />} />
             <Route path="/monitoring/:scanId" element={<Dashboard />} />
 
-            {/* Admin & SuperAdmin & Commercial Only */}
+            {/* Management Routes */}
             <Route
               element={
                 <RoleRoute
-                  allowedRoles={["admin", "superadmin", "commercial"]}
+                  allowedRoles={[
+                    "admin",
+                    "superadmin",
+                    "owner",
+                    "billing_aegis",
+                    "billing_client",
+                  ]}
                 />
               }
             >
-              <Route path="/administration" element={<Administration />} />
               <Route path="/users" element={<Users />} />
               <Route path="/billing" element={<Billing />} />
+              <Route path="/audit" element={<Audit />} />
             </Route>
 
             {/* All except Viewer for Settings */}
@@ -45,9 +53,9 @@ function App() {
                   allowedRoles={[
                     "admin",
                     "superadmin",
-                    "commercial",
                     "owner",
                     "operateur",
+                    "viewer",
                   ]}
                 />
               }

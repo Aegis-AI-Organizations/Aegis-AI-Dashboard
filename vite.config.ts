@@ -1,10 +1,22 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
+import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "styled-system": path.resolve(__dirname, "src/styled-system"),
+    },
+  },
+  server: {
+    host: true,
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
+  },
   test: {
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
@@ -12,7 +24,12 @@ export default defineConfig({
       provider: "v8",
       all: true,
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/main.tsx", "src/types/**", "src/vite-env.d.ts"],
+      exclude: [
+        "src/main.tsx",
+        "src/types/**",
+        "src/vite-env.d.ts",
+        "src/styled-system/**",
+      ],
       thresholds: {
         lines: 80,
         statements: 80,

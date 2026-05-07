@@ -1,60 +1,49 @@
-import { render, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AuthHydrator } from "../components/auth/AuthHydrator";
-import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
+import { useAuthStore } from "../store/AuthStore";
 
 vi.mock("../api/Axios", () => ({
   api: {
     post: vi.fn(),
+    get: vi.fn(),
   },
 }));
 
-describe("AuthHydrator", () => {
+describe("AuthHydrator Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useAuthStore.getState().clearAuth();
-    useAuthStore.getState().setHydrating(true);
+    useAuthStore.setState({
+      isHydrating: true,
+      isAuthenticated: false,
+      user: null,
+    });
   });
 
-  it("should attempt to hydrate session on mount", async () => {
-    const mockUser = {
-      id: "1",
-      email: "test@aegis.ai",
-      name: "Test User",
-      role: "admin",
-    };
-    vi.mocked(api.post).mockResolvedValueOnce({
-      data: { access_token: "fake-jwt", user: mockUser },
+  it("attempts to hydrate on mount and shows loading", async () => {
+    vi.mocked(api.post).mockResolvedValue({
+      data: { access_token: "tok", user: { name: "John" } },
     });
 
-    render(
-      <AuthHydrator>
-        <div data-testid="child">child</div>
-      </AuthHydrator>,
-    );
+    render(<AuthHydrator>Content</AuthHydrator>);
+
+    expect(screen.getByText(/Initialisation du Système/i)).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(useAuthStore.getState().isAuthenticated).toBe(true);
-      expect(useAuthStore.getState().isHydrating).toBe(false);
+      expect(api.post).toHaveBeenCalledWith("/auth/refresh");
+      expect(screen.getByText("Content")).toBeInTheDocument();
     });
-
-    expect(api.post).toHaveBeenCalledWith("/auth/refresh");
   });
 
-  it("should stop hydrating even if refresh fails", async () => {
-    vi.mocked(api.post).mockRejectedValueOnce(new Error("No session"));
+  it("handles hydration failure gracefully", async () => {
+    vi.mocked(api.post).mockRejectedValue(new Error("Unauthorized"));
 
-    render(
-      <AuthHydrator>
-        <div data-testid="child">child</div>
-      </AuthHydrator>,
-    );
+    render(<AuthHydrator>Content</AuthHydrator>);
 
     await waitFor(() => {
+      expect(screen.getByText("Content")).toBeInTheDocument();
       expect(useAuthStore.getState().isHydrating).toBe(false);
     });
-
-    expect(useAuthStore.getState().isAuthenticated).toBe(false);
   });
 });

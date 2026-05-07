@@ -1,5 +1,7 @@
 import React from "react";
 import { Loader2, HelpCircle, CheckCircle, XCircle } from "lucide-react";
+import { css } from "styled-system/css";
+import { flex } from "styled-system/patterns";
 import { useScanPolling } from "../hooks/useScanPolling";
 import { useScanStream } from "../hooks/useScanStream";
 import { STATUS_DETAILS } from "../constants/scan";
@@ -41,6 +43,17 @@ export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
     STATUS_DETAILS[scanStatus] || STATUS_DETAILS.PENDING;
   const isFinished = ["COMPLETED", "FAILED", "CANCELED"].includes(scanStatus);
 
+  // Map legacy color names to design tokens
+  const getStatusColor = (color: string) => {
+    if (color.includes("cyan")) return "{colors.brand.primary}";
+    if (color.includes("green")) return "{colors.emerald.400}";
+    if (color.includes("red")) return "{colors.red.400}";
+    if (color.includes("yellow")) return "{colors.yellow.400}";
+    return "{colors.gray.400}";
+  };
+
+  const statusColor = getStatusColor(currentStatusDetail.color);
+
   React.useEffect(() => {
     if (onScanUpdate) {
       onScanUpdate();
@@ -48,23 +61,70 @@ export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
   }, [scanStatus, onScanUpdate]);
 
   return (
-    <div className="bg-[#111318] border border-gray-800/60 rounded-xl p-6 shadow-xl max-w-md w-full font-sans text-gray-200">
-      <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-white mb-2">Scan en cours</h2>
-        <p className="text-sm text-gray-400">
+    <div
+      className={css({
+        bg: "bg.card",
+        border: "1px solid",
+        borderColor: "whiteAlpha.100",
+        borderRadius: "xl",
+        p: "6",
+        boxShadow: "xl",
+        maxW: "md",
+        w: "full",
+        fontFamily: "sans",
+        color: "text.main",
+      })}
+    >
+      <div className={css({ textAlign: "center", mb: "6" })}>
+        <h2
+          className={css({
+            fontSize: "xl",
+            fontWeight: "bold",
+            color: "white",
+            mb: "2",
+          })}
+        >
+          Scan en cours
+        </h2>
+        <p className={css({ fontSize: "sm", color: "text.muted" })}>
           Cible :{" "}
-          <span className="text-cyan-400 font-medium">{targetImage}</span>
+          <span
+            className={css({ color: "brand.primary", fontWeight: "medium" })}
+          >
+            {targetImage}
+          </span>
         </p>
       </div>
 
-      <div className="flex flex-col items-center justify-center space-y-6 py-4">
-        <div className="relative flex items-center justify-center w-32 h-32">
+      <div
+        className={flex({
+          direction: "column",
+          align: "center",
+          justify: "center",
+          gap: "6",
+          py: "4",
+        })}
+      >
+        <div
+          className={css({
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            w: "32",
+            h: "32",
+          })}
+        >
           <svg
-            className="w-full h-full transform -rotate-90"
+            className={css({
+              w: "full",
+              h: "full",
+              transform: "rotate(-90deg)",
+            })}
             viewBox="0 0 100 100"
           >
             <circle
-              className="text-gray-800/80 transition-colors"
+              className={css({ color: "whiteAlpha.100", transition: "colors" })}
               strokeWidth="6"
               stroke="currentColor"
               fill="transparent"
@@ -73,52 +133,111 @@ export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
               cy="50"
             />
             <circle
-              className={`${currentStatusDetail.color} transition-all duration-1000 ease-out`}
+              className={css({
+                transition: "all",
+                transitionDuration: "1000ms",
+                transitionTimingFunction: "ease-out",
+              })}
               strokeWidth="6"
               strokeDasharray={276.46}
               strokeDashoffset={
                 276.46 - (276.46 * currentStatusDetail.progress) / 100
               }
               strokeLinecap="round"
-              stroke="currentColor"
+              stroke={statusColor}
               fill="transparent"
               r="44"
               cx="50"
               cy="50"
             />
           </svg>
-          <div className="absolute flex items-center justify-center inset-0">
+          <div
+            className={css({
+              position: "absolute",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              inset: "0",
+            })}
+          >
             {isFinished ? (
               scanStatus === "COMPLETED" ? (
-                <CheckCircle className="w-12 h-12 text-green-500" />
+                <CheckCircle
+                  className={css({ w: "12", h: "12", color: "emerald.400" })}
+                />
               ) : (
-                <XCircle className="w-12 h-12 text-red-500" />
+                <XCircle
+                  className={css({ w: "12", h: "12", color: "red.400" })}
+                />
               )
             ) : (
               <Loader2
-                className={`w-12 h-12 animate-spin ${currentStatusDetail.color}`}
+                className={css({
+                  w: "12",
+                  h: "12",
+                  animation: "spin 1s linear infinite",
+                  color: statusColor,
+                })}
               />
             )}
           </div>
         </div>
 
-        <div className="text-center space-y-3 w-full border border-gray-800/60 bg-[#1A1D24] rounded-lg p-4 relative">
-          <div className="flex items-center justify-center space-x-2">
+        <div
+          className={css({
+            textAlign: "center",
+            spaceY: "3",
+            w: "full",
+            border: "1px solid",
+            borderColor: "whiteAlpha.100",
+            bg: "whiteAlpha.50",
+            borderRadius: "lg",
+            p: "4",
+            position: "relative",
+          })}
+        >
+          <div
+            className={flex({ align: "center", justify: "center", gap: "2" })}
+          >
             <span
-              className={`font-semibold text-[15px] ${currentStatusDetail.color} uppercase tracking-wide`}
+              className={css({
+                fontWeight: "semibold",
+                fontSize: "15px",
+                color: statusColor,
+                textTransform: "uppercase",
+                letterSpacing: "wide",
+              })}
             >
               {currentStatusDetail.label}
             </span>
-            <div className="relative group flex items-center justify-center">
-              <HelpCircle className="w-4 h-4 text-gray-500 cursor-help hover:text-gray-300 transition-colors" />
-              <div className="absolute bottom-full mb-2 hidden group-hover:block w-56 p-3 bg-[#242832] border border-gray-700/50 rounded-lg shadow-2xl text-xs text-gray-300 text-left z-10 pointer-events-none">
-                <div className="absolute -bottom-[5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-[#242832] border-b border-r border-gray-700/50 transform rotate-45"></div>
-                {currentStatusDetail.description}
-              </div>
+            <div
+              className={css({
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              })}
+            >
+              <HelpCircle
+                className={css({
+                  w: "4",
+                  h: "4",
+                  color: "gray.500",
+                  cursor: "help",
+                  _hover: { color: "gray.300" },
+                  transition: "colors",
+                })}
+              />
             </div>
           </div>
 
-          <p className="text-xs text-gray-500 font-medium">
+          <p
+            className={css({
+              fontSize: "xs",
+              color: "gray.500",
+              fontWeight: "medium",
+            })}
+          >
             {currentStatusDetail.progress}% terminé
           </p>
         </div>
@@ -127,7 +246,24 @@ export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
       {isFinished && (
         <button
           onClick={onReset}
-          className="mt-6 w-full flex items-center justify-center bg-gray-800/80 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg px-6 py-3 transition-colors duration-200 border border-gray-700/50"
+          className={css({
+            mt: "6",
+            w: "full",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bg: "whiteAlpha.100",
+            _hover: { bg: "whiteAlpha.200" },
+            color: "white",
+            fontSize: "sm",
+            fontWeight: "semibold",
+            borderRadius: "lg",
+            px: "6",
+            py: "3",
+            transition: "all",
+            border: "1px solid",
+            borderColor: "whiteAlpha.100",
+          })}
         >
           Nouveau Scan
         </button>

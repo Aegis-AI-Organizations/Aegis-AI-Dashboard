@@ -86,7 +86,7 @@ describe("LaunchpadForm", () => {
     mockIsLoading = true;
     render(<LaunchpadForm />);
     expect(screen.getByText("Lancement...")).toBeInTheDocument();
-    expect(document.querySelector(".animate-spin")).toBeInTheDocument();
+    expect(screen.getByTestId("loading-spinner")).toBeInTheDocument();
     mockIsLoading = false; // reset
   });
 });

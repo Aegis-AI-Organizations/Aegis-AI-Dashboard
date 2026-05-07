@@ -10,6 +10,7 @@ vi.mock("../api/Axios", () => ({
     put: vi.fn(),
     get: vi.fn(),
     post: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -21,6 +22,7 @@ let mockState = {
     name: "Enzo Gaggiotti",
     email: "enzo@aegis.ai",
     role: "admin",
+    avatar_url: "",
   },
   accessToken: "fake-jwt",
   setAuth: mockSetAuth,
@@ -41,6 +43,7 @@ describe("Settings Page", () => {
         name: "Enzo Gaggiotti",
         email: "enzo@aegis.ai",
         role: "admin",
+        avatar_url: "",
       },
       accessToken: "fake-jwt",
       setAuth: mockSetAuth,
@@ -206,15 +209,39 @@ describe("Settings Page", () => {
     const newPasswordInput = screen.getByLabelText(/Nouveau mot de passe/i);
 
     // Initially requirements are not met
-    expect(screen.getByText("8+ symb.")).toHaveClass("text-gray-600");
+    expect(screen.getByText("8+ symb.")).toHaveClass("c_gray.600");
 
     // Type a compliant password
     fireEvent.change(newPasswordInput, { target: { value: "Complex1!" } });
 
-    expect(screen.getByText("8+ symb.")).toHaveClass("text-emerald-400");
-    expect(screen.getByText("Majuscule")).toHaveClass("text-emerald-400");
-    expect(screen.getByText("Chiffre")).toHaveClass("text-emerald-400");
-    expect(screen.getByText("Spécial")).toHaveClass("text-emerald-400");
+    expect(screen.getByText("8+ symb.")).toHaveClass("c_emerald.400");
+    expect(screen.getByText("Majuscule")).toHaveClass("c_emerald.400");
+    expect(screen.getByText("Chiffre")).toHaveClass("c_emerald.400");
+    expect(screen.getByText("Spécial")).toHaveClass("c_emerald.400");
+  });
+
+  it("handles photo deletion successfully", async () => {
+    vi.mocked(api.delete).mockResolvedValueOnce({ data: {} });
+
+    // Set an initial avatar to show the delete button
+    mockState.user.avatar_url = "some-url";
+
+    render(
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText(/Modifier la photo/i));
+    fireEvent.click(screen.getByText(/Supprimer la photo/i));
+
+    await waitFor(() => {
+      expect(api.delete).toHaveBeenCalledWith("/users/me/profile/avatar");
+      expect(mockSetAuth).toHaveBeenCalledWith(
+        "fake-jwt",
+        expect.objectContaining({ avatar_url: "" }),
+      );
+    });
   });
 
   it("handles password update successfully", async () => {
@@ -298,6 +325,7 @@ describe("Settings Page", () => {
         email: "enzo@aegis.ai",
         role: "admin",
         name: "John Doe",
+        avatar_url: "",
       },
     };
 

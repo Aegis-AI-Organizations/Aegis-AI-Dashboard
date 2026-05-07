@@ -4,7 +4,6 @@ export type UserRole =
   | "billing_aegis"
   | "technicien"
   | "support"
-  | "commercial"
   | "owner"
   | "billing_client"
   | "operateur"

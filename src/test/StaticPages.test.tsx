@@ -17,10 +17,15 @@ vi.mock("../store/AuthStore", () => ({
 
 describe("static pages", () => {
   it("renders users page", () => {
-    render(<Users />);
+    render(
+      <MemoryRouter>
+        <Users />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Équipes")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Gérez les accès à la plateforme, les rôles et les permissions des utilisateurs.",
+        "Gérez vos entités clientes et les comptes collaborateurs directement depuis ce portail centralisé.",
       ),
     ).toBeInTheDocument();
   });

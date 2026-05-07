@@ -5,21 +5,34 @@ import { ShieldAlert, ChevronRight, Clock, Box } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { STATUS_DETAILS } from "../constants/scan";
+import { useAuthStore } from "../store/AuthStore";
+
+import { css, cx } from "styled-system/css";
+import { flex, grid } from "styled-system/patterns";
+import {
+  pageTitle,
+  pageSubtitle,
+  card,
+  sectionTitle,
+} from "styled-system/recipes";
 
 export const Dashboard: React.FC = () => {
   const { scans, isLoading, error, refetch } = useScans();
   const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
 
-  // SSE for real-time updates is now handled centrally in useScans hook.
-  // This component will automatically re-render when useScans updates.
+  const canScan = ["admin", "superadmin", "owner", "operateur"].includes(
+    user?.role || "",
+  );
 
   // Take the top 3 most recent scans
   const recentScans = scans.slice(0, 3);
 
-  const getStatusStyle = (status: string) => {
-    const detail = STATUS_DETAILS[status] || STATUS_DETAILS.PENDING;
-    const colorClass = detail.color.replace("text-", "");
-    return `text-${colorClass} bg-${colorClass}/10 border-${colorClass}/20`;
+  const getStatusColor = (status: string) => {
+    if (status === "COMPLETED") return "cyan.400";
+    if (status === "RUNNING") return "purple.400";
+    if (status === "FAILED") return "red.400";
+    return "text.muted";
   };
 
   const formatDate = (dateString?: string) => {
@@ -31,108 +44,281 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleScanClick = (scanId: string) => {
-    // Navigate to vulnerabilities, passing the specific scan ID to open
     navigate("/vulnerabilities", { state: { openScanId: scanId } });
   };
 
   return (
-    <div className="h-[calc(100vh-8rem)]">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">
-          Tableau de Bord Sécurité
-        </h1>
-        <p className="text-gray-400">
+    <div className={css({ "& > * + *": { mt: "sectionGap" } })}>
+      <div>
+        <h1 className={pageTitle()}>Tableau de Bord Sécurité</h1>
+        <p className={pageSubtitle()}>
           Aperçu complet de votre posture de sécurité et des opérations de
           pentest.
         </p>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
-        {/* Launchpad Form on the left/top */}
-        <div className="flex-1 w-full max-w-xl">
-          <div className="mb-4">
-            <h2 className="text-lg font-bold text-white uppercase tracking-widest text-gray-300">
-              Nouvelle Analyse
-            </h2>
-          </div>
+      <div
+        className={grid({
+          columns: { base: 1, lg: 2 },
+          gap: "8",
+          alignItems: "start",
+        })}
+      >
+        {/* Launchpad Form on the left/top - Only for roles with scan permission */}
+        {canScan && (
+          <div className={css({ width: "full", maxWidth: "xl" })}>
+            <div className={css({ mb: "2" })}>
+              <h2 className={sectionTitle()}>Nouvelle Analyse</h2>
+            </div>
 
-          <div className="bg-[#111318] border border-gray-800/60 rounded-xl p-6 shadow-xl w-full">
-            <p className="text-sm text-gray-400 mb-6 font-sans">
-              Entrez l'image Docker cible pour démarrer l'analyse de
-              vulnérabilités.
-            </p>
-            <LaunchpadForm onScanUpdate={refetch} />
+            <div className={card()}>
+              <p
+                className={css({
+                  fontSize: "sm",
+                  color: "text.muted",
+                  mb: "6",
+                })}
+              >
+                Entrez l'image Docker cible pour démarrer l'analyse de
+                vulnérabilités.
+              </p>
+              <LaunchpadForm onScanUpdate={refetch} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Recent Scans Widget on the right/bottom */}
-        <div className="flex-1 w-full xl:max-w-2xl max-w-xl">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white uppercase tracking-widest text-gray-300">
-              Derniers Pentests
-            </h2>
+        <div
+          className={css({ width: "full", maxWidth: { xl: "2xl", lg: "xl" } })}
+        >
+          <div
+            className={flex({
+              mb: "4",
+              alignItems: "center",
+              justify: "space-between",
+            })}
+          >
+            <h2 className={sectionTitle()}>Derniers Pentests</h2>
             <button
               onClick={() => navigate("/vulnerabilities")}
-              className="text-xs text-cyan-400 hover:text-cyan-300 font-medium transition-colors flex items-center cursor-pointer hover:underline"
+              className={css({
+                fontSize: "xs",
+                color: "brand.primary",
+                fontWeight: "medium",
+                transition: "colors",
+                cursor: "pointer",
+                _hover: { color: "brand.accent", textDecoration: "underline" },
+                display: "flex",
+                alignItems: "center",
+              })}
             >
               Voir tout l'historique
-              <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              <ChevronRight className={css({ w: "3.5", h: "3.5", ml: "1" })} />
             </button>
           </div>
 
-          <div className="bg-[#111318] border border-gray-800/60 rounded-xl overflow-hidden shadow-xl">
+          <div className={card({ p: "0" })}>
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center p-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-400 mb-3"></div>
-                <p className="text-sm text-gray-500">Chargement...</p>
+              <div
+                className={flex({
+                  flexDir: "column",
+                  align: "center",
+                  justify: "center",
+                  p: "8",
+                })}
+              >
+                <div
+                  className={css({
+                    animation: "spin",
+                    borderRadius: "full",
+                    h: "8",
+                    w: "8",
+                    borderTop: "2px solid",
+                    borderRight: "2px solid",
+                    borderColor: "brand.primary",
+                    borderLeft: "2px solid",
+                    borderLeftColor: "transparent",
+                    mb: "4",
+                  })}
+                ></div>
+                <p className={css({ fontSize: "sm", color: "gray.500" })}>
+                  Chargement...
+                </p>
               </div>
             ) : error ? (
-              <div className="p-6 text-center text-sm text-red-400/80">
+              <div
+                className={css({
+                  p: "6",
+                  textAlign: "center",
+                  fontSize: "sm",
+                  color: "red.400/80",
+                })}
+              >
                 Impossible de charger les derniers scans.
               </div>
             ) : recentScans.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center">
-                <ShieldAlert className="w-10 h-10 text-gray-600 mb-3" />
-                <p className="text-sm text-gray-400">
+              <div
+                className={flex({
+                  flexDir: "column",
+                  align: "center",
+                  justify: "center",
+                  p: "8",
+                  textAlign: "center",
+                })}
+              >
+                <ShieldAlert
+                  className={css({
+                    w: "10",
+                    h: "10",
+                    color: "gray.600",
+                    mb: "3",
+                  })}
+                />
+                <p className={css({ fontSize: "sm", color: "text.muted" })}>
                   Aucun scan récent trouvé.
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p
+                  className={css({
+                    fontSize: "xs",
+                    color: "gray.500",
+                    mt: "1",
+                  })}
+                >
                   Lancez une analyse depuis le formulaire.
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-800/60">
+              <div
+                className={css({
+                  "& > button + button": {
+                    borderTop: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                  },
+                })}
+              >
                 {recentScans.map((scan) => (
                   <button
                     key={scan.id}
                     onClick={() => handleScanClick(scan.id)}
-                    className="w-full text-left p-4 hover:bg-[#1A1D24] transition-colors group flex items-start gap-4"
+                    className={cx(
+                      "group",
+                      css({
+                        width: "full",
+                        textAlign: "left",
+                        p: "4",
+                        transition: "colors",
+                        display: "flex",
+                        alignItems: "start",
+                        gap: "4",
+                        _hover: { bg: "whiteAlpha.50" },
+                      }),
+                    )}
                   >
-                    <div className="flex-shrink-0 bg-gray-800/50 p-2 rounded-lg border border-gray-700/50 mt-0.5">
-                      <Box className="w-4 h-4 text-gray-400 group-hover:text-cyan-400 transition-colors" />
+                    <div
+                      className={css({
+                        flexShrink: 0,
+                        bg: "whiteAlpha.100",
+                        p: "2",
+                        borderRadius: "lg",
+                        border: "1px solid",
+                        borderColor: "whiteAlpha.100",
+                        mt: "0.5",
+                      })}
+                    >
+                      <Box
+                        className={css({ w: "4", h: "4", color: "text.muted" })}
+                      />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
+                    <div className={css({ flex: 1, minWidth: 0 })}>
+                      <div
+                        className={flex({
+                          align: "center",
+                          justify: "space-between",
+                          mb: "1",
+                        })}
+                      >
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[9px] uppercase font-bold tracking-wider border ${getStatusStyle(
-                            scan.status,
-                          )}`}
+                          className={css({
+                            px: "2.5",
+                            py: "1",
+                            borderRadius: "full",
+                            fontSize: "[10px]",
+                            fontWeight: "black",
+                            textTransform: "uppercase",
+                            letterSpacing: "widest",
+                            border: "1px solid",
+                            borderColor: `${getStatusColor(scan.status)}/20`,
+                            bg: `${getStatusColor(scan.status)}/10`,
+                            color: getStatusColor(scan.status),
+                          })}
                         >
                           {STATUS_DETAILS[scan.status]?.label || scan.status}
                         </span>
-                        <div className="flex items-center text-[10px] text-gray-500">
-                          <Clock className="w-3 h-3 mr-1" />
+                        <div
+                          className={flex({
+                            align: "center",
+                            fontSize: "[10px]",
+                            color: "gray.500",
+                          })}
+                        >
+                          <Clock className={css({ w: "3", h: "3", mr: "1" })} />
                           {formatDate(scan.started_at)}
                         </div>
                       </div>
-                      <p className="text-sm font-medium text-white truncate group-hover:text-cyan-100 transition-colors mb-0.5">
+                      <p
+                        className={css({
+                          fontSize: "sm",
+                          fontWeight: "medium",
+                          color: "text.bright",
+                          textOverflow: "ellipsis",
+                          overflow: "hidden",
+                          whiteSpace: "nowrap",
+                          mb: "0.5",
+                        })}
+                      >
                         {scan.target_image}
                       </p>
-                      <p className="font-mono text-[10px] text-gray-500 truncate">
-                        ID: {scan.id.split("-")[0]}...
-                      </p>
+                      <div className={flex({ align: "center", gap: "2" })}>
+                        <p
+                          className={css({
+                            fontFamily: "mono",
+                            fontSize: "[10px]",
+                            color: "gray.500",
+                            textOverflow: "ellipsis",
+                            overflow: "hidden",
+                            whiteSpace: "nowrap",
+                          })}
+                        >
+                          ID: {scan.id.split("-")[0]}...
+                        </p>
+                        {scan.company_name && (
+                          <span
+                            className={css({
+                              fontSize: "[10px]",
+                              color: "brand.accent",
+                              fontWeight: "black",
+                              textTransform: "uppercase",
+                              letterSpacing: "tighter",
+                            })}
+                          >
+                            • {scan.company_name}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-cyan-400 self-center transition-colors transform group-hover:translate-x-1" />
+                    <ChevronRight
+                      className={css({
+                        w: "4",
+                        h: "4",
+                        color: "gray.600",
+                        alignSelf: "center",
+                        transition: "all",
+                        _groupHover: {
+                          color: "brand.primary",
+                          transform: "translateX(4px)",
+                        },
+                      })}
+                    />
                   </button>
                 ))}
               </div>

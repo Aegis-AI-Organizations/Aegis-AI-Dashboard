@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Lock, X } from "lucide-react";
+import { css } from "styled-system/css";
+import { flex } from "styled-system/patterns";
 
 interface PasswordPromptModalProps {
   isOpen: boolean;
@@ -57,7 +59,18 @@ export const PasswordPromptModal: React.FC<PasswordPromptModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className={css({
+        position: "fixed",
+        inset: "0",
+        zIndex: "9999",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        p: "4",
+        bg: "black/60",
+        backdropBlur: "sm",
+        animation: "fadeIn 0.2s ease-out",
+      })}
       onClick={onClose}
     >
       <div
@@ -65,36 +78,75 @@ export const PasswordPromptModal: React.FC<PasswordPromptModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="bg-[#0B0D13] border border-gray-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200"
+        className={css({
+          bg: "bg.card",
+          border: "1px solid",
+          borderColor: "whiteAlpha.100",
+          borderRadius: "xl",
+          boxShadow: "2xl",
+          maxW: "md",
+          w: "full",
+          overflow: "hidden",
+          animation: "zoomIn 0.2s ease-out",
+        })}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 rounded-full bg-cyan-500/10 border border-cyan-500/20">
-              <Lock className="w-6 h-6 text-cyan-400" />
+        <div className={css({ p: "6" })}>
+          <div className={flex({ align: "center", gap: "4", mb: "4" })}>
+            <div
+              className={css({
+                p: "3",
+                borderRadius: "full",
+                bg: "brand.primary/10",
+                border: "1px solid",
+                borderColor: "brand.primary/20",
+              })}
+            >
+              <Lock
+                className={css({ w: "6", h: "6", color: "brand.primary" })}
+              />
             </div>
             <div>
               <h3
                 id="modal-title"
-                className="text-lg font-semibold text-white tracking-tight"
+                className={css({
+                  fontSize: "lg",
+                  fontWeight: "semibold",
+                  color: "white",
+                  letterSpacing: "tight",
+                })}
               >
                 {title}
               </h3>
             </div>
             <button
               onClick={onClose}
-              className="ml-auto p-1.5 text-gray-500 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
+              className={css({
+                ml: "auto",
+                p: "1.5",
+                color: "gray.500",
+                _hover: { color: "white", bg: "whiteAlpha.100" },
+                borderRadius: "lg",
+                transition: "colors",
+              })}
               aria-label="Fermer la modale"
             >
-              <X className="w-5 h-5" />
+              <X className={css({ w: "5", h: "5" })} />
             </button>
           </div>
 
-          <p className="text-gray-400 text-sm leading-relaxed mb-6">
+          <p
+            className={css({
+              color: "text.muted",
+              fontSize: "sm",
+              lineHeight: "relaxed",
+              mb: "6",
+            })}
+          >
             {message}
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className={css({ spaceY: "6" })}>
             <input
               ref={inputRef}
               type="password"
@@ -102,21 +154,63 @@ export const PasswordPromptModal: React.FC<PasswordPromptModalProps> = ({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Votre mot de passe actuel"
-              className="w-full bg-gray-900 border border-gray-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
+              className={css({
+                w: "full",
+                bg: "whiteAlpha.50",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+                color: "white",
+                borderRadius: "xl",
+                px: "4",
+                py: "3",
+                _focus: {
+                  outline: "none",
+                  borderColor: "brand.primary",
+                  ring: "2px",
+                  ringColor: "brand.primary/20",
+                },
+                transition: "all",
+              })}
             />
 
-            <div className="flex items-center gap-3">
+            <div className={flex({ align: "center", gap: "3" })}>
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors border border-gray-700"
+                className={css({
+                  flex: "1",
+                  px: "4",
+                  py: "2",
+                  bg: "whiteAlpha.100",
+                  _hover: { bg: "whiteAlpha.200" },
+                  color: "white",
+                  fontSize: "sm",
+                  fontWeight: "medium",
+                  borderRadius: "lg",
+                  transition: "colors",
+                  border: "1px solid",
+                  borderColor: "whiteAlpha.100",
+                })}
               >
                 {cancelText}
               </button>
               <button
                 type="submit"
                 disabled={!password}
-                className="flex-1 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors shadow-lg shadow-cyan-900/20"
+                className={css({
+                  flex: "1",
+                  px: "4",
+                  py: "2",
+                  bg: "brand.primary",
+                  _hover: { bg: "cyan.500" },
+                  _disabled: { opacity: "50", cursor: "not-allowed" },
+                  color: "white",
+                  fontSize: "sm",
+                  fontWeight: "medium",
+                  borderRadius: "lg",
+                  transition: "colors",
+                  boxShadow: "0 4px 12px rgba(0, 242, 255, 0.2)",
+                })}
               >
                 {submitText}
               </button>
