@@ -17,6 +17,9 @@ vi.mock("../pages/Settings", () => ({
 vi.mock("../pages/Login", () => ({
   Login: () => <div>login-page</div>,
 }));
+vi.mock("../pages/SetupPassword", () => ({
+  SetupPassword: () => <div>setup-password-page</div>,
+}));
 
 // Mock AuthHydrator to be a transparent passthrough
 vi.mock("../components/auth/AuthHydrator", () => ({
@@ -62,5 +65,15 @@ describe("App routes", () => {
     );
 
     expect(screen.getByText(expectedText)).toBeInTheDocument();
+  });
+
+  it("renders setup-password as a public route", () => {
+    render(
+      <MemoryRouter initialEntries={["/setup-password?token=aegis_inv_valid"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("setup-password-page")).toBeInTheDocument();
   });
 });

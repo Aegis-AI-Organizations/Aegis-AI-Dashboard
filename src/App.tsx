@@ -7,6 +7,7 @@ import { Settings } from "./pages/Settings";
 import { Billing } from "./pages/Billing";
 import { Audit } from "./pages/Audit";
 import { Login } from "./pages/Login";
+import { SetupPassword } from "./pages/SetupPassword";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { RoleRoute } from "./components/auth/RoleRoute";
 import { AuthHydrator } from "./components/auth/AuthHydrator";
@@ -17,6 +18,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/setup-password" element={<SetupPassword />} />
 
         {/* Protected Routes */}
         <Route element={<ProtectedRoute />}>
