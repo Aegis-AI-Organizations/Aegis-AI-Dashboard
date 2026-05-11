@@ -13,6 +13,8 @@ import {
   Camera,
   Trash2,
   Copy,
+  RefreshCw,
+  KeyRound,
 } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
@@ -64,10 +66,22 @@ export const Settings: React.FC = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [agentTokenLoading, setAgentTokenLoading] = useState<
+    "rotate" | "revoke" | null
+  >(null);
+  const [agentTokenMessage, setAgentTokenMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [rotatedAgentToken, setRotatedAgentToken] = useState("");
 
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<"name" | "email" | null>(
     null,
+  );
+
+  const canManageAgentToken = ["owner", "admin", "superadmin"].includes(
+    user?.role || "",
   );
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,6 +262,61 @@ export const Settings: React.FC = () => {
     } finally {
       setPasswordLoading(false);
     }
+  };
+
+  const handleRotateAgentToken = async () => {
+    setAgentTokenLoading("rotate");
+    setAgentTokenMessage(null);
+    setRotatedAgentToken("");
+
+    try {
+      const { data } = await api.post("/companies/me/agent-token/rotate");
+      setRotatedAgentToken(data.agent_token || "");
+      setAgentTokenMessage({
+        type: "success",
+        text: "Nouveau token généré. Copiez-le maintenant.",
+      });
+    } catch (err: any) {
+      setAgentTokenMessage({
+        type: "error",
+        text:
+          err.response?.data?.error ||
+          "Impossible de générer un nouveau token agent",
+      });
+    } finally {
+      setAgentTokenLoading(null);
+    }
+  };
+
+  const handleRevokeAgentToken = async () => {
+    setAgentTokenLoading("revoke");
+    setAgentTokenMessage(null);
+
+    try {
+      await api.post("/companies/me/agent-token/revoke");
+      setRotatedAgentToken("");
+      setAgentTokenMessage({
+        type: "success",
+        text: "Token agent révoqué.",
+      });
+    } catch (err: any) {
+      setAgentTokenMessage({
+        type: "error",
+        text:
+          err.response?.data?.error || "Impossible de révoquer le token agent",
+      });
+    } finally {
+      setAgentTokenLoading(null);
+    }
+  };
+
+  const copyRotatedAgentToken = async () => {
+    if (!rotatedAgentToken) return;
+    await navigator.clipboard.writeText(rotatedAgentToken);
+    setAgentTokenMessage({
+      type: "success",
+      text: "Token copié.",
+    });
   };
 
   const tabs: { id: SettingsTab; label: string; icon: any }[] = [
@@ -1217,6 +1286,224 @@ export const Settings: React.FC = () => {
                   </button>
                 </form>
               </section>
+
+              {canManageAgentToken && (
+                <section
+                  className={cx(
+                    card(),
+                    css({
+                      p: "10",
+                      borderRadius: "3xl",
+                      "& > * + *": { mt: "8" },
+                    }),
+                  )}
+                >
+                  <div
+                    className={flex({
+                      direction: { base: "column", md: "row" },
+                      justify: "space-between",
+                      align: { base: "start", md: "center" },
+                      gap: "6",
+                    })}
+                  >
+                    <div className={css({ "& > * + *": { mt: "2" } })}>
+                      <div
+                        className={flex({
+                          align: "center",
+                          gap: "3",
+                          color: "brand.primary",
+                          fontSize: "xs",
+                          fontWeight: "900",
+                          textTransform: "uppercase",
+                          letterSpacing: "widest",
+                        })}
+                      >
+                        <KeyRound className={css({ w: "4", h: "4" })} />
+                        Token agent
+                      </div>
+                      <h3
+                        className={css({
+                          color: "white",
+                          fontWeight: "900",
+                          fontSize: "2xl",
+                        })}
+                      >
+                        Rotation et révocation
+                      </h3>
+                      <p
+                        className={css({
+                          color: "text.muted",
+                          maxW: "2xl",
+                          fontWeight: "medium",
+                        })}
+                      >
+                        Le token clair n'est jamais affiché en continu. Après
+                        rotation, il est visible une seule fois pour mettre à
+                        jour l'agent déployé.
+                      </p>
+                    </div>
+
+                    <div
+                      className={flex({
+                        direction: { base: "column", sm: "row" },
+                        gap: "3",
+                        w: { base: "full", md: "auto" },
+                      })}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleRotateAgentToken}
+                        disabled={agentTokenLoading !== null}
+                        className={flex({
+                          align: "center",
+                          justify: "center",
+                          gap: "3",
+                          px: "6",
+                          py: "4",
+                          bg: "brand.primary",
+                          color: "white",
+                          fontWeight: "900",
+                          borderRadius: "2xl",
+                          textTransform: "uppercase",
+                          fontSize: "xs",
+                          letterSpacing: "widest",
+                          _disabled: { opacity: 0.6, cursor: "not-allowed" },
+                        })}
+                      >
+                        {agentTokenLoading === "rotate" ? (
+                          <Loader2
+                            className={css({
+                              w: "4",
+                              h: "4",
+                              animation: "spin 1s linear infinite",
+                            })}
+                          />
+                        ) : (
+                          <RefreshCw className={css({ w: "4", h: "4" })} />
+                        )}
+                        Régénérer
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleRevokeAgentToken}
+                        disabled={agentTokenLoading !== null}
+                        className={flex({
+                          align: "center",
+                          justify: "center",
+                          gap: "3",
+                          px: "6",
+                          py: "4",
+                          bg: "red.500/10",
+                          color: "red.300",
+                          border: "1px solid",
+                          borderColor: "red.500/20",
+                          fontWeight: "900",
+                          borderRadius: "2xl",
+                          textTransform: "uppercase",
+                          fontSize: "xs",
+                          letterSpacing: "widest",
+                          _disabled: { opacity: 0.6, cursor: "not-allowed" },
+                        })}
+                      >
+                        {agentTokenLoading === "revoke" ? (
+                          <Loader2
+                            className={css({
+                              w: "4",
+                              h: "4",
+                              animation: "spin 1s linear infinite",
+                            })}
+                          />
+                        ) : (
+                          <Trash2 className={css({ w: "4", h: "4" })} />
+                        )}
+                        Révoquer
+                      </button>
+                    </div>
+                  </div>
+
+                  {rotatedAgentToken && (
+                    <div
+                      className={flex({
+                        direction: { base: "column", md: "row" },
+                        align: { base: "stretch", md: "center" },
+                        gap: "4",
+                        p: "5",
+                        bg: "whiteAlpha.50",
+                        border: "1px solid",
+                        borderColor: "brand.primary/30",
+                        borderRadius: "2xl",
+                      })}
+                    >
+                      <code
+                        className={css({
+                          flex: "1",
+                          color: "white",
+                          fontSize: "sm",
+                          fontFamily: "mono",
+                          overflowWrap: "anywhere",
+                        })}
+                      >
+                        {rotatedAgentToken}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={copyRotatedAgentToken}
+                        className={flex({
+                          align: "center",
+                          justify: "center",
+                          gap: "2",
+                          px: "5",
+                          py: "3",
+                          bg: "whiteAlpha.100",
+                          color: "white",
+                          borderRadius: "xl",
+                          fontWeight: "900",
+                          textTransform: "uppercase",
+                          fontSize: "10px",
+                          letterSpacing: "widest",
+                        })}
+                      >
+                        <Copy className={css({ w: "3.5", h: "3.5" })} />
+                        Copier
+                      </button>
+                    </div>
+                  )}
+
+                  {agentTokenMessage && (
+                    <div
+                      className={flex({
+                        p: "4",
+                        borderRadius: "xl",
+                        align: "center",
+                        gap: "3",
+                        fontSize: "sm",
+                        fontWeight: "bold",
+                        bg:
+                          agentTokenMessage.type === "success"
+                            ? "emerald.500/10"
+                            : "red.500/10",
+                        color:
+                          agentTokenMessage.type === "success"
+                            ? "emerald.400"
+                            : "red.400",
+                        border: "1px solid",
+                        borderColor:
+                          agentTokenMessage.type === "success"
+                            ? "emerald.500/20"
+                            : "red.500/20",
+                      })}
+                    >
+                      {agentTokenMessage.type === "success" ? (
+                        <CheckCircle2 className={css({ w: "4", h: "4" })} />
+                      ) : (
+                        <AlertCircle className={css({ w: "4", h: "4" })} />
+                      )}{" "}
+                      {agentTokenMessage.text}
+                    </div>
+                  )}
+                </section>
+              )}
             </div>
           )}
 
