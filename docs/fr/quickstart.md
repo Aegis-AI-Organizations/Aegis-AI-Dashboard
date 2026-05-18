@@ -43,6 +43,8 @@ npm run dev
 
 Le dashboard sera accessible sur `http://localhost:5173` avec Vite, ou sur `http://localhost:3000` via le `local-dev` Docker Compose.
 
+Le tableau de bord consomme aussi `GET /api/agents/status` pour afficher la carte d'état des agents avec le total, les agents actifs, les agents inactifs et la dernière remontée.
+
 ### Lancement via Docker
 
 Si vous préférez utiliser Docker, vous pouvez construire et lancer l'image :

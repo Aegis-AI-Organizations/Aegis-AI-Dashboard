@@ -1,6 +1,7 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { useCreateScan } from "../hooks/useCreateScan";
+import { useAgentStatus } from "../hooks/useAgentStatus";
 import { useDownloadReport } from "../hooks/useDownloadReport";
 import { useEvidences } from "../hooks/useEvidences";
 import { useScanPolling } from "../hooks/useScanPolling";
@@ -110,6 +111,39 @@ describe("dashboard hooks", () => {
         "Impossible de charger l'historique des pentests.",
       );
     });
+  });
+
+  it("loads agent status summary", async () => {
+    (api.get as any).mockResolvedValueOnce({
+      data: {
+        total_agents: 2,
+        active_agents: 1,
+        inactive_agents: 1,
+        last_seen: "2026-05-18T09:00:00.000Z",
+      },
+    });
+
+    const { result } = renderHook(() => useAgentStatus());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(api.get).toHaveBeenCalledWith("/agents/status");
+    expect(result.current.summary.total_agents).toBe(2);
+    expect(result.current.summary.active_agents).toBe(1);
+    expect(result.current.summary.inactive_agents).toBe(1);
+    expect(result.current.error).toBeNull();
+  });
+
+  it("exposes a friendly agent status error message on fetch failure", async () => {
+    (api.get as any).mockRejectedValueOnce(new Error("boom"));
+
+    const { result } = renderHook(() => useAgentStatus());
+
+    await waitFor(() => {
+      expect(result.current.error).toBe(
+        "Impossible de charger l'etat des agents.",
+      );
+    });
+    expect(result.current.summary.total_agents).toBe(0);
   });
 
   it("creates a scan and reports validation or API failures", async () => {
