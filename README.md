@@ -14,6 +14,7 @@ The Dashboard handles all user-facing interactions and visualizes the massive da
 - **Vulnerability Vault**: Deep-dive into discovered CVEs with technical evidence and loot.
 - **Remediation Hub**: Automated patch generation and GitOps-driven deployment triggers.
 - **Administration Dashboard**: Post-payment onboarding workflow for new organizations, first-login owner activation, and agent token management.
+- **Agent Status Overview**: Dashboard card showing deployed, active, inactive agents and their last heartbeat.
 - **Profile Settings**: Self-service user profile management (Email, Password, Avatar).
 
 ```mermaid
