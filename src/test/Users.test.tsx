@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Users } from "../pages/Users";
+import { SuccessModal, Users } from "../pages/Users";
 import { api } from "../api/Axios";
 import { useAuthStore } from "../store/AuthStore";
 import { MemoryRouter } from "react-router-dom";
@@ -169,5 +169,26 @@ describe("Users Page", () => {
     );
     expect(screen.getByText("Créer un Utilisateur")).toBeInTheDocument();
     expect(screen.queryByText("Nouvelle Entreprise")).toBeNull();
+  });
+
+  it("shows the first-login email state after onboarding without deployment token", () => {
+    render(
+      <SuccessModal
+        data={{
+          company_name: "Client Corp",
+          company_id: "comp-2",
+          owner_id: "owner-2",
+          owner_email: "owner@client.com",
+          deployment_token: "",
+        }}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText("Invitation première connexion"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/owner@client.com/)).toBeInTheDocument();
+    expect(screen.queryByText("Token de Déploiement")).toBeNull();
   });
 });
