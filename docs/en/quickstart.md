@@ -31,7 +31,7 @@ Le dashboard Aegis est une application React/Vite. Pour le lancer en environneme
    ```bash
    cp .env.example .env
    ```
-   _Assurez-vous que `VITE_API_GATEWAY_URL` pointe bien vers votre instance locale de l'API (ex: `http://localhost:8080`)._
+   _Assurez-vous que `VITE_API_URL` pointe bien vers votre instance locale de l'API (ex: `http://localhost:8080/api`)._
 
 ### Lancement
 
@@ -41,7 +41,7 @@ Démarrer le serveur de développement avec Hot-Reload :
 npm run dev
 ```
 
-Le dashboard sera accessible sur `http://localhost:5173`.
+Le dashboard sera accessible sur `http://localhost:5173` avec Vite, ou sur `http://localhost:3000` via le `local-dev` Docker Compose.
 
 ### Lancement via Docker
 
