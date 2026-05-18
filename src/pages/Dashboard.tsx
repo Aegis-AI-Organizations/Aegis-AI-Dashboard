@@ -1,7 +1,16 @@
 import React from "react";
 import { LaunchpadForm } from "../components/LaunchpadForm";
+import { useAgentStatus } from "../hooks/useAgentStatus";
 import { useScans } from "../hooks/useScans";
-import { ShieldAlert, ChevronRight, Clock, Box } from "lucide-react";
+import {
+  Activity,
+  Box,
+  ChevronRight,
+  Clock,
+  RadioTower,
+  ShieldAlert,
+  WifiOff,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { STATUS_DETAILS } from "../constants/scan";
@@ -18,6 +27,11 @@ import {
 
 export const Dashboard: React.FC = () => {
   const { scans, isLoading, error, refetch } = useScans();
+  const {
+    summary: agentSummary,
+    isLoading: isAgentStatusLoading,
+    error: agentStatusError,
+  } = useAgentStatus();
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
 
@@ -37,6 +51,14 @@ export const Dashboard: React.FC = () => {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Date inconnue";
+    return new Intl.DateTimeFormat("fr-FR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(dateString));
+  };
+
+  const formatAgentLastSeen = (dateString?: string | null) => {
+    if (!dateString) return "Aucune remontee";
     return new Intl.DateTimeFormat("fr-FR", {
       dateStyle: "short",
       timeStyle: "short",
@@ -64,6 +86,195 @@ export const Dashboard: React.FC = () => {
           alignItems: "start",
         })}
       >
+        <div className={css({ width: "full", maxWidth: "xl" })}>
+          <div className={css({ mb: "2" })}>
+            <h2 className={sectionTitle()}>Etat des agents</h2>
+          </div>
+
+          <div className={card()}>
+            {isAgentStatusLoading ? (
+              <div
+                className={flex({
+                  align: "center",
+                  justify: "center",
+                  minH: "32",
+                  color: "text.muted",
+                  fontSize: "sm",
+                })}
+              >
+                Chargement des agents...
+              </div>
+            ) : agentStatusError ? (
+              <div
+                className={css({
+                  color: "red.400/80",
+                  fontSize: "sm",
+                  textAlign: "center",
+                  py: "8",
+                })}
+              >
+                Impossible de charger l'etat des agents.
+              </div>
+            ) : (
+              <div className={css({ "& > * + *": { mt: "6" } })}>
+                <div
+                  className={flex({
+                    align: "center",
+                    justify: "space-between",
+                    gap: "4",
+                  })}
+                >
+                  <div>
+                    <p
+                      className={css({
+                        color: "text.muted",
+                        fontSize: "xs",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                      })}
+                    >
+                      Agents deployes
+                    </p>
+                    <p
+                      className={css({
+                        color: "text.bright",
+                        fontSize: "4xl",
+                        fontWeight: "black",
+                        lineHeight: "1",
+                        mt: "2",
+                      })}
+                    >
+                      {agentSummary.total_agents}
+                    </p>
+                  </div>
+                  <div
+                    className={css({
+                      p: "3",
+                      borderRadius: "lg",
+                      bg: "cyan.500/10",
+                      border: "1px solid",
+                      borderColor: "cyan.400/20",
+                    })}
+                  >
+                    <RadioTower
+                      className={css({ w: "6", h: "6", color: "cyan.300" })}
+                    />
+                  </div>
+                </div>
+
+                <div
+                  className={grid({
+                    columns: 2,
+                    gap: "3",
+                  })}
+                >
+                  <div
+                    className={css({
+                      border: "1px solid",
+                      borderColor: "emerald.400/20",
+                      bg: "emerald.400/5",
+                      borderRadius: "md",
+                      p: "4",
+                    })}
+                  >
+                    <div className={flex({ align: "center", gap: "2" })}>
+                      <Activity
+                        className={css({
+                          w: "4",
+                          h: "4",
+                          color: "emerald.300",
+                        })}
+                      />
+                      <span
+                        className={css({
+                          color: "text.muted",
+                          fontSize: "xs",
+                          fontWeight: "bold",
+                        })}
+                      >
+                        Actifs
+                      </span>
+                    </div>
+                    <p
+                      className={css({
+                        color: "emerald.300",
+                        fontSize: "2xl",
+                        fontWeight: "black",
+                        mt: "2",
+                      })}
+                    >
+                      {agentSummary.active_agents}
+                    </p>
+                  </div>
+
+                  <div
+                    className={css({
+                      border: "1px solid",
+                      borderColor: "orange.400/20",
+                      bg: "orange.400/5",
+                      borderRadius: "md",
+                      p: "4",
+                    })}
+                  >
+                    <div className={flex({ align: "center", gap: "2" })}>
+                      <WifiOff
+                        className={css({
+                          w: "4",
+                          h: "4",
+                          color: "orange.300",
+                        })}
+                      />
+                      <span
+                        className={css({
+                          color: "text.muted",
+                          fontSize: "xs",
+                          fontWeight: "bold",
+                        })}
+                      >
+                        Inactifs
+                      </span>
+                    </div>
+                    <p
+                      className={css({
+                        color: "orange.300",
+                        fontSize: "2xl",
+                        fontWeight: "black",
+                        mt: "2",
+                      })}
+                    >
+                      {agentSummary.inactive_agents}
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  className={flex({
+                    align: "center",
+                    justify: "space-between",
+                    gap: "3",
+                    color: "text.muted",
+                    fontSize: "xs",
+                    borderTop: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                    pt: "4",
+                  })}
+                >
+                  <span>Derniere remontee</span>
+                  <span
+                    className={css({
+                      color: "text.bright",
+                      fontWeight: "semibold",
+                      textAlign: "right",
+                    })}
+                  >
+                    {formatAgentLastSeen(agentSummary.last_seen)}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Launchpad Form on the left/top - Only for roles with scan permission */}
         {canScan && (
           <div className={css({ width: "full", maxWidth: "xl" })}>

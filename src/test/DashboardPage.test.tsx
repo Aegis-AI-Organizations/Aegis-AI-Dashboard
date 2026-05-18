@@ -1,10 +1,11 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Dashboard } from "../pages/Dashboard";
 
 const navigate = vi.fn();
 const useScans = vi.fn();
+const useAgentStatus = vi.fn();
 
 vi.mock("react-router-dom", async () => {
   const actual =
@@ -21,6 +22,10 @@ vi.mock("../hooks/useScans", () => ({
   useScans: () => useScans(),
 }));
 
+vi.mock("../hooks/useAgentStatus", () => ({
+  useAgentStatus: () => useAgentStatus(),
+}));
+
 vi.mock("../hooks/useScanStream", () => ({
   useScanStream: vi.fn(),
 }));
@@ -30,6 +35,20 @@ vi.mock("../components/LaunchpadForm", () => ({
 }));
 
 describe("Dashboard page", () => {
+  beforeEach(() => {
+    useAgentStatus.mockReturnValue({
+      summary: {
+        total_agents: 3,
+        active_agents: 2,
+        inactive_agents: 1,
+        last_seen: "2026-05-18T09:00:00.000Z",
+      },
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+  });
+
   it("renders empty and populated recent scans states", () => {
     useScans.mockReturnValueOnce({
       scans: [],
@@ -45,6 +64,13 @@ describe("Dashboard page", () => {
     );
 
     expect(screen.getByText("Aucun scan récent trouvé.")).toBeInTheDocument();
+    expect(screen.getByText("Etat des agents")).toBeInTheDocument();
+    expect(screen.getByText("Agents deployes")).toBeInTheDocument();
+    expect(screen.getByText("Actifs")).toBeInTheDocument();
+    expect(screen.getByText("Inactifs")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText("1")).toBeInTheDocument();
 
     useScans.mockReturnValueOnce({
       scans: [
