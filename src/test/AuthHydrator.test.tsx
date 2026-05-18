@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AuthHydrator } from "../components/auth/AuthHydrator";
 import { api } from "../api/Axios";
@@ -12,6 +13,13 @@ vi.mock("../api/Axios", () => ({
 }));
 
 describe("AuthHydrator Component", () => {
+  const renderWithRouter = (initialPath = "/") =>
+    render(
+      <MemoryRouter initialEntries={[initialPath]}>
+        <AuthHydrator>Content</AuthHydrator>
+      </MemoryRouter>,
+    );
+
   beforeEach(() => {
     vi.clearAllMocks();
     useAuthStore.setState({
@@ -26,7 +34,7 @@ describe("AuthHydrator Component", () => {
       data: { access_token: "tok", user: { name: "John" } },
     });
 
-    render(<AuthHydrator>Content</AuthHydrator>);
+    renderWithRouter();
 
     expect(screen.getByText(/Initialisation du Système/i)).toBeInTheDocument();
 
@@ -39,10 +47,20 @@ describe("AuthHydrator Component", () => {
   it("handles hydration failure gracefully", async () => {
     vi.mocked(api.post).mockRejectedValue(new Error("Unauthorized"));
 
-    render(<AuthHydrator>Content</AuthHydrator>);
+    renderWithRouter();
 
     await waitFor(() => {
       expect(screen.getByText("Content")).toBeInTheDocument();
+      expect(useAuthStore.getState().isHydrating).toBe(false);
+    });
+  });
+
+  it("skips hydration on public routes", async () => {
+    renderWithRouter("/login");
+
+    await waitFor(() => {
+      expect(screen.getByText("Content")).toBeInTheDocument();
+      expect(api.post).not.toHaveBeenCalled();
       expect(useAuthStore.getState().isHydrating).toBe(false);
     });
   });
