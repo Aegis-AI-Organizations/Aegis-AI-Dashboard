@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/AuthStore";
 import { api } from "../../api/Axios";
 import { LoadingPage } from "../ui/LoadingPage";
@@ -14,12 +15,21 @@ interface AuthHydratorProps {
  * Uses the shared 'api' instance for consistent baseURL and withCredentials.
  */
 export const AuthHydrator: React.FC<AuthHydratorProps> = ({ children }) => {
+  const location = useLocation();
   const isHydrating = useAuthStore((s) => s.isHydrating);
   const setAuth = useAuthStore((s) => s.setAuth);
   const setHydrating = useAuthStore((s) => s.setHydrating);
   const hasAttempted = useRef(false);
 
   useEffect(() => {
+    if (
+      location.pathname === "/login" ||
+      location.pathname === "/setup-password"
+    ) {
+      setHydrating(false);
+      return;
+    }
+
     if (hasAttempted.current) return;
     hasAttempted.current = true;
 
@@ -55,7 +65,7 @@ export const AuthHydrator: React.FC<AuthHydratorProps> = ({ children }) => {
     };
 
     hydrate();
-  }, [setAuth, setHydrating]);
+  }, [location.pathname, setAuth, setHydrating]);
 
   if (isHydrating) {
     return <LoadingPage />;

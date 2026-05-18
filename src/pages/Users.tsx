@@ -765,7 +765,6 @@ export const CreateCompanyModal: React.FC<{
     company_name: "",
     owner_name: "",
     owner_email: "",
-    owner_password: "",
     plan_id: "pro",
   });
 
@@ -775,7 +774,11 @@ export const CreateCompanyModal: React.FC<{
     setError(null);
     try {
       const { data } = await api.post("/companies/onboard", formData);
-      onSuccess({ ...data, company_name: formData.company_name });
+      onSuccess({
+        ...data,
+        company_name: formData.company_name,
+        owner_email: formData.owner_email,
+      });
     } catch (err: any) {
       setError(err.response?.data?.error || "Erreur lors de l'onboarding");
     } finally {
@@ -949,31 +952,6 @@ export const CreateCompanyModal: React.FC<{
                       setFormData({ ...formData, owner_email: e.target.value })
                     }
                     placeholder="Email professionnel"
-                    className={css({
-                      w: "full",
-                      bg: "whiteAlpha.50",
-                      border: "1px solid",
-                      borderColor: "whiteAlpha.100",
-                      color: "white",
-                      borderRadius: "2xl",
-                      px: "6",
-                      py: "4",
-                      _focus: { borderColor: "indigo.500", outline: "none" },
-                      transition: "all",
-                      fontWeight: "bold",
-                    })}
-                  />
-                  <input
-                    required
-                    type="password"
-                    value={formData.owner_password}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        owner_password: e.target.value,
-                      })
-                    }
-                    placeholder="Mot de passe initial"
                     className={css({
                       w: "full",
                       bg: "whiteAlpha.50",
@@ -1529,58 +1507,102 @@ export const SuccessModal: React.FC<{ data: any; onClose: () => void }> = ({
         </p>
 
         <div className={css({ spaceY: "4", textAlign: "left" })}>
-          <div
-            className={css({
-              bgGradient: "to-br",
-              gradientFrom: "bg.main",
-              gradientTo: "whiteAlpha.50",
-              border: "1px solid",
-              borderColor: "brand.primary/20",
-              borderRadius: "3xl",
-              p: "8",
-              position: "relative",
-              overflow: "hidden",
-            })}
-          >
-            <h3
-              className={flex({
-                fontSize: "10px",
-                fontWeight: "900",
-                color: "brand.primary",
-                textTransform: "uppercase",
-                letterSpacing: "widest",
-                mb: "2",
-                align: "center",
-                gap: "2",
-              })}
-            >
-              <Terminal className={css({ w: "4", h: "4" })} /> Token de
-              Déploiement
-            </h3>
-            <code
+          {data.deployment_token ? (
+            <div
               className={css({
-                fontSize: "xl",
-                color: "white",
-                fontFamily: "mono",
-                display: "block",
-                wordBreak: "break-all",
-                mb: "6",
+                bgGradient: "to-br",
+                gradientFrom: "bg.main",
+                gradientTo: "whiteAlpha.50",
+                border: "1px solid",
+                borderColor: "brand.primary/20",
+                borderRadius: "3xl",
+                p: "8",
+                position: "relative",
+                overflow: "hidden",
               })}
             >
-              {data.deployment_token}
-            </code>
-            <button
-              onClick={() =>
-                navigator.clipboard.writeText(data.deployment_token)
-              }
-              className={cx(
-                buttonRecipe({ variant: "primary" }),
-                css({ w: "full", py: "4!" }),
-              )}
+              <h3
+                className={flex({
+                  fontSize: "10px",
+                  fontWeight: "900",
+                  color: "brand.primary",
+                  textTransform: "uppercase",
+                  letterSpacing: "widest",
+                  mb: "2",
+                  align: "center",
+                  gap: "2",
+                })}
+              >
+                <Terminal className={css({ w: "4", h: "4" })} /> Token de
+                Déploiement
+              </h3>
+              <code
+                className={css({
+                  fontSize: "xl",
+                  color: "white",
+                  fontFamily: "mono",
+                  display: "block",
+                  wordBreak: "break-all",
+                  mb: "6",
+                })}
+              >
+                {data.deployment_token}
+              </code>
+              <button
+                onClick={() =>
+                  navigator.clipboard.writeText(data.deployment_token)
+                }
+                className={cx(
+                  buttonRecipe({ variant: "primary" }),
+                  css({ w: "full", py: "4!" }),
+                )}
+              >
+                <Copy className={css({ w: "4", h: "4" })} /> Copier le Token
+              </button>
+            </div>
+          ) : (
+            <div
+              className={css({
+                bgGradient: "to-br",
+                gradientFrom: "bg.main",
+                gradientTo: "whiteAlpha.50",
+                border: "1px solid",
+                borderColor: "emerald.500/20",
+                borderRadius: "3xl",
+                p: "8",
+              })}
             >
-              <Copy className={css({ w: "4", h: "4" })} /> Copier le Token
-            </button>
-          </div>
+              <h3
+                className={flex({
+                  fontSize: "10px",
+                  fontWeight: "900",
+                  color: "emerald.400",
+                  textTransform: "uppercase",
+                  letterSpacing: "widest",
+                  mb: "2",
+                  align: "center",
+                  gap: "2",
+                })}
+              >
+                <Mail className={css({ w: "4", h: "4" })} /> Invitation première
+                connexion
+              </h3>
+              <p
+                className={css({
+                  color: "gray.300",
+                  fontWeight: "700",
+                  lineHeight: "relaxed",
+                })}
+              >
+                Un email d'activation a été envoyé à{" "}
+                <span className={css({ color: "white" })}>
+                  {data.owner_email}
+                </span>
+                . Le token agent sera affiché une seule fois après la création
+                du mot de passe.
+              </p>
+            </div>
+          )}
           <div
             className={css({
               display: "grid",
