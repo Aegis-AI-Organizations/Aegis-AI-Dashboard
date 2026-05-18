@@ -162,6 +162,71 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
 
+                {agentSummary.total_agents === 0 && (
+                  <div
+                    className={css({
+                      border: "1px solid",
+                      borderColor: "cyan.400/20",
+                      bg: "cyan.400/5",
+                      borderRadius: "md",
+                      p: "4",
+                    })}
+                  >
+                    <div
+                      className={flex({
+                        align: { base: "stretch", sm: "center" },
+                        justify: "space-between",
+                        gap: "4",
+                        flexDir: { base: "column", sm: "row" },
+                      })}
+                    >
+                      <div>
+                        <p
+                          className={css({
+                            color: "text.bright",
+                            fontSize: "sm",
+                            fontWeight: "bold",
+                          })}
+                        >
+                          Aucun agent connecté
+                        </p>
+                        <p
+                          className={css({
+                            color: "text.muted",
+                            fontSize: "xs",
+                            mt: "1",
+                          })}
+                        >
+                          Installez une sonde pour remonter les heartbeats.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        disabled
+                        className={css({
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "2",
+                          px: "3",
+                          py: "2",
+                          minH: "10",
+                          borderRadius: "md",
+                          bg: "brand.primary",
+                          color: "white",
+                          fontSize: "sm",
+                          fontWeight: "bold",
+                          whiteSpace: "nowrap",
+                          opacity: 0.65,
+                          cursor: "not-allowed",
+                        })}
+                      >
+                        Déployer son premier agent
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div
                   className={grid({
                     columns: 2,

@@ -101,4 +101,37 @@ describe("Dashboard page", () => {
     fireEvent.click(screen.getByText(/Voir tout l'historique/i));
     expect(navigate).toHaveBeenCalledWith("/vulnerabilities");
   });
+
+  it("shows the first agent deployment CTA when no agent is deployed", () => {
+    useAgentStatus.mockReturnValue({
+      summary: {
+        total_agents: 0,
+        active_agents: 0,
+        inactive_agents: 0,
+        last_seen: null,
+      },
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    useScans.mockReturnValue({
+      scans: [],
+      isLoading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>,
+    );
+
+    const deploymentButton = screen.getByRole("button", {
+      name: /Déployer son premier agent/i,
+    });
+
+    expect(screen.getByText("Aucun agent connecté")).toBeInTheDocument();
+    expect(deploymentButton).toBeDisabled();
+  });
 });
