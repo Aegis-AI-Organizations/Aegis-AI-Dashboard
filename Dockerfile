@@ -7,7 +7,7 @@ COPY panda.config.ts ./
 RUN npm ci || npm install
 COPY . .
 
-RUN npm run build || true
+RUN npm run build
 
 FROM public.ecr.aws/nginx/nginx:alpine-slim
 COPY nginx.conf /etc/nginx/conf.d/default.conf
