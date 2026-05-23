@@ -127,11 +127,15 @@ describe("Dashboard page", () => {
       </MemoryRouter>,
     );
 
-    const deploymentButton = screen.getByRole("button", {
+    const deploymentLink = screen.getByRole("link", {
       name: /Déployer son premier agent/i,
     });
 
     expect(screen.getByText("Aucun agent connecté")).toBeInTheDocument();
-    expect(deploymentButton).toBeDisabled();
+    expect(deploymentLink).toHaveAttribute(
+      "href",
+      "https://aegis-ai-organizations.github.io/Aegis-AI-Documentation/docs/Agent/install-infrastructure",
+    );
+    expect(deploymentLink).toHaveAttribute("target", "_blank");
   });
 });
