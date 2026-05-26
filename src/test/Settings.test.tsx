@@ -396,8 +396,38 @@ describe("Settings Page", () => {
     });
   });
 
-  it("hides agent token tab for non-owners", () => {
+  it("shows client agent management to Aegis personnel only", async () => {
     mockState.user.role = "admin";
+    vi.mocked(api.get).mockImplementation((url: string) => {
+      if (url === "/admin/companies?search=") {
+        return Promise.resolve({
+          data: [
+            {
+              id: "company-1",
+              name: "Client One",
+              owner_email: "owner@client.test",
+            },
+          ],
+        });
+      }
+      if (url === "/agents?company_id=company-1") {
+        return Promise.resolve({
+          data: {
+            agents: [
+              {
+                id: "agent-1",
+                company_id: "company-1",
+                name: "Production Agent",
+                status: "RUNNING",
+                last_seen: null,
+                created_at: "2026-05-26T09:00:00Z",
+              },
+            ],
+          },
+        });
+      }
+      return Promise.reject(new Error("Not mocked"));
+    });
 
     render(
       <MemoryRouter>
@@ -406,6 +436,71 @@ describe("Settings Page", () => {
     );
 
     expect(screen.queryByText("Agents & Token")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Agents clients"));
+
+    expect(
+      await screen.findByText("Agents des entreprises clientes"),
+    ).toBeInTheDocument();
+    expect(await screen.findByText("Production Agent")).toBeInTheDocument();
+    expect(api.get).toHaveBeenCalledWith("/agents?company_id=company-1");
+  });
+
+  it("lets Aegis personnel rotate and revoke a client agent token", async () => {
+    mockState.user.role = "superadmin";
+    vi.mocked(api.get).mockImplementation((url: string) => {
+      if (url === "/admin/companies?search=") {
+        return Promise.resolve({
+          data: [{ id: "company-1", name: "Client One" }],
+        });
+      }
+      if (url === "/agents?company_id=company-1") {
+        return Promise.resolve({ data: { agents: [] } });
+      }
+      return Promise.reject(new Error("Not mocked"));
+    });
+    vi.mocked(api.post)
+      .mockResolvedValueOnce({ data: { agent_token: "ag_client-token" } })
+      .mockResolvedValueOnce({ data: {} });
+
+    render(
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText("Agents clients"));
+    expect((await screen.findAllByText("Client One")).length).toBeGreaterThan(
+      0,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Régénérer client/i }));
+
+    expect(await screen.findByText("ag_client-token")).toBeInTheDocument();
+    expect(api.post).toHaveBeenCalledWith(
+      "/admin/companies/company-1/agent-token/rotate",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Révoquer client/i }));
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(
+        "/admin/companies/company-1/agent-token/revoke",
+      );
+      expect(
+        screen.getByText("Token agent client révoqué."),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("does not expose client agent management to a company owner", () => {
+    mockState.user.role = "owner";
+
+    render(
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText("Agents clients")).not.toBeInTheDocument();
+    expect(screen.getByText("Agents & Token")).toBeInTheDocument();
   });
 
   it("shows error when passwords do not match", async () => {

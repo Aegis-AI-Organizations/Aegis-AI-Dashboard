@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import {
   User,
   Shield,
@@ -16,6 +16,8 @@ import {
   RefreshCw,
   KeyRound,
   Server,
+  Building2,
+  Search,
 } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
@@ -27,7 +29,22 @@ import { css, cx } from "styled-system/css";
 import { flex, grid, circle } from "styled-system/patterns";
 import { card, pageTitle, pageSubtitle } from "styled-system/recipes";
 
-type SettingsTab = "profil" | "securite" | "notifications" | "facturation" | "agents";
+type SettingsTab =
+  | "profil"
+  | "securite"
+  | "notifications"
+  | "facturation"
+  | "agents"
+  | "client-agents";
+
+const getApiErrorMessage = (error: unknown, fallback: string) => {
+  const message = (error as { response?: { data?: { error?: unknown } } })
+    .response?.data?.error;
+  return typeof message === "string" ? message : fallback;
+};
+
+const getApiStatus = (error: unknown) =>
+  (error as { response?: { status?: number } }).response?.status;
 
 export const Settings: React.FC = () => {
   const { user, setAuth, accessToken } = useAuthStore();
@@ -81,8 +98,6 @@ export const Settings: React.FC = () => {
     null,
   );
 
-
-
   interface Agent {
     id: string;
     company_id: string;
@@ -92,30 +107,107 @@ export const Settings: React.FC = () => {
     created_at: string;
   }
 
+  interface ManagedCompany {
+    id: string;
+    name: string;
+    owner_email?: string;
+  }
+
+  const canManageClientAgents = ["admin", "superadmin"].includes(
+    user?.role || "",
+  );
   const [agents, setAgents] = useState<Agent[]>([]);
   const [agentsLoading, setAgentsLoading] = useState(false);
   const [agentsError, setAgentsError] = useState<string | null>(null);
+  const [managedCompanies, setManagedCompanies] = useState<ManagedCompany[]>(
+    [],
+  );
+  const [companySearch, setCompanySearch] = useState("");
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [companiesLoading, setCompaniesLoading] = useState(false);
+  const [companiesError, setCompaniesError] = useState<string | null>(null);
+  const [staffTokenLoading, setStaffTokenLoading] = useState<
+    "rotate" | "revoke" | null
+  >(null);
+  const [staffTokenMessage, setStaffTokenMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [staffRotatedToken, setStaffRotatedToken] = useState("");
 
-  const fetchAgents = async () => {
+  const fetchAgents = useCallback(async (companyId?: string) => {
     setAgentsLoading(true);
     setAgentsError(null);
     try {
-      const { data } = await api.get<{ agents: Agent[] }>("/agents");
+      const url = companyId
+        ? `/agents?company_id=${encodeURIComponent(companyId)}`
+        : "/agents";
+      const { data } = await api.get<{ agents: Agent[] }>(url);
       setAgents(data.agents || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setAgentsError(
-        err.response?.data?.error || "Impossible de charger la liste des agents"
+        getApiErrorMessage(err, "Impossible de charger la liste des agents"),
       );
     } finally {
       setAgentsLoading(false);
     }
-  };
+  }, []);
+
+  const fetchManagedCompanies = useCallback(
+    async (search: string, currentCompanyId: string) => {
+      setCompaniesLoading(true);
+      setCompaniesError(null);
+      try {
+        const { data } = await api.get<ManagedCompany[]>(
+          `/admin/companies?search=${encodeURIComponent(search)}`,
+        );
+        setManagedCompanies(data || []);
+        if (!currentCompanyId && data?.length) {
+          setSelectedCompanyId(data[0].id);
+        } else if (
+          currentCompanyId &&
+          !data?.some((company) => company.id === currentCompanyId)
+        ) {
+          setSelectedCompanyId(data?.[0]?.id || "");
+        }
+      } catch (err: unknown) {
+        setManagedCompanies([]);
+        setCompaniesError(
+          getApiErrorMessage(
+            err,
+            "Impossible de charger les entreprises clientes",
+          ),
+        );
+      } finally {
+        setCompaniesLoading(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (activeTab === "agents" && user?.role === "owner") {
       fetchAgents();
     }
-  }, [activeTab, user]);
+  }, [activeTab, fetchAgents, user?.role]);
+
+  useEffect(() => {
+    if (activeTab === "client-agents" && canManageClientAgents) {
+      fetchManagedCompanies("", "");
+    }
+  }, [activeTab, canManageClientAgents, fetchManagedCompanies]);
+
+  useEffect(() => {
+    if (
+      activeTab === "client-agents" &&
+      canManageClientAgents &&
+      selectedCompanyId
+    ) {
+      fetchAgents(selectedCompanyId);
+      setStaffRotatedToken("");
+      setStaffTokenMessage(null);
+    }
+  }, [activeTab, canManageClientAgents, fetchAgents, selectedCompanyId]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -206,13 +298,13 @@ export const Settings: React.FC = () => {
 
       setNameMessage({ type: "success", text: "Profil mis à jour" });
       setName("");
-    } catch (err: any) {
-      if (err.response?.status === 401) {
+    } catch (err: unknown) {
+      if (getApiStatus(err) === 401) {
         setNameMessage({ type: "error", text: "Mot de passe incorrect" });
       } else {
         setNameMessage({
           type: "error",
-          text: err.response?.data?.error || "Erreur de sauvegarde",
+          text: getApiErrorMessage(err, "Erreur de sauvegarde"),
         });
       }
     } finally {
@@ -240,15 +332,16 @@ export const Settings: React.FC = () => {
 
       setEmailMessage({ type: "success", text: "Email mis à jour" });
       setEmail("");
-    } catch (err: any) {
-      if (err.response?.status === 401) {
+    } catch (err: unknown) {
+      if (getApiStatus(err) === 401) {
         setEmailMessage({ type: "error", text: "Mot de passe incorrect" });
       } else {
         setEmailMessage({
           type: "error",
-          text:
-            err.response?.data?.error ||
+          text: getApiErrorMessage(
+            err,
             "Erreur lors de la mise à jour de l'email",
+          ),
         });
       }
     } finally {
@@ -287,7 +380,7 @@ export const Settings: React.FC = () => {
       setNewPassword("");
       setConfirmPassword("");
       setPasswordMessage({ type: "success", text: "Mot de passe modifié" });
-    } catch (err: any) {
+    } catch {
       setPasswordMessage({
         type: "error",
         text: "Ancien mot de passe invalide",
@@ -309,12 +402,13 @@ export const Settings: React.FC = () => {
         type: "success",
         text: "Nouveau token généré. Copiez-le maintenant.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setAgentTokenMessage({
         type: "error",
-        text:
-          err.response?.data?.error ||
+        text: getApiErrorMessage(
+          err,
           "Impossible de générer un nouveau token agent",
+        ),
       });
     } finally {
       setAgentTokenLoading(null);
@@ -332,11 +426,10 @@ export const Settings: React.FC = () => {
         type: "success",
         text: "Token agent révoqué.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       setAgentTokenMessage({
         type: "error",
-        text:
-          err.response?.data?.error || "Impossible de révoquer le token agent",
+        text: getApiErrorMessage(err, "Impossible de révoquer le token agent"),
       });
     } finally {
       setAgentTokenLoading(null);
@@ -352,11 +445,83 @@ export const Settings: React.FC = () => {
     });
   };
 
-  const tabs: { id: SettingsTab; label: string; icon: any }[] = [
+  const handleRotateClientAgentToken = async () => {
+    if (!selectedCompanyId) return;
+    setStaffTokenLoading("rotate");
+    setStaffTokenMessage(null);
+    setStaffRotatedToken("");
+    try {
+      const { data } = await api.post(
+        `/admin/companies/${selectedCompanyId}/agent-token/rotate`,
+      );
+      setStaffRotatedToken(data.agent_token || "");
+      setStaffTokenMessage({
+        type: "success",
+        text: "Nouveau token client généré. Copiez-le maintenant.",
+      });
+    } catch (err: unknown) {
+      setStaffTokenMessage({
+        type: "error",
+        text: getApiErrorMessage(
+          err,
+          "Impossible de générer le token agent client",
+        ),
+      });
+    } finally {
+      setStaffTokenLoading(null);
+    }
+  };
+
+  const handleRevokeClientAgentToken = async () => {
+    if (!selectedCompanyId) return;
+    setStaffTokenLoading("revoke");
+    setStaffTokenMessage(null);
+    try {
+      await api.post(
+        `/admin/companies/${selectedCompanyId}/agent-token/revoke`,
+      );
+      setStaffRotatedToken("");
+      setStaffTokenMessage({
+        type: "success",
+        text: "Token agent client révoqué.",
+      });
+    } catch (err: unknown) {
+      setStaffTokenMessage({
+        type: "error",
+        text: getApiErrorMessage(
+          err,
+          "Impossible de révoquer le token agent client",
+        ),
+      });
+    } finally {
+      setStaffTokenLoading(null);
+    }
+  };
+
+  const copyStaffRotatedToken = async () => {
+    if (!staffRotatedToken) return;
+    await navigator.clipboard.writeText(staffRotatedToken);
+    setStaffTokenMessage({ type: "success", text: "Token client copié." });
+  };
+
+  const selectedCompany = managedCompanies.find(
+    (company) => company.id === selectedCompanyId,
+  );
+
+  const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
     { id: "profil", label: "Profil", icon: User },
     { id: "securite", label: "Sécurité", icon: Shield },
     ...(user?.role === "owner"
       ? [{ id: "agents" as SettingsTab, label: "Agents & Token", icon: Server }]
+      : []),
+    ...(canManageClientAgents
+      ? [
+          {
+            id: "client-agents" as SettingsTab,
+            label: "Agents clients",
+            icon: Building2,
+          },
+        ]
       : []),
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "facturation", label: "Facturation", icon: CreditCard },
@@ -1322,8 +1487,6 @@ export const Settings: React.FC = () => {
                   </button>
                 </form>
               </section>
-
-
             </div>
           )}
 
@@ -1375,6 +1538,596 @@ export const Settings: React.FC = () => {
             </div>
           )}
 
+          {activeTab === "client-agents" && canManageClientAgents && (
+            <div className={css({ "& > * + *": { mt: "8" } })}>
+              <section
+                className={cx(
+                  card(),
+                  css({
+                    p: "10",
+                    borderRadius: "3xl",
+                    "& > * + *": { mt: "8" },
+                  }),
+                )}
+              >
+                <div className={css({ "& > * + *": { mt: "2" } })}>
+                  <div
+                    className={flex({
+                      align: "center",
+                      gap: "3",
+                      color: "brand.primary",
+                      fontSize: "xs",
+                      fontWeight: "900",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                    })}
+                  >
+                    <Building2 className={css({ w: "4", h: "4" })} />
+                    Console Aegis personnel
+                  </div>
+                  <h3
+                    className={css({
+                      color: "white",
+                      fontWeight: "900",
+                      fontSize: "2xl",
+                    })}
+                  >
+                    Agents des entreprises clientes
+                  </h3>
+                  <p
+                    className={css({
+                      color: "text.muted",
+                      maxW: "2xl",
+                      fontWeight: "medium",
+                    })}
+                  >
+                    Consultez les agents déployés et gérez le token
+                    d'installation d'une entreprise cliente.
+                  </p>
+                </div>
+
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    fetchManagedCompanies(companySearch, selectedCompanyId);
+                  }}
+                  className={flex({
+                    direction: { base: "column", md: "row" },
+                    gap: "3",
+                  })}
+                >
+                  <label
+                    className={flex({
+                      flex: "1",
+                      align: "center",
+                      gap: "3",
+                      px: "4",
+                      py: "3",
+                      bg: "whiteAlpha.50",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                      borderRadius: "xl",
+                    })}
+                  >
+                    <Search
+                      className={css({ w: "4", h: "4", color: "text.muted" })}
+                    />
+                    <input
+                      aria-label="Rechercher une entreprise cliente"
+                      value={companySearch}
+                      onChange={(event) => setCompanySearch(event.target.value)}
+                      placeholder="Rechercher une entreprise cliente..."
+                      className={css({
+                        flex: "1",
+                        bg: "transparent",
+                        color: "white",
+                        outline: "none",
+                        fontSize: "sm",
+                      })}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={companiesLoading}
+                    className={flex({
+                      align: "center",
+                      justify: "center",
+                      gap: "2",
+                      px: "5",
+                      py: "3",
+                      bg: "brand.primary",
+                      color: "white",
+                      borderRadius: "xl",
+                      fontSize: "xs",
+                      fontWeight: "900",
+                      textTransform: "uppercase",
+                      letterSpacing: "widest",
+                      _disabled: { opacity: 0.6, cursor: "not-allowed" },
+                    })}
+                  >
+                    {companiesLoading && (
+                      <Loader2
+                        className={css({
+                          w: "4",
+                          h: "4",
+                          animation: "spin 1s linear infinite",
+                        })}
+                      />
+                    )}
+                    Rechercher
+                  </button>
+                </form>
+
+                {companiesError && (
+                  <div
+                    className={flex({
+                      align: "center",
+                      gap: "3",
+                      p: "4",
+                      bg: "red.500/10",
+                      border: "1px solid",
+                      borderColor: "red.500/20",
+                      color: "red.400",
+                      borderRadius: "xl",
+                    })}
+                  >
+                    <AlertCircle className={css({ w: "5", h: "5" })} />
+                    {companiesError}
+                  </div>
+                )}
+
+                <div
+                  className={grid({
+                    columns: { base: 1, lg: 3 },
+                    gap: "6",
+                  })}
+                >
+                  <div className={css({ "& > * + *": { mt: "3" } })}>
+                    <p
+                      className={css({
+                        color: "text.muted",
+                        fontSize: "xs",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                        letterSpacing: "wider",
+                      })}
+                    >
+                      Entreprises
+                    </p>
+                    {managedCompanies.length === 0 && !companiesLoading ? (
+                      <p
+                        className={css({ color: "text.muted", fontSize: "sm" })}
+                      >
+                        Aucune entreprise trouvée.
+                      </p>
+                    ) : (
+                      managedCompanies.map((company) => (
+                        <button
+                          key={company.id}
+                          type="button"
+                          onClick={() => setSelectedCompanyId(company.id)}
+                          className={css({
+                            w: "full",
+                            p: "4",
+                            textAlign: "left",
+                            bg:
+                              company.id === selectedCompanyId
+                                ? "brand.primary/10"
+                                : "whiteAlpha.50",
+                            border: "1px solid",
+                            borderColor:
+                              company.id === selectedCompanyId
+                                ? "brand.primary/40"
+                                : "whiteAlpha.100",
+                            borderRadius: "xl",
+                            cursor: "pointer",
+                            "& > * + *": { mt: "1" },
+                          })}
+                        >
+                          <span
+                            className={css({
+                              display: "block",
+                              color: "white",
+                              fontWeight: "bold",
+                              fontSize: "sm",
+                            })}
+                          >
+                            {company.name}
+                          </span>
+                          <span
+                            className={css({
+                              display: "block",
+                              color: "text.muted",
+                              fontSize: "xs",
+                            })}
+                          >
+                            {company.owner_email || company.id}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+
+                  <div
+                    className={css({
+                      gridColumn: { base: "auto", lg: "span 2" },
+                      "& > * + *": { mt: "5" },
+                    })}
+                  >
+                    <div
+                      className={flex({
+                        justify: "space-between",
+                        align: "center",
+                        gap: "4",
+                      })}
+                    >
+                      <div>
+                        <h4
+                          className={css({
+                            color: "white",
+                            fontSize: "lg",
+                            fontWeight: "bold",
+                          })}
+                        >
+                          {selectedCompany?.name ||
+                            "Sélectionnez une entreprise"}
+                        </h4>
+                        {selectedCompany && (
+                          <p
+                            className={css({
+                              color: "text.muted",
+                              fontSize: "xs",
+                            })}
+                          >
+                            {selectedCompany.id}
+                          </p>
+                        )}
+                      </div>
+                      {selectedCompanyId && (
+                        <button
+                          type="button"
+                          onClick={() => fetchAgents(selectedCompanyId)}
+                          disabled={agentsLoading}
+                          className={flex({
+                            align: "center",
+                            gap: "2",
+                            px: "4",
+                            py: "2.5",
+                            bg: "whiteAlpha.50",
+                            color: "white",
+                            fontSize: "xs",
+                            fontWeight: "bold",
+                            borderRadius: "xl",
+                          })}
+                        >
+                          <RefreshCw className={css({ w: "3.5", h: "3.5" })} />
+                          Actualiser
+                        </button>
+                      )}
+                    </div>
+
+                    {agentsLoading ? (
+                      <div
+                        className={flex({
+                          justify: "center",
+                          align: "center",
+                          py: "10",
+                        })}
+                      >
+                        <Loader2
+                          className={css({
+                            w: "8",
+                            h: "8",
+                            color: "brand.primary",
+                            animation: "spin 1s linear infinite",
+                          })}
+                        />
+                      </div>
+                    ) : agentsError ? (
+                      <div
+                        className={css({ color: "red.400", fontSize: "sm" })}
+                      >
+                        {agentsError}
+                      </div>
+                    ) : !selectedCompanyId ? (
+                      <div
+                        className={css({ color: "text.muted", fontSize: "sm" })}
+                      >
+                        Sélectionnez une entreprise pour afficher ses agents.
+                      </div>
+                    ) : agents.length === 0 ? (
+                      <div
+                        className={css({
+                          p: "6",
+                          color: "text.muted",
+                          fontSize: "sm",
+                          textAlign: "center",
+                          bg: "whiteAlpha.50",
+                          borderRadius: "xl",
+                        })}
+                      >
+                        Aucun agent enregistré pour cette entreprise.
+                      </div>
+                    ) : (
+                      <div className={css({ overflowX: "auto" })}>
+                        <table
+                          className={css({
+                            w: "full",
+                            borderCollapse: "collapse",
+                            textAlign: "left",
+                          })}
+                        >
+                          <thead>
+                            <tr
+                              className={css({
+                                borderBottom: "1px solid",
+                                borderColor: "whiteAlpha.100",
+                              })}
+                            >
+                              <th
+                                className={css({
+                                  pb: "3",
+                                  color: "text.muted",
+                                  fontSize: "xs",
+                                })}
+                              >
+                                Agent
+                              </th>
+                              <th
+                                className={css({
+                                  pb: "3",
+                                  color: "text.muted",
+                                  fontSize: "xs",
+                                })}
+                              >
+                                Statut
+                              </th>
+                              <th
+                                className={css({
+                                  pb: "3",
+                                  color: "text.muted",
+                                  fontSize: "xs",
+                                })}
+                              >
+                                Dernier heartbeat
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {agents.map((agent) => (
+                              <tr
+                                key={agent.id}
+                                className={css({
+                                  borderBottom: "1px solid",
+                                  borderColor: "whiteAlpha.50",
+                                })}
+                              >
+                                <td
+                                  className={css({
+                                    py: "4",
+                                    color: "white",
+                                    fontSize: "sm",
+                                  })}
+                                >
+                                  <strong>
+                                    {agent.name || "Unnamed Agent"}
+                                  </strong>
+                                  <span
+                                    className={css({
+                                      display: "block",
+                                      color: "text.muted",
+                                      fontSize: "xs",
+                                      fontFamily: "mono",
+                                    })}
+                                  >
+                                    {agent.id}
+                                  </span>
+                                </td>
+                                <td
+                                  className={css({
+                                    py: "4",
+                                    color: "white",
+                                    fontSize: "xs",
+                                  })}
+                                >
+                                  {agent.status}
+                                </td>
+                                <td
+                                  className={css({
+                                    py: "4",
+                                    color: "text.muted",
+                                    fontSize: "sm",
+                                  })}
+                                >
+                                  {agent.last_seen
+                                    ? new Date(agent.last_seen).toLocaleString()
+                                    : "Jamais"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {selectedCompany && (
+                <section
+                  className={cx(
+                    card(),
+                    css({
+                      p: "10",
+                      borderRadius: "3xl",
+                      "& > * + *": { mt: "6" },
+                    }),
+                  )}
+                >
+                  <div
+                    className={flex({
+                      direction: { base: "column", md: "row" },
+                      justify: "space-between",
+                      align: { base: "start", md: "center" },
+                      gap: "5",
+                    })}
+                  >
+                    <div className={css({ "& > * + *": { mt: "2" } })}>
+                      <div
+                        className={flex({
+                          align: "center",
+                          gap: "3",
+                          color: "brand.primary",
+                          fontSize: "xs",
+                          fontWeight: "900",
+                          textTransform: "uppercase",
+                          letterSpacing: "widest",
+                        })}
+                      >
+                        <KeyRound className={css({ w: "4", h: "4" })} />
+                        Token agent client
+                      </div>
+                      <h3
+                        className={css({
+                          color: "white",
+                          fontWeight: "900",
+                          fontSize: "xl",
+                        })}
+                      >
+                        {selectedCompany.name}
+                      </h3>
+                      <p
+                        className={css({ color: "text.muted", fontSize: "sm" })}
+                      >
+                        Le nouveau token est affiché uniquement après rotation.
+                      </p>
+                    </div>
+                    <div
+                      className={flex({
+                        gap: "3",
+                        direction: { base: "column", sm: "row" },
+                      })}
+                    >
+                      <button
+                        type="button"
+                        onClick={handleRotateClientAgentToken}
+                        disabled={staffTokenLoading !== null}
+                        className={flex({
+                          align: "center",
+                          gap: "2",
+                          px: "5",
+                          py: "3",
+                          bg: "brand.primary",
+                          color: "white",
+                          borderRadius: "xl",
+                          fontSize: "xs",
+                          fontWeight: "900",
+                          textTransform: "uppercase",
+                        })}
+                      >
+                        <RefreshCw className={css({ w: "4", h: "4" })} />
+                        Régénérer client
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRevokeClientAgentToken}
+                        disabled={staffTokenLoading !== null}
+                        className={flex({
+                          align: "center",
+                          gap: "2",
+                          px: "5",
+                          py: "3",
+                          bg: "red.500/10",
+                          color: "red.300",
+                          border: "1px solid",
+                          borderColor: "red.500/20",
+                          borderRadius: "xl",
+                          fontSize: "xs",
+                          fontWeight: "900",
+                          textTransform: "uppercase",
+                        })}
+                      >
+                        <Trash2 className={css({ w: "4", h: "4" })} />
+                        Révoquer client
+                      </button>
+                    </div>
+                  </div>
+
+                  {staffRotatedToken && (
+                    <div
+                      className={flex({
+                        align: "center",
+                        direction: { base: "column", md: "row" },
+                        gap: "4",
+                        p: "4",
+                        bg: "whiteAlpha.50",
+                        borderRadius: "xl",
+                      })}
+                    >
+                      <code
+                        className={css({
+                          flex: "1",
+                          color: "white",
+                          fontFamily: "mono",
+                          fontSize: "sm",
+                          overflowWrap: "anywhere",
+                        })}
+                      >
+                        {staffRotatedToken}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={copyStaffRotatedToken}
+                        className={flex({
+                          align: "center",
+                          gap: "2",
+                          px: "4",
+                          py: "2",
+                          bg: "whiteAlpha.100",
+                          color: "white",
+                          borderRadius: "lg",
+                          fontSize: "xs",
+                          fontWeight: "bold",
+                        })}
+                      >
+                        <Copy className={css({ w: "3.5", h: "3.5" })} />
+                        Copier token client
+                      </button>
+                    </div>
+                  )}
+
+                  {staffTokenMessage && (
+                    <div
+                      className={flex({
+                        align: "center",
+                        gap: "3",
+                        p: "4",
+                        borderRadius: "xl",
+                        fontSize: "sm",
+                        fontWeight: "bold",
+                        bg:
+                          staffTokenMessage.type === "success"
+                            ? "emerald.500/10"
+                            : "red.500/10",
+                        color:
+                          staffTokenMessage.type === "success"
+                            ? "emerald.400"
+                            : "red.400",
+                      })}
+                    >
+                      {staffTokenMessage.type === "success" ? (
+                        <CheckCircle2 className={css({ w: "4", h: "4" })} />
+                      ) : (
+                        <AlertCircle className={css({ w: "4", h: "4" })} />
+                      )}
+                      {staffTokenMessage.text}
+                    </div>
+                  )}
+                </section>
+              )}
+            </div>
+          )}
+
           {activeTab === "agents" && user?.role === "owner" && (
             <div className={css({ "& > * + *": { mt: "8" } })}>
               {/* Agent List Section */}
@@ -1388,7 +2141,12 @@ export const Settings: React.FC = () => {
                   }),
                 )}
               >
-                <div className={flex({ justify: "space-between", align: "center" })}>
+                <div
+                  className={flex({
+                    justify: "space-between",
+                    align: "center",
+                  })}
+                >
                   <div className={css({ "& > * + *": { mt: "2" } })}>
                     <div
                       className={flex({
@@ -1420,11 +2178,12 @@ export const Settings: React.FC = () => {
                         fontWeight: "medium",
                       })}
                     >
-                      Visualisez et gérez l'état de tous les agents Aegis collectant des données sur votre infrastructure.
+                      Visualisez et gérez l'état de tous les agents Aegis
+                      collectant des données sur votre infrastructure.
                     </p>
                   </div>
                   <button
-                    onClick={fetchAgents}
+                    onClick={() => fetchAgents()}
                     disabled={agentsLoading}
                     className={flex({
                       align: "center",
@@ -1440,19 +2199,51 @@ export const Settings: React.FC = () => {
                       cursor: "pointer",
                     })}
                   >
-                    <RefreshCw className={cx(css({ w: "3.5", h: "3.5" }), agentsLoading && css({ animation: "spin 1s linear infinite" }))} />
+                    <RefreshCw
+                      className={cx(
+                        css({ w: "3.5", h: "3.5" }),
+                        agentsLoading &&
+                          css({ animation: "spin 1s linear infinite" }),
+                      )}
+                    />
                     Actualiser
                   </button>
                 </div>
 
                 {agentsLoading ? (
-                  <div className={flex({ align: "center", justify: "center", py: "12" })}>
-                    <Loader2 className={css({ w: "8", h: "8", animation: "spin 1s linear infinite", color: "brand.primary" })} />
+                  <div
+                    className={flex({
+                      align: "center",
+                      justify: "center",
+                      py: "12",
+                    })}
+                  >
+                    <Loader2
+                      className={css({
+                        w: "8",
+                        h: "8",
+                        animation: "spin 1s linear infinite",
+                        color: "brand.primary",
+                      })}
+                    />
                   </div>
                 ) : agentsError ? (
-                  <div className={flex({ align: "center", gap: "3", p: "4", bg: "red.500/10", border: "1px solid", borderColor: "red.500/20", color: "red.400", borderRadius: "xl" })}>
+                  <div
+                    className={flex({
+                      align: "center",
+                      gap: "3",
+                      p: "4",
+                      bg: "red.500/10",
+                      border: "1px solid",
+                      borderColor: "red.500/20",
+                      color: "red.400",
+                      borderRadius: "xl",
+                    })}
+                  >
                     <AlertCircle className={css({ w: "5", h: "5" })} />
-                    <span className={css({ fontWeight: "medium" })}>{agentsError}</span>
+                    <span className={css({ fontWeight: "medium" })}>
+                      {agentsError}
+                    </span>
                   </div>
                 ) : agents.length === 0 ? (
                   <div
@@ -1470,31 +2261,145 @@ export const Settings: React.FC = () => {
                       gap: "4",
                     })}
                   >
-                    <Server className={css({ w: "12", h: "12", color: "text.muted/40" })} />
+                    <Server
+                      className={css({
+                        w: "12",
+                        h: "12",
+                        color: "text.muted/40",
+                      })}
+                    />
                     <div>
-                      <h4 className={css({ color: "white", fontWeight: "bold", fontSize: "lg" })}>Aucun agent actif</h4>
-                      <p className={css({ color: "text.muted", fontSize: "sm", mt: "1" })}>
-                        Installez l'agent sur vos serveurs pour commencer à collecter des données.
+                      <h4
+                        className={css({
+                          color: "white",
+                          fontWeight: "bold",
+                          fontSize: "lg",
+                        })}
+                      >
+                        Aucun agent actif
+                      </h4>
+                      <p
+                        className={css({
+                          color: "text.muted",
+                          fontSize: "sm",
+                          mt: "1",
+                        })}
+                      >
+                        Installez l'agent sur vos serveurs pour commencer à
+                        collecter des données.
                       </p>
                     </div>
                   </div>
                 ) : (
                   <div className={css({ overflowX: "auto" })}>
-                    <table className={css({ w: "full", borderCollapse: "collapse", textAlign: "left" })}>
+                    <table
+                      className={css({
+                        w: "full",
+                        borderCollapse: "collapse",
+                        textAlign: "left",
+                      })}
+                    >
                       <thead>
-                        <tr className={css({ borderBottom: "1px solid", borderColor: "whiteAlpha.100" })}>
-                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>Nom</th>
-                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>ID de l'Agent</th>
-                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>Statut</th>
-                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>Dernier Heartbeat</th>
-                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>Enregistré le</th>
+                        <tr
+                          className={css({
+                            borderBottom: "1px solid",
+                            borderColor: "whiteAlpha.100",
+                          })}
+                        >
+                          <th
+                            className={css({
+                              pb: "4",
+                              color: "text.muted",
+                              fontSize: "xs",
+                              fontWeight: "bold",
+                              textTransform: "uppercase",
+                              letterSpacing: "wider",
+                            })}
+                          >
+                            Nom
+                          </th>
+                          <th
+                            className={css({
+                              pb: "4",
+                              color: "text.muted",
+                              fontSize: "xs",
+                              fontWeight: "bold",
+                              textTransform: "uppercase",
+                              letterSpacing: "wider",
+                            })}
+                          >
+                            ID de l'Agent
+                          </th>
+                          <th
+                            className={css({
+                              pb: "4",
+                              color: "text.muted",
+                              fontSize: "xs",
+                              fontWeight: "bold",
+                              textTransform: "uppercase",
+                              letterSpacing: "wider",
+                            })}
+                          >
+                            Statut
+                          </th>
+                          <th
+                            className={css({
+                              pb: "4",
+                              color: "text.muted",
+                              fontSize: "xs",
+                              fontWeight: "bold",
+                              textTransform: "uppercase",
+                              letterSpacing: "wider",
+                            })}
+                          >
+                            Dernier Heartbeat
+                          </th>
+                          <th
+                            className={css({
+                              pb: "4",
+                              color: "text.muted",
+                              fontSize: "xs",
+                              fontWeight: "bold",
+                              textTransform: "uppercase",
+                              letterSpacing: "wider",
+                            })}
+                          >
+                            Enregistré le
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
                         {agents.map((agent) => (
-                          <tr key={agent.id} className={css({ borderBottom: "1px solid", borderColor: "whiteAlpha.50", _last: { borderBottom: "none" } })}>
-                            <td className={css({ py: "4", pr: "4", color: "white", fontWeight: "bold", fontSize: "sm" })}>{agent.name || "Unnamed Agent"}</td>
-                            <td className={css({ py: "4", pr: "4", color: "text.muted", fontFamily: "mono", fontSize: "xs" })}>{agent.id}</td>
+                          <tr
+                            key={agent.id}
+                            className={css({
+                              borderBottom: "1px solid",
+                              borderColor: "whiteAlpha.50",
+                              _last: { borderBottom: "none" },
+                            })}
+                          >
+                            <td
+                              className={css({
+                                py: "4",
+                                pr: "4",
+                                color: "white",
+                                fontWeight: "bold",
+                                fontSize: "sm",
+                              })}
+                            >
+                              {agent.name || "Unnamed Agent"}
+                            </td>
+                            <td
+                              className={css({
+                                py: "4",
+                                pr: "4",
+                                color: "text.muted",
+                                fontFamily: "mono",
+                                fontSize: "xs",
+                              })}
+                            >
+                              {agent.id}
+                            </td>
                             <td className={css({ py: "4", pr: "4" })}>
                               <span
                                 className={cx(
@@ -1509,18 +2414,43 @@ export const Settings: React.FC = () => {
                                     textTransform: "uppercase",
                                   }),
                                   agent.status === "RUNNING"
-                                    ? css({ bg: "emerald.500/10", color: "emerald.400" })
-                                    : css({ bg: "red.500/10", color: "red.400" }),
+                                    ? css({
+                                        bg: "emerald.500/10",
+                                        color: "emerald.400",
+                                      })
+                                    : css({
+                                        bg: "red.500/10",
+                                        color: "red.400",
+                                      }),
                                 )}
                               >
                                 {agent.status}
                               </span>
                             </td>
-                            <td className={css({ py: "4", pr: "4", color: "text.muted", fontSize: "sm" })}>
-                              {agent.last_seen ? new Date(agent.last_seen).toLocaleString() : "Jamais"}
+                            <td
+                              className={css({
+                                py: "4",
+                                pr: "4",
+                                color: "text.muted",
+                                fontSize: "sm",
+                              })}
+                            >
+                              {agent.last_seen
+                                ? new Date(agent.last_seen).toLocaleString()
+                                : "Jamais"}
                             </td>
-                            <td className={css({ py: "4", color: "text.muted", fontSize: "sm" })}>
-                              {agent.created_at ? new Date(agent.created_at).toLocaleDateString() : "-"}
+                            <td
+                              className={css({
+                                py: "4",
+                                color: "text.muted",
+                                fontSize: "sm",
+                              })}
+                            >
+                              {agent.created_at
+                                ? new Date(
+                                    agent.created_at,
+                                  ).toLocaleDateString()
+                                : "-"}
                             </td>
                           </tr>
                         ))}
@@ -1540,11 +2470,20 @@ export const Settings: React.FC = () => {
                     "& > * + *": { mt: "4" },
                   })}
                 >
-                  <h4 className={css({ color: "white", fontWeight: "bold", fontSize: "sm", textTransform: "uppercase", letterSpacing: "wide" })}>
+                  <h4
+                    className={css({
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: "sm",
+                      textTransform: "uppercase",
+                      letterSpacing: "wide",
+                    })}
+                  >
                     Commande de déploiement automatique (Linux Systemd)
                   </h4>
                   <p className={css({ color: "text.muted", fontSize: "sm" })}>
-                    Lancer la commande suivante sur votre hôte Linux pour installer et démarrer automatiquement le service de l'agent.
+                    Lancer la commande suivante sur votre hôte Linux pour
+                    installer et démarrer automatiquement le service de l'agent.
                   </p>
                   <div
                     className={flex({
@@ -1558,13 +2497,23 @@ export const Settings: React.FC = () => {
                       borderColor: "whiteAlpha.100",
                     })}
                   >
-                    <code className={css({ flex: "1", color: "brand.primary", fontSize: "xs", fontFamily: "mono", overflowWrap: "anywhere" })}>
+                    <code
+                      className={css({
+                        flex: "1",
+                        color: "brand.primary",
+                        fontSize: "xs",
+                        fontFamily: "mono",
+                        overflowWrap: "anywhere",
+                      })}
+                    >
                       {`curl -sL "https://api.aegis-ai.fr/install.sh?token=${rotatedAgentToken || "VOTRE_TOKEN_AGENT"}" | sudo bash`}
                     </code>
                     <button
                       onClick={async () => {
                         const token = rotatedAgentToken || "VOTRE_TOKEN_AGENT";
-                        await navigator.clipboard.writeText(`curl -sL "https://api.aegis-ai.fr/install.sh?token=${token}" | sudo bash`);
+                        await navigator.clipboard.writeText(
+                          `curl -sL "https://api.aegis-ai.fr/install.sh?token=${token}" | sudo bash`,
+                        );
                         setAgentTokenMessage({
                           type: "success",
                           text: "Commande copiée dans le presse-papiers.",
@@ -1643,7 +2592,9 @@ export const Settings: React.FC = () => {
                         fontWeight: "medium",
                       })}
                     >
-                      Le token clair n'est jamais affiché en continu. Après rotation, il est visible une seule fois pour mettre à jour vos agents déployés.
+                      Le token clair n'est jamais affiché en continu. Après
+                      rotation, il est visible une seule fois pour mettre à jour
+                      vos agents déployés.
                     </p>
                   </div>
 
@@ -1675,7 +2626,13 @@ export const Settings: React.FC = () => {
                       })}
                     >
                       {agentTokenLoading === "rotate" ? (
-                        <Loader2 className={css({ w: "4", h: "4", animation: "spin 1s linear infinite" })} />
+                        <Loader2
+                          className={css({
+                            w: "4",
+                            h: "4",
+                            animation: "spin 1s linear infinite",
+                          })}
+                        />
                       ) : (
                         <RefreshCw className={css({ w: "4", h: "4" })} />
                       )}
@@ -1705,7 +2662,13 @@ export const Settings: React.FC = () => {
                       })}
                     >
                       {agentTokenLoading === "revoke" ? (
-                        <Loader2 className={css({ w: "4", h: "4", animation: "spin 1s linear infinite" })} />
+                        <Loader2
+                          className={css({
+                            w: "4",
+                            h: "4",
+                            animation: "spin 1s linear infinite",
+                          })}
+                        />
                       ) : (
                         <Trash2 className={css({ w: "4", h: "4" })} />
                       )}
@@ -1727,7 +2690,15 @@ export const Settings: React.FC = () => {
                       borderRadius: "2xl",
                     })}
                   >
-                    <code className={css({ flex: "1", color: "white", fontSize: "sm", fontFamily: "mono", overflowWrap: "anywhere" })}>
+                    <code
+                      className={css({
+                        flex: "1",
+                        color: "white",
+                        fontSize: "sm",
+                        fontFamily: "mono",
+                        overflowWrap: "anywhere",
+                      })}
+                    >
                       {rotatedAgentToken}
                     </code>
                     <button
@@ -1763,10 +2734,19 @@ export const Settings: React.FC = () => {
                       gap: "3",
                       fontSize: "sm",
                       fontWeight: "bold",
-                      bg: agentTokenMessage.type === "success" ? "emerald.500/10" : "red.500/10",
-                      color: agentTokenMessage.type === "success" ? "emerald.400" : "red.400",
+                      bg:
+                        agentTokenMessage.type === "success"
+                          ? "emerald.500/10"
+                          : "red.500/10",
+                      color:
+                        agentTokenMessage.type === "success"
+                          ? "emerald.400"
+                          : "red.400",
                       border: "1px solid",
-                      borderColor: agentTokenMessage.type === "success" ? "emerald.500/20" : "red.500/20",
+                      borderColor:
+                        agentTokenMessage.type === "success"
+                          ? "emerald.500/20"
+                          : "red.500/20",
                     })}
                   >
                     {agentTokenMessage.type === "success" ? (
