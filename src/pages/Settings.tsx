@@ -15,6 +15,7 @@ import {
   Copy,
   RefreshCw,
   KeyRound,
+  Server,
 } from "lucide-react";
 import { useAuthStore } from "../store/AuthStore";
 import { api } from "../api/Axios";
@@ -26,7 +27,7 @@ import { css, cx } from "styled-system/css";
 import { flex, grid, circle } from "styled-system/patterns";
 import { card, pageTitle, pageSubtitle } from "styled-system/recipes";
 
-type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
+type SettingsTab = "profil" | "securite" | "notifications" | "facturation" | "agents";
 
 export const Settings: React.FC = () => {
   const { user, setAuth, accessToken } = useAuthStore();
@@ -80,9 +81,41 @@ export const Settings: React.FC = () => {
     null,
   );
 
-  const canManageAgentToken = ["owner", "admin", "superadmin"].includes(
-    user?.role || "",
-  );
+
+
+  interface Agent {
+    id: string;
+    company_id: string;
+    name: string;
+    status: string;
+    last_seen: string | null;
+    created_at: string;
+  }
+
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agentsLoading, setAgentsLoading] = useState(false);
+  const [agentsError, setAgentsError] = useState<string | null>(null);
+
+  const fetchAgents = async () => {
+    setAgentsLoading(true);
+    setAgentsError(null);
+    try {
+      const { data } = await api.get<{ agents: Agent[] }>("/agents");
+      setAgents(data.agents || []);
+    } catch (err: any) {
+      setAgentsError(
+        err.response?.data?.error || "Impossible de charger la liste des agents"
+      );
+    } finally {
+      setAgentsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "agents" && user?.role === "owner") {
+      fetchAgents();
+    }
+  }, [activeTab, user]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -322,6 +355,9 @@ export const Settings: React.FC = () => {
   const tabs: { id: SettingsTab; label: string; icon: any }[] = [
     { id: "profil", label: "Profil", icon: User },
     { id: "securite", label: "Sécurité", icon: Shield },
+    ...(user?.role === "owner"
+      ? [{ id: "agents" as SettingsTab, label: "Agents & Token", icon: Server }]
+      : []),
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "facturation", label: "Facturation", icon: CreditCard },
   ];
@@ -1287,223 +1323,7 @@ export const Settings: React.FC = () => {
                 </form>
               </section>
 
-              {canManageAgentToken && (
-                <section
-                  className={cx(
-                    card(),
-                    css({
-                      p: "10",
-                      borderRadius: "3xl",
-                      "& > * + *": { mt: "8" },
-                    }),
-                  )}
-                >
-                  <div
-                    className={flex({
-                      direction: { base: "column", md: "row" },
-                      justify: "space-between",
-                      align: { base: "start", md: "center" },
-                      gap: "6",
-                    })}
-                  >
-                    <div className={css({ "& > * + *": { mt: "2" } })}>
-                      <div
-                        className={flex({
-                          align: "center",
-                          gap: "3",
-                          color: "brand.primary",
-                          fontSize: "xs",
-                          fontWeight: "900",
-                          textTransform: "uppercase",
-                          letterSpacing: "widest",
-                        })}
-                      >
-                        <KeyRound className={css({ w: "4", h: "4" })} />
-                        Token agent
-                      </div>
-                      <h3
-                        className={css({
-                          color: "white",
-                          fontWeight: "900",
-                          fontSize: "2xl",
-                        })}
-                      >
-                        Rotation et révocation
-                      </h3>
-                      <p
-                        className={css({
-                          color: "text.muted",
-                          maxW: "2xl",
-                          fontWeight: "medium",
-                        })}
-                      >
-                        Le token clair n'est jamais affiché en continu. Après
-                        rotation, il est visible une seule fois pour mettre à
-                        jour l'agent déployé.
-                      </p>
-                    </div>
 
-                    <div
-                      className={flex({
-                        direction: { base: "column", sm: "row" },
-                        gap: "3",
-                        w: { base: "full", md: "auto" },
-                      })}
-                    >
-                      <button
-                        type="button"
-                        onClick={handleRotateAgentToken}
-                        disabled={agentTokenLoading !== null}
-                        className={flex({
-                          align: "center",
-                          justify: "center",
-                          gap: "3",
-                          px: "6",
-                          py: "4",
-                          bg: "brand.primary",
-                          color: "white",
-                          fontWeight: "900",
-                          borderRadius: "2xl",
-                          textTransform: "uppercase",
-                          fontSize: "xs",
-                          letterSpacing: "widest",
-                          _disabled: { opacity: 0.6, cursor: "not-allowed" },
-                        })}
-                      >
-                        {agentTokenLoading === "rotate" ? (
-                          <Loader2
-                            className={css({
-                              w: "4",
-                              h: "4",
-                              animation: "spin 1s linear infinite",
-                            })}
-                          />
-                        ) : (
-                          <RefreshCw className={css({ w: "4", h: "4" })} />
-                        )}
-                        Régénérer
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleRevokeAgentToken}
-                        disabled={agentTokenLoading !== null}
-                        className={flex({
-                          align: "center",
-                          justify: "center",
-                          gap: "3",
-                          px: "6",
-                          py: "4",
-                          bg: "red.500/10",
-                          color: "red.300",
-                          border: "1px solid",
-                          borderColor: "red.500/20",
-                          fontWeight: "900",
-                          borderRadius: "2xl",
-                          textTransform: "uppercase",
-                          fontSize: "xs",
-                          letterSpacing: "widest",
-                          _disabled: { opacity: 0.6, cursor: "not-allowed" },
-                        })}
-                      >
-                        {agentTokenLoading === "revoke" ? (
-                          <Loader2
-                            className={css({
-                              w: "4",
-                              h: "4",
-                              animation: "spin 1s linear infinite",
-                            })}
-                          />
-                        ) : (
-                          <Trash2 className={css({ w: "4", h: "4" })} />
-                        )}
-                        Révoquer
-                      </button>
-                    </div>
-                  </div>
-
-                  {rotatedAgentToken && (
-                    <div
-                      className={flex({
-                        direction: { base: "column", md: "row" },
-                        align: { base: "stretch", md: "center" },
-                        gap: "4",
-                        p: "5",
-                        bg: "whiteAlpha.50",
-                        border: "1px solid",
-                        borderColor: "brand.primary/30",
-                        borderRadius: "2xl",
-                      })}
-                    >
-                      <code
-                        className={css({
-                          flex: "1",
-                          color: "white",
-                          fontSize: "sm",
-                          fontFamily: "mono",
-                          overflowWrap: "anywhere",
-                        })}
-                      >
-                        {rotatedAgentToken}
-                      </code>
-                      <button
-                        type="button"
-                        onClick={copyRotatedAgentToken}
-                        className={flex({
-                          align: "center",
-                          justify: "center",
-                          gap: "2",
-                          px: "5",
-                          py: "3",
-                          bg: "whiteAlpha.100",
-                          color: "white",
-                          borderRadius: "xl",
-                          fontWeight: "900",
-                          textTransform: "uppercase",
-                          fontSize: "10px",
-                          letterSpacing: "widest",
-                        })}
-                      >
-                        <Copy className={css({ w: "3.5", h: "3.5" })} />
-                        Copier
-                      </button>
-                    </div>
-                  )}
-
-                  {agentTokenMessage && (
-                    <div
-                      className={flex({
-                        p: "4",
-                        borderRadius: "xl",
-                        align: "center",
-                        gap: "3",
-                        fontSize: "sm",
-                        fontWeight: "bold",
-                        bg:
-                          agentTokenMessage.type === "success"
-                            ? "emerald.500/10"
-                            : "red.500/10",
-                        color:
-                          agentTokenMessage.type === "success"
-                            ? "emerald.400"
-                            : "red.400",
-                        border: "1px solid",
-                        borderColor:
-                          agentTokenMessage.type === "success"
-                            ? "emerald.500/20"
-                            : "red.500/20",
-                      })}
-                    >
-                      {agentTokenMessage.type === "success" ? (
-                        <CheckCircle2 className={css({ w: "4", h: "4" })} />
-                      ) : (
-                        <AlertCircle className={css({ w: "4", h: "4" })} />
-                      )}{" "}
-                      {agentTokenMessage.text}
-                    </div>
-                  )}
-                </section>
-              )}
             </div>
           )}
 
@@ -1552,6 +1372,412 @@ export const Settings: React.FC = () => {
                   Cette section est en cours de développement.
                 </p>
               </div>
+            </div>
+          )}
+
+          {activeTab === "agents" && user?.role === "owner" && (
+            <div className={css({ "& > * + *": { mt: "8" } })}>
+              {/* Agent List Section */}
+              <section
+                className={cx(
+                  card(),
+                  css({
+                    p: "10",
+                    borderRadius: "3xl",
+                    "& > * + *": { mt: "8" },
+                  }),
+                )}
+              >
+                <div className={flex({ justify: "space-between", align: "center" })}>
+                  <div className={css({ "& > * + *": { mt: "2" } })}>
+                    <div
+                      className={flex({
+                        align: "center",
+                        gap: "3",
+                        color: "brand.primary",
+                        fontSize: "xs",
+                        fontWeight: "900",
+                        textTransform: "uppercase",
+                        letterSpacing: "widest",
+                      })}
+                    >
+                      <Server className={css({ w: "4", h: "4" })} />
+                      Gestion des agents
+                    </div>
+                    <h3
+                      className={css({
+                        color: "white",
+                        fontWeight: "900",
+                        fontSize: "2xl",
+                      })}
+                    >
+                      Agents Déployés
+                    </h3>
+                    <p
+                      className={css({
+                        color: "text.muted",
+                        maxW: "2xl",
+                        fontWeight: "medium",
+                      })}
+                    >
+                      Visualisez et gérez l'état de tous les agents Aegis collectant des données sur votre infrastructure.
+                    </p>
+                  </div>
+                  <button
+                    onClick={fetchAgents}
+                    disabled={agentsLoading}
+                    className={flex({
+                      align: "center",
+                      gap: "2",
+                      px: "4",
+                      py: "2.5",
+                      bg: "whiteAlpha.50",
+                      _hover: { bg: "whiteAlpha.100" },
+                      color: "white",
+                      fontSize: "xs",
+                      fontWeight: "bold",
+                      borderRadius: "xl",
+                      cursor: "pointer",
+                    })}
+                  >
+                    <RefreshCw className={cx(css({ w: "3.5", h: "3.5" }), agentsLoading && css({ animation: "spin 1s linear infinite" }))} />
+                    Actualiser
+                  </button>
+                </div>
+
+                {agentsLoading ? (
+                  <div className={flex({ align: "center", justify: "center", py: "12" })}>
+                    <Loader2 className={css({ w: "8", h: "8", animation: "spin 1s linear infinite", color: "brand.primary" })} />
+                  </div>
+                ) : agentsError ? (
+                  <div className={flex({ align: "center", gap: "3", p: "4", bg: "red.500/10", border: "1px solid", borderColor: "red.500/20", color: "red.400", borderRadius: "xl" })}>
+                    <AlertCircle className={css({ w: "5", h: "5" })} />
+                    <span className={css({ fontWeight: "medium" })}>{agentsError}</span>
+                  </div>
+                ) : agents.length === 0 ? (
+                  <div
+                    className={flex({
+                      direction: "column",
+                      align: "center",
+                      justify: "center",
+                      py: "12",
+                      px: "6",
+                      bg: "whiteAlpha.50/5",
+                      border: "1px dashed",
+                      borderColor: "whiteAlpha.100",
+                      borderRadius: "2xl",
+                      textAlign: "center",
+                      gap: "4",
+                    })}
+                  >
+                    <Server className={css({ w: "12", h: "12", color: "text.muted/40" })} />
+                    <div>
+                      <h4 className={css({ color: "white", fontWeight: "bold", fontSize: "lg" })}>Aucun agent actif</h4>
+                      <p className={css({ color: "text.muted", fontSize: "sm", mt: "1" })}>
+                        Installez l'agent sur vos serveurs pour commencer à collecter des données.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={css({ overflowX: "auto" })}>
+                    <table className={css({ w: "full", borderCollapse: "collapse", textAlign: "left" })}>
+                      <thead>
+                        <tr className={css({ borderBottom: "1px solid", borderColor: "whiteAlpha.100" })}>
+                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>Nom</th>
+                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>ID de l'Agent</th>
+                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>Statut</th>
+                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>Dernier Heartbeat</th>
+                          <th className={css({ pb: "4", color: "text.muted", fontSize: "xs", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "wider" })}>Enregistré le</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {agents.map((agent) => (
+                          <tr key={agent.id} className={css({ borderBottom: "1px solid", borderColor: "whiteAlpha.50", _last: { borderBottom: "none" } })}>
+                            <td className={css({ py: "4", pr: "4", color: "white", fontWeight: "bold", fontSize: "sm" })}>{agent.name || "Unnamed Agent"}</td>
+                            <td className={css({ py: "4", pr: "4", color: "text.muted", fontFamily: "mono", fontSize: "xs" })}>{agent.id}</td>
+                            <td className={css({ py: "4", pr: "4" })}>
+                              <span
+                                className={cx(
+                                  css({
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    px: "2.5",
+                                    py: "0.5",
+                                    borderRadius: "full",
+                                    fontSize: "xs",
+                                    fontWeight: "bold",
+                                    textTransform: "uppercase",
+                                  }),
+                                  agent.status === "RUNNING"
+                                    ? css({ bg: "emerald.500/10", color: "emerald.400" })
+                                    : css({ bg: "red.500/10", color: "red.400" }),
+                                )}
+                              >
+                                {agent.status}
+                              </span>
+                            </td>
+                            <td className={css({ py: "4", pr: "4", color: "text.muted", fontSize: "sm" })}>
+                              {agent.last_seen ? new Date(agent.last_seen).toLocaleString() : "Jamais"}
+                            </td>
+                            <td className={css({ py: "4", color: "text.muted", fontSize: "sm" })}>
+                              {agent.created_at ? new Date(agent.created_at).toLocaleDateString() : "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Installation Commands Helper Card */}
+                <div
+                  className={css({
+                    p: "6",
+                    bg: "whiteAlpha.50/5",
+                    border: "1px solid",
+                    borderColor: "whiteAlpha.100",
+                    borderRadius: "2xl",
+                    "& > * + *": { mt: "4" },
+                  })}
+                >
+                  <h4 className={css({ color: "white", fontWeight: "bold", fontSize: "sm", textTransform: "uppercase", letterSpacing: "wide" })}>
+                    Commande de déploiement automatique (Linux Systemd)
+                  </h4>
+                  <p className={css({ color: "text.muted", fontSize: "sm" })}>
+                    Lancer la commande suivante sur votre hôte Linux pour installer et démarrer automatiquement le service de l'agent.
+                  </p>
+                  <div
+                    className={flex({
+                      direction: { base: "column", md: "row" },
+                      align: { base: "stretch", md: "center" },
+                      gap: "4",
+                      p: "4",
+                      bg: "blackAlpha.40",
+                      borderRadius: "xl",
+                      border: "1px solid",
+                      borderColor: "whiteAlpha.100",
+                    })}
+                  >
+                    <code className={css({ flex: "1", color: "brand.primary", fontSize: "xs", fontFamily: "mono", overflowWrap: "anywhere" })}>
+                      {`curl -sL "https://api.aegis-ai.fr/install.sh?token=${rotatedAgentToken || "VOTRE_TOKEN_AGENT"}" | sudo bash`}
+                    </code>
+                    <button
+                      onClick={async () => {
+                        const token = rotatedAgentToken || "VOTRE_TOKEN_AGENT";
+                        await navigator.clipboard.writeText(`curl -sL "https://api.aegis-ai.fr/install.sh?token=${token}" | sudo bash`);
+                        setAgentTokenMessage({
+                          type: "success",
+                          text: "Commande copiée dans le presse-papiers.",
+                        });
+                      }}
+                      className={flex({
+                        align: "center",
+                        justify: "center",
+                        gap: "2",
+                        px: "4",
+                        py: "2",
+                        bg: "whiteAlpha.100",
+                        _hover: { bg: "whiteAlpha.200" },
+                        color: "white",
+                        borderRadius: "lg",
+                        fontWeight: "bold",
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                        letterSpacing: "wider",
+                      })}
+                    >
+                      <Copy className={css({ w: "3.5", h: "3.5" })} />
+                      Copier la commande
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {/* Agent Token Management Section */}
+              <section
+                className={cx(
+                  card(),
+                  css({
+                    p: "10",
+                    borderRadius: "3xl",
+                    "& > * + *": { mt: "8" },
+                  }),
+                )}
+              >
+                <div
+                  className={flex({
+                    direction: { base: "column", md: "row" },
+                    justify: "space-between",
+                    align: { base: "start", md: "center" },
+                    gap: "6",
+                  })}
+                >
+                  <div className={css({ "& > * + *": { mt: "2" } })}>
+                    <div
+                      className={flex({
+                        align: "center",
+                        gap: "3",
+                        color: "brand.primary",
+                        fontSize: "xs",
+                        fontWeight: "900",
+                        textTransform: "uppercase",
+                        letterSpacing: "widest",
+                      })}
+                    >
+                      <KeyRound className={css({ w: "4", h: "4" })} />
+                      Token agent d'infrastructure
+                    </div>
+                    <h3
+                      className={css({
+                        color: "white",
+                        fontWeight: "900",
+                        fontSize: "2xl",
+                      })}
+                    >
+                      Rotation et révocation du Token
+                    </h3>
+                    <p
+                      className={css({
+                        color: "text.muted",
+                        maxW: "2xl",
+                        fontWeight: "medium",
+                      })}
+                    >
+                      Le token clair n'est jamais affiché en continu. Après rotation, il est visible une seule fois pour mettre à jour vos agents déployés.
+                    </p>
+                  </div>
+
+                  <div
+                    className={flex({
+                      direction: { base: "column", sm: "row" },
+                      gap: "3",
+                      w: { base: "full", md: "auto" },
+                    })}
+                  >
+                    <button
+                      type="button"
+                      onClick={handleRotateAgentToken}
+                      disabled={agentTokenLoading !== null}
+                      className={flex({
+                        align: "center",
+                        justify: "center",
+                        gap: "3",
+                        px: "6",
+                        py: "4",
+                        bg: "brand.primary",
+                        color: "white",
+                        fontWeight: "900",
+                        borderRadius: "2xl",
+                        textTransform: "uppercase",
+                        fontSize: "xs",
+                        letterSpacing: "widest",
+                        _disabled: { opacity: 0.6, cursor: "not-allowed" },
+                      })}
+                    >
+                      {agentTokenLoading === "rotate" ? (
+                        <Loader2 className={css({ w: "4", h: "4", animation: "spin 1s linear infinite" })} />
+                      ) : (
+                        <RefreshCw className={css({ w: "4", h: "4" })} />
+                      )}
+                      Régénérer
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleRevokeAgentToken}
+                      disabled={agentTokenLoading !== null}
+                      className={flex({
+                        align: "center",
+                        justify: "center",
+                        gap: "3",
+                        px: "6",
+                        py: "4",
+                        bg: "red.500/10",
+                        color: "red.300",
+                        border: "1px solid",
+                        borderColor: "red.500/20",
+                        fontWeight: "900",
+                        borderRadius: "2xl",
+                        textTransform: "uppercase",
+                        fontSize: "xs",
+                        letterSpacing: "widest",
+                        _disabled: { opacity: 0.6, cursor: "not-allowed" },
+                      })}
+                    >
+                      {agentTokenLoading === "revoke" ? (
+                        <Loader2 className={css({ w: "4", h: "4", animation: "spin 1s linear infinite" })} />
+                      ) : (
+                        <Trash2 className={css({ w: "4", h: "4" })} />
+                      )}
+                      Révoquer
+                    </button>
+                  </div>
+                </div>
+
+                {rotatedAgentToken && (
+                  <div
+                    className={flex({
+                      direction: { base: "column", md: "row" },
+                      align: { base: "stretch", md: "center" },
+                      gap: "4",
+                      p: "5",
+                      bg: "whiteAlpha.50",
+                      border: "1px solid",
+                      borderColor: "brand.primary/30",
+                      borderRadius: "2xl",
+                    })}
+                  >
+                    <code className={css({ flex: "1", color: "white", fontSize: "sm", fontFamily: "mono", overflowWrap: "anywhere" })}>
+                      {rotatedAgentToken}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={copyRotatedAgentToken}
+                      className={flex({
+                        align: "center",
+                        justify: "center",
+                        gap: "2",
+                        px: "5",
+                        py: "3",
+                        bg: "whiteAlpha.100",
+                        color: "white",
+                        borderRadius: "xl",
+                        fontWeight: "900",
+                        textTransform: "uppercase",
+                        fontSize: "10px",
+                        letterSpacing: "widest",
+                      })}
+                    >
+                      <Copy className={css({ w: "3.5", h: "3.5" })} />
+                      Copier
+                    </button>
+                  </div>
+                )}
+
+                {agentTokenMessage && (
+                  <div
+                    className={flex({
+                      p: "4",
+                      borderRadius: "xl",
+                      align: "center",
+                      gap: "3",
+                      fontSize: "sm",
+                      fontWeight: "bold",
+                      bg: agentTokenMessage.type === "success" ? "emerald.500/10" : "red.500/10",
+                      color: agentTokenMessage.type === "success" ? "emerald.400" : "red.400",
+                      border: "1px solid",
+                      borderColor: agentTokenMessage.type === "success" ? "emerald.500/20" : "red.500/20",
+                    })}
+                  >
+                    {agentTokenMessage.type === "success" ? (
+                      <CheckCircle2 className={css({ w: "4", h: "4" })} />
+                    ) : (
+                      <AlertCircle className={css({ w: "4", h: "4" })} />
+                    )}
+                    {agentTokenMessage.text}
+                  </div>
+                )}
+              </section>
             </div>
           )}
         </main>
