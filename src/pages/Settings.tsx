@@ -2506,7 +2506,9 @@ export const Settings: React.FC = () => {
                         overflowWrap: "anywhere",
                       })}
                     >
-                      {`curl -sL "https://api.aegis-ai.fr/install.sh?token=${rotatedAgentToken || "VOTRE_TOKEN_AGENT"}" | sudo bash`}
+                      {`curl -sL "https://api.aegis-ai.fr/install.sh?token=${
+                        rotatedAgentToken || "VOTRE_TOKEN_AGENT"
+                      }" | sudo bash`}
                     </code>
                     <button
                       onClick={async () => {
