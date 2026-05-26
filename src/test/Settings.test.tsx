@@ -490,6 +490,84 @@ describe("Settings Page", () => {
     });
   });
 
+  it("lets Aegis personnel copy a client token and refresh searched agents", async () => {
+    mockState.user.role = "admin";
+    vi.mocked(api.get).mockImplementation((url: string) => {
+      if (
+        url === "/admin/companies?search=" ||
+        url === "/admin/companies?search=Client"
+      ) {
+        return Promise.resolve({
+          data: [{ id: "company-1", name: "Client One" }],
+        });
+      }
+      if (url === "/agents?company_id=company-1") {
+        return Promise.resolve({ data: { agents: [] } });
+      }
+      return Promise.reject(new Error("Not mocked"));
+    });
+    vi.mocked(api.post).mockResolvedValueOnce({
+      data: { agent_token: "ag_client-copy" },
+    });
+
+    render(
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText("Agents clients"));
+    await screen.findByText("Token agent client");
+
+    fireEvent.change(
+      screen.getByLabelText("Rechercher une entreprise cliente"),
+      { target: { value: "Client" } },
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Rechercher" }));
+
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith("/admin/companies?search=Client");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Actualiser" }));
+    fireEvent.click(screen.getByRole("button", { name: /Régénérer client/i }));
+    await screen.findByText("ag_client-copy");
+    fireEvent.click(
+      screen.getByRole("button", { name: /Copier token client/i }),
+    );
+
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        "ag_client-copy",
+      );
+      expect(screen.getByText("Token client copié.")).toBeInTheDocument();
+    });
+  });
+
+  it("copies the owner deployment command", async () => {
+    mockState.user.role = "owner";
+
+    render(
+      <MemoryRouter>
+        <Settings />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByText("Agents & Token"));
+    fireEvent.click(
+      await screen.findByRole("button", { name: /Copier la commande/i }),
+    );
+
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        'curl -sL "https://api.aegis-ai.fr/install.sh?token=VOTRE_TOKEN_AGENT" | sudo bash',
+      );
+      expect(
+        screen.getByText("Commande copiée dans le presse-papiers."),
+      ).toBeInTheDocument();
+    });
+  });
+
   it("does not expose client agent management to a company owner", () => {
     mockState.user.role = "owner";
 
