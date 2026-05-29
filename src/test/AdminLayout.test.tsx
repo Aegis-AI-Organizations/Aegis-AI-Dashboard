@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { AdminLayout } from "../components/layout/AdminLayout";
@@ -30,7 +30,8 @@ describe("AdminLayout", () => {
       </MemoryRouter>,
     );
 
-    const logo = screen.getByAltText("Aegis AI Logo");
+    const aside = screen.getByRole("complementary");
+    const logo = within(aside).getByAltText("Aegis AI Logo");
     fireEvent.error(logo);
     expect(logo).toHaveAttribute("src", "/logo.png");
   });
