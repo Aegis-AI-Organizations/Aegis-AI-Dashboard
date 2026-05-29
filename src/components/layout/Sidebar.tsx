@@ -108,21 +108,23 @@ export const Sidebar: React.FC = () => {
         className={flex({
           align: "center",
           gap: "3",
-          px: "6",
-          h: "16",
+          px: "4",
+          h: "20",
           flexShrink: 0,
           cursor: "pointer",
           overflow: "hidden",
+          justify: isExpanded ? "flex-start" : "center",
         })}
       >
         <img
           src="/logo.svg"
           alt="Aegis AI Logo"
           className={css({
-            w: "8",
-            h: "8",
+            w: "12",
+            h: "12",
             objectFit: "contain",
             flexShrink: 0,
+            filter: "drop-shadow(0 0 10px rgba(0, 242, 255, 0.35))",
           })}
           onError={(e) => {
             (e.target as HTMLImageElement).src = "/logo.png";

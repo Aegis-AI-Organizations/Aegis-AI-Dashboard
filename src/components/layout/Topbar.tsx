@@ -42,28 +42,19 @@ export const Topbar: React.FC = () => {
             gap: "2",
           })}
         >
-          <div
-            className={flex({
-              w: "6",
-              h: "6",
-              borderRadius: "sm",
-              bg: "blue.950/50",
-              flexDir: "column",
-              align: "center",
-              justify: "center",
-              border: "1px solid",
-              borderColor: "blue.500/20",
+          <img
+            src="/logo.svg"
+            alt="Aegis AI Logo"
+            className={css({
+              w: "8",
+              h: "8",
+              objectFit: "contain",
+              filter: "drop-shadow(0 0 8px rgba(0, 242, 255, 0.3))",
             })}
-          >
-            <div
-              className={css({
-                w: "2",
-                h: "2",
-                bg: "brand.primary",
-                borderRadius: "xs",
-              })}
-            ></div>
-          </div>
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/logo.png";
+            }}
+          />
           <span className={css({ color: "white", fontWeight: "semibold" })}>
             Aegis AI
           </span>
