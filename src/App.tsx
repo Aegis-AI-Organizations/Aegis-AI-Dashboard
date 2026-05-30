@@ -6,6 +6,7 @@ import { Users } from "./pages/Users";
 import { Settings } from "./pages/Settings";
 import { Billing } from "./pages/Billing";
 import { Audit } from "./pages/Audit";
+import { Topology } from "./pages/Topology";
 import { Login } from "./pages/Login";
 import { SetupPassword } from "./pages/SetupPassword";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -26,6 +27,24 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/vulnerabilities" element={<Vulnerabilities />} />
             <Route path="/monitoring/:scanId" element={<Dashboard />} />
+
+            <Route
+              element={
+                <RoleRoute
+                  allowedRoles={[
+                    "superadmin",
+                    "admin",
+                    "technicien",
+                    "support",
+                    "owner",
+                    "operateur",
+                    "viewer",
+                  ]}
+                />
+              }
+            >
+              <Route path="/topology" element={<Topology />} />
+            </Route>
 
             {/* Management Routes */}
             <Route

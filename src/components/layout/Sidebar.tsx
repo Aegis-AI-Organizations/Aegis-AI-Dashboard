@@ -7,6 +7,7 @@ import {
   Settings,
   Shield,
   Terminal,
+  Network,
 } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
 
@@ -31,6 +32,20 @@ const navItems = [
     icon: History,
     label: "Historique des Scans",
     path: "/vulnerabilities",
+    roles: [
+      "superadmin",
+      "admin",
+      "technicien",
+      "support",
+      "owner",
+      "operateur",
+      "viewer",
+    ],
+  },
+  {
+    icon: Network,
+    label: "Topologie",
+    path: "/topology",
     roles: [
       "superadmin",
       "admin",
