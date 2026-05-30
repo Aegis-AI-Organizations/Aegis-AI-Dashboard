@@ -19,6 +19,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<SetupPassword />} />
         <Route path="/setup-password" element={<SetupPassword />} />
 
         {/* Protected Routes */}

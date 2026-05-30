@@ -76,4 +76,14 @@ describe("App routes", () => {
 
     expect(screen.getByText("setup-password-page")).toBeInTheDocument();
   });
+
+  it("renders register as a public route", () => {
+    render(
+      <MemoryRouter initialEntries={["/register?token=aegis_inv_valid"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("setup-password-page")).toBeInTheDocument();
+  });
 });
