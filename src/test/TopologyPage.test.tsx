@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import React from "react";
 import { Topology } from "../pages/Topology";
 
 vi.mock("../api/Axios", () => ({
