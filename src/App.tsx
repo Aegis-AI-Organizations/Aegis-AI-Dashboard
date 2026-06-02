@@ -51,9 +51,7 @@ function App() {
             {/* Management Routes */}
             <Route
               element={
-                <RoleRoute
-                  allowedRoles={["superadmin", "admin", "owner"]}
-                />
+                <RoleRoute allowedRoles={["superadmin", "admin", "owner"]} />
               }
             >
               <Route path="/agents" element={<Agents />} />

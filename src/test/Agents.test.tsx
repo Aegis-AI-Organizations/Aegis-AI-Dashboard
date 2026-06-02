@@ -66,7 +66,9 @@ describe("Agents Page", () => {
 
     expect(screen.getByText("Agents")).toBeInTheDocument();
     expect(screen.getByText("Agents Déployés")).toBeInTheDocument();
-    expect(screen.getByText("Rotation et révocation du Token")).toBeInTheDocument();
+    expect(
+      screen.getByText("Rotation et révocation du Token"),
+    ).toBeInTheDocument();
   });
 
   it("rotates the owner token", async () => {

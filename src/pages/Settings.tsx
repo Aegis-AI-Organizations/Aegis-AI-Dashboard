@@ -24,11 +24,7 @@ import { css, cx } from "styled-system/css";
 import { flex, grid, circle } from "styled-system/patterns";
 import { card, pageTitle, pageSubtitle } from "styled-system/recipes";
 
-type SettingsTab =
-  | "profil"
-  | "securite"
-  | "notifications"
-  | "facturation";
+type SettingsTab = "profil" | "securite" | "notifications" | "facturation";
 
 const getApiErrorMessage = (error: unknown, fallback: string) => {
   const message = (error as { response?: { data?: { error?: unknown } } })
@@ -1281,7 +1277,6 @@ export const Settings: React.FC = () => {
               </div>
             </div>
           )}
-
         </main>
       </div>
 

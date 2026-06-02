@@ -70,7 +70,9 @@ const SectionShell: React.FC<{
 export const Agents: React.FC = () => {
   const { user } = useAuthStore();
   const isOwner = user?.role === "owner";
-  const canManageClientAgents = ["admin", "superadmin"].includes(user?.role || "");
+  const canManageClientAgents = ["admin", "superadmin"].includes(
+    user?.role || "",
+  );
 
   const [ownerAgents, setOwnerAgents] = useState<Agent[]>([]);
   const [ownerAgentsLoading, setOwnerAgentsLoading] = useState(false);
@@ -280,7 +282,9 @@ export const Agents: React.FC = () => {
     setClientTokenLoading("revoke");
     setClientTokenMessage(null);
     try {
-      await api.post(`/admin/companies/${selectedCompanyId}/agent-token/revoke`);
+      await api.post(
+        `/admin/companies/${selectedCompanyId}/agent-token/revoke`,
+      );
       setRotatedClientToken("");
       setClientTokenMessage({
         type: "success",
@@ -415,7 +419,8 @@ export const Agents: React.FC = () => {
               <RefreshCw
                 className={cx(
                   css({ w: "3.5", h: "3.5" }),
-                  ownerAgentsLoading && css({ animation: "spin 1s linear infinite" }),
+                  ownerAgentsLoading &&
+                    css({ animation: "spin 1s linear infinite" }),
                 )}
               />
               Actualiser
@@ -683,8 +688,8 @@ export const Agents: React.FC = () => {
               Commande de déploiement automatique (Linux Systemd)
             </h3>
             <p className={css({ color: "text.muted", fontSize: "sm" })}>
-              Lancer la commande suivante sur votre hôte Linux pour installer
-              et démarrer automatiquement le service de l'agent.
+              Lancer la commande suivante sur votre hôte Linux pour installer et
+              démarrer automatiquement le service de l'agent.
             </p>
             <div
               className={flex({
@@ -1004,7 +1009,9 @@ export const Agents: React.FC = () => {
                 borderRadius: "xl",
               })}
             >
-              <Search className={css({ w: "4", h: "4", color: "text.muted" })} />
+              <Search
+                className={css({ w: "4", h: "4", color: "text.muted" })}
+              />
               <input
                 aria-label="Rechercher une entreprise cliente"
                 value={companySearch}
@@ -1245,13 +1252,31 @@ export const Agents: React.FC = () => {
                           borderColor: "whiteAlpha.100",
                         })}
                       >
-                        <th className={css({ pb: "3", color: "text.muted", fontSize: "xs" })}>
+                        <th
+                          className={css({
+                            pb: "3",
+                            color: "text.muted",
+                            fontSize: "xs",
+                          })}
+                        >
                           Agent
                         </th>
-                        <th className={css({ pb: "3", color: "text.muted", fontSize: "xs" })}>
+                        <th
+                          className={css({
+                            pb: "3",
+                            color: "text.muted",
+                            fontSize: "xs",
+                          })}
+                        >
                           Statut
                         </th>
-                        <th className={css({ pb: "3", color: "text.muted", fontSize: "xs" })}>
+                        <th
+                          className={css({
+                            pb: "3",
+                            color: "text.muted",
+                            fontSize: "xs",
+                          })}
+                        >
                           Dernier heartbeat
                         </th>
                       </tr>
