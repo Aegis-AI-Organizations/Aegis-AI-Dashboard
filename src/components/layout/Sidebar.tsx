@@ -8,6 +8,7 @@ import {
   Shield,
   Terminal,
   Network,
+  Server,
 } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
 
@@ -60,6 +61,12 @@ const navItems = [
     icon: Users,
     label: "Équipes",
     path: "/users",
+    roles: ["superadmin", "admin", "owner"],
+  },
+  {
+    icon: Server,
+    label: "Agents",
+    path: "/agents",
     roles: ["superadmin", "admin", "owner"],
   },
   {

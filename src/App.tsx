@@ -4,6 +4,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Vulnerabilities } from "./pages/Vulnerabilities";
 import { Users } from "./pages/Users";
 import { Settings } from "./pages/Settings";
+import { Agents } from "./pages/Agents";
 import { Billing } from "./pages/Billing";
 import { Audit } from "./pages/Audit";
 import { Topology } from "./pages/Topology";
@@ -48,6 +49,16 @@ function App() {
             </Route>
 
             {/* Management Routes */}
+            <Route
+              element={
+                <RoleRoute
+                  allowedRoles={["superadmin", "admin", "owner"]}
+                />
+              }
+            >
+              <Route path="/agents" element={<Agents />} />
+            </Route>
+
             <Route
               element={
                 <RoleRoute

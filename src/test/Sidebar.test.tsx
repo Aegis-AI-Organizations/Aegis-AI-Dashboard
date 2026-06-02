@@ -19,6 +19,7 @@ describe("Sidebar Component", () => {
       screen.getByRole("link", { name: "Tableau de Bord" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Équipes" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Agents" })).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Facturation" }),
     ).toBeInTheDocument();
