@@ -20,17 +20,19 @@ const getNodeKind = (node: TopologyApiNode): "host" | "container" => {
   return rawKind === "host" ? "host" : "container";
 };
 
-const formatPort = (port: {
+export const formatTopologyPort = (port: {
   protocol?: string;
   container_port?: number;
   containerPort?: number;
   host_port?: number;
   hostPort?: number;
   port?: number;
+  number?: number;
 }) => {
   const exposedPort =
     port.container_port ??
     port.containerPort ??
+    port.number ??
     port.port ??
     port.host_port ??
     port.hostPort;
@@ -65,6 +67,7 @@ const normalizeHosts = (hosts: TopologyHost[]) => {
       subtitle: (host.ip_addresses || host.ipAddresses || []).join(", "),
       ipAddresses: host.ip_addresses || host.ipAddresses || [],
       ports: [],
+      exposedPorts: [],
       processes: host.processes || [],
       vulnerable: false,
       highlighted: false,
@@ -79,9 +82,12 @@ const normalizeHosts = (hosts: TopologyHost[]) => {
         kind: "container",
         label: container.name || containerId,
         subtitle: container.image,
+        image: container.image,
+        env: container.env || container.env_vars || container.envVars || {},
         hostId,
         ipAddresses: [],
         ports: container.ports || [],
+        exposedPorts: container.exposed_ports || container.exposedPorts || [],
         processes: container.processes || [],
         vulnerable: false,
         highlighted: false,
@@ -112,9 +118,12 @@ const normalizeNodes = (
       kind,
       label: node.label || node.name || node.hostname || node.id,
       subtitle: kind === "host" ? ipAddresses.join(", ") : node.image,
+      image: node.image,
+      env: node.env || node.env_vars || node.envVars || {},
       hostId: node.host_id || node.hostId,
       ipAddresses,
       ports: node.ports || [],
+      exposedPorts: node.exposed_ports || node.exposedPorts || [],
       processes: node.processes || [],
       vulnerable: false,
       highlighted: false,
@@ -135,7 +144,7 @@ const normalizeNodes = (
     id: edge.id || `${edge.source}-${edge.target}-${index}`,
     source: edge.source,
     target: edge.target,
-    label: edge.label || formatPort(edge),
+    label: edge.label || formatTopologyPort(edge),
   }));
 
   return { nodes, edges: [...hostEdges, ...edges] };

@@ -7,6 +7,7 @@ export interface TopologyPort {
   host_port?: number;
   hostPort?: number;
   port?: number;
+  number?: number;
 }
 
 export interface TopologyProcess {
@@ -21,8 +22,13 @@ export interface TopologyContainer {
   id: string;
   name?: string;
   image?: string;
+  env?: Record<string, string>;
+  env_vars?: Record<string, string>;
+  envVars?: Record<string, string>;
   processes?: TopologyProcess[];
   ports?: TopologyPort[];
+  exposed_ports?: TopologyPort[];
+  exposedPorts?: TopologyPort[];
   host_id?: string;
   hostId?: string;
 }
@@ -44,9 +50,14 @@ export interface TopologyApiNode {
   name?: string;
   hostname?: string;
   image?: string;
+  env?: Record<string, string>;
+  env_vars?: Record<string, string>;
+  envVars?: Record<string, string>;
   ip_addresses?: string[];
   ipAddresses?: string[];
   ports?: TopologyPort[];
+  exposed_ports?: TopologyPort[];
+  exposedPorts?: TopologyPort[];
   processes?: TopologyProcess[];
   host_id?: string;
   hostId?: string;
@@ -72,8 +83,11 @@ export interface TopologyGraphNode {
   kind: TopologyNodeKind;
   label: string;
   subtitle?: string;
+  image?: string;
+  env?: Record<string, string>;
   hostId?: string;
   ports: TopologyPort[];
+  exposedPorts: TopologyPort[];
   processes: TopologyProcess[];
   ipAddresses: string[];
   vulnerable: boolean;

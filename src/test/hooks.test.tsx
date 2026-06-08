@@ -149,12 +149,6 @@ describe("dashboard hooks", () => {
   it("creates a scan and reports validation or API failures", async () => {
     const { result } = renderHook(() => useCreateScan());
 
-    await act(async () => {
-      const response = await result.current.createScan("   ");
-      expect(response).toBeNull();
-    });
-    expect(result.current.error).toBe("L'image Docker est requise.");
-
     (api.post as any).mockResolvedValueOnce({
       data: {
         scan_id: "scan-1",
@@ -164,8 +158,17 @@ describe("dashboard hooks", () => {
     });
 
     await act(async () => {
-      const response = await result.current.createScan(" nginx:latest ");
+      const response = await result.current.createScan({
+        targetNodeIds: ["container-b", "container-a"],
+        targetLabel: "2 cibles",
+      });
       expect(response?.scan_id).toBe("scan-1");
+    });
+    expect(api.post).toHaveBeenCalledWith("/scans", {
+      scope: "topology",
+      target_image: "topology:container-a,container-b",
+      target_node_ids: ["container-a", "container-b"],
+      target_label: "2 cibles",
     });
 
     (api.post as any).mockRejectedValueOnce({
@@ -176,7 +179,7 @@ describe("dashboard hooks", () => {
     });
 
     await act(async () => {
-      const response = await result.current.createScan("nginx:latest");
+      const response = await result.current.createScan();
       expect(response).toBeNull();
     });
     expect(result.current.error).toBe("API failure");

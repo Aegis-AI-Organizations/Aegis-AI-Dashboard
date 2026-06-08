@@ -368,8 +368,8 @@ export const Dashboard: React.FC = () => {
                   mb: "6",
                 })}
               >
-                Entrez l'image Docker cible pour démarrer l'analyse de
-                vulnérabilités.
+                Sélectionnez les composants remontés par les agents, ou lancez
+                un pentest sur toute la topologie disponible.
               </p>
               <LaunchpadForm onScanUpdate={refetch} />
             </div>
