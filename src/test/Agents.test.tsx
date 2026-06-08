@@ -122,7 +122,7 @@ describe("Agents Page", () => {
     );
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        'curl -sL "https://api.aegis-ai.fr/install.sh?token=VOTRE_TOKEN_AGENT" | sudo bash',
+        'curl -fsSL "https://api.aegis-ai.fr/install.sh?token=VOTRE_TOKEN_AGENT" | sudo bash',
       );
     });
 

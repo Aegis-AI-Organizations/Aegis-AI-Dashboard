@@ -712,7 +712,7 @@ export const Agents: React.FC = () => {
                   overflowWrap: "anywhere",
                 })}
               >
-                {`curl -sL "https://api.aegis-ai.fr/install.sh?token=${
+                {`curl -fsSL "https://api.aegis-ai.fr/install.sh?token=${
                   rotatedOwnerToken || "VOTRE_TOKEN_AGENT"
                 }" | sudo bash`}
               </code>
@@ -721,7 +721,7 @@ export const Agents: React.FC = () => {
                 onClick={async () => {
                   const token = rotatedOwnerToken || "VOTRE_TOKEN_AGENT";
                   await navigator.clipboard.writeText(
-                    `curl -sL "https://api.aegis-ai.fr/install.sh?token=${token}" | sudo bash`,
+                    `curl -fsSL "https://api.aegis-ai.fr/install.sh?token=${token}" | sudo bash`,
                   );
                   setOwnerTokenMessage({
                     type: "success",
