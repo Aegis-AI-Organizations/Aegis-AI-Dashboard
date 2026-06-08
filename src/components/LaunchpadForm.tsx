@@ -209,8 +209,7 @@ export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
                   fontSize: "sm",
                 })}
               >
-                Aucune cible exploitable n'a encore ete remontee par les
-                agents.
+                Aucune cible exploitable n'a encore ete remontee par les agents.
               </div>
             ) : (
               containers.map((node) => {
