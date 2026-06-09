@@ -72,6 +72,43 @@ describe("SetupPassword", () => {
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
 
+  it("activates a collaborator account without displaying an agent token", async () => {
+    vi.mocked(api.post).mockResolvedValueOnce({
+      data: { access_token: "jwt", agent_token: "" },
+    });
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: {
+        id: "u-2",
+        email: "viewer@acme.test",
+        name: "Viewer",
+        role: "viewer",
+        company_id: "c-1",
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/setup-password?token=aegis_inv_valid"]}>
+        <SetupPassword />
+      </MemoryRouter>,
+    );
+
+    fireEvent.change(screen.getByLabelText("Nouveau mot de passe"), {
+      target: { value: "NewStrongPassword123!" },
+    });
+    fireEvent.change(screen.getByLabelText("Confirmer le mot de passe"), {
+      target: { value: "NewStrongPassword123!" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Activer mon compte" }));
+
+    await waitFor(() => {
+      expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    });
+
+    expect(
+      screen.queryByText("Ce token agent ne sera affiche qu'une seule fois."),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows an error when the invitation token is rejected", async () => {
     vi.mocked(api.post).mockRejectedValueOnce({ response: { status: 401 } });
 

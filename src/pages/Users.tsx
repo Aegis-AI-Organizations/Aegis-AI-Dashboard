@@ -712,8 +712,9 @@ export const Users: React.FC = () => {
       {isNewUserOpen && (
         <CreateUserModal
           onClose={() => setIsNewUserOpen(false)}
-          onSuccess={() => {
+          onSuccess={(data) => {
             setIsNewUserOpen(false);
+            setSuccessData(data);
             fetchCompanies(searchQuery);
             // Also refresh members for all expanded companies to show the new user
             expandedIds.forEach((id) => fetchMembers(id, searchQuery));
@@ -1122,7 +1123,7 @@ export const CreateCompanyModal: React.FC<{
 
 export const CreateUserModal: React.FC<{
   onClose: () => void;
-  onSuccess: () => void;
+  onSuccess: (data: any) => void;
   currentUser: any;
   companies: Company[];
 }> = ({ onClose, onSuccess, currentUser, companies }) => {
@@ -1131,7 +1132,6 @@ export const CreateUserModal: React.FC<{
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    password: "",
     role: "viewer",
     company_id: currentUser?.role === "owner" ? currentUser?.company_id : "",
   });
@@ -1151,8 +1151,14 @@ export const CreateUserModal: React.FC<{
     setLoading(true);
     setError(null);
     try {
-      await api.post("/admin/users", formData);
-      onSuccess();
+      const { data } = await api.post("/admin/users", formData);
+      onSuccess({
+        type: "user_invitation",
+        ...data,
+        user_name: formData.name,
+        user_email: formData.email,
+        company_name: selectedCompany?.name,
+      });
     } catch (err: any) {
       setError(err.response?.data?.error || "Erreur lors de la création");
     } finally {
@@ -1220,7 +1226,7 @@ export const CreateUserModal: React.FC<{
               Nouveau Collaborateur
             </h2>
             <p className={pageSubtitle()}>
-              Ajoutez un nouvel utilisateur à votre organisation.
+              Envoyez une invitation d'activation à un nouvel utilisateur.
             </p>
           </div>
 
@@ -1367,8 +1373,17 @@ export const CreateUserModal: React.FC<{
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase px-1">
+            <div className={css({ "& > * + *": { mt: "2" } })}>
+              <label
+                className={css({
+                  display: "block",
+                  fontSize: "10px",
+                  fontWeight: "900",
+                  color: "text.muted",
+                  textTransform: "uppercase",
+                  px: "1",
+                })}
+              >
                 Email
               </label>
               <input
@@ -1379,23 +1394,20 @@ export const CreateUserModal: React.FC<{
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder="user@domain.com"
-                className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-cyan-500 transition-all font-bold"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase px-1">
-                Mot de passe provisoire
-              </label>
-              <input
-                required
-                type="password"
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                placeholder="8+ caractères"
-                className="w-full bg-gray-900/50 border border-gray-800 text-white rounded-2xl px-6 py-4 focus:border-cyan-500 transition-all font-bold"
+                className={css({
+                  display: "block",
+                  w: "full",
+                  bg: "whiteAlpha.50",
+                  border: "1px solid",
+                  borderColor: "whiteAlpha.100",
+                  color: "white",
+                  borderRadius: "2xl",
+                  px: "6",
+                  py: "4",
+                  _focus: { borderColor: "brand.primary", outline: "none" },
+                  transition: "all",
+                  fontWeight: "bold",
+                })}
               />
             </div>
 
@@ -1430,7 +1442,7 @@ export const CreateUserModal: React.FC<{
               ) : (
                 <UserPlus className={css({ w: "5", h: "5" })} />
               )}
-              Créer le Collaborateur
+              {loading ? "Envoi..." : "Envoyer l'invitation"}
             </button>
           </form>
         </div>
@@ -1496,18 +1508,47 @@ export const SuccessModal: React.FC<{ data: any; onClose: () => void }> = ({
             textTransform: "uppercase",
           })}
         >
-          Onboarding Réussi !
+          {data.type === "user_invitation"
+            ? "Invitation Envoyée !"
+            : "Onboarding Réussi !"}
         </h2>
         <p className={css({ color: "gray.400", fontWeight: "bold" })}>
-          L'entreprise{" "}
-          <span className={css({ color: "emerald.400" })}>
-            {data.company_name}
-          </span>{" "}
-          a été provisionnée.
+          {data.type === "user_invitation" ? (
+            <>
+              Une invitation a été envoyée à{" "}
+              <span className={css({ color: "emerald.400" })}>
+                {data.user_email}
+              </span>
+              .
+            </>
+          ) : (
+            <>
+              L'entreprise{" "}
+              <span className={css({ color: "emerald.400" })}>
+                {data.company_name}
+              </span>{" "}
+              a été provisionnée.
+            </>
+          )}
         </p>
 
         <div className={css({ spaceY: "4", textAlign: "left" })}>
-          {data.deployment_token ? (
+          {data.type === "user_invitation" ? (
+            <div
+              className={css({
+                bg: "emerald.500/10",
+                border: "1px solid",
+                borderColor: "emerald.500/20",
+                borderRadius: "3xl",
+                p: "6",
+                color: "emerald.100",
+                fontWeight: "bold",
+              })}
+            >
+              Le collaborateur pourra définir son mot de passe depuis le lien
+              reçu par email.
+            </div>
+          ) : data.deployment_token ? (
             <div
               className={css({
                 bgGradient: "to-br",
@@ -1603,76 +1644,78 @@ export const SuccessModal: React.FC<{ data: any; onClose: () => void }> = ({
               </p>
             </div>
           )}
-          <div
-            className={css({
-              display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: "4",
-            })}
-          >
+          {data.type !== "user_invitation" && (
             <div
               className={css({
-                bg: "whiteAlpha.50",
-                p: "4",
-                borderRadius: "2xl",
-                border: "1px solid",
-                borderColor: "whiteAlpha.100",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "4",
               })}
             >
-              <p
+              <div
                 className={css({
-                  fontSize: "9px",
-                  fontWeight: "900",
-                  color: "gray.500",
-                  textTransform: "uppercase",
-                  mb: "1",
+                  bg: "whiteAlpha.50",
+                  p: "4",
+                  borderRadius: "2xl",
+                  border: "1px solid",
+                  borderColor: "whiteAlpha.100",
                 })}
               >
-                ID Entreprise
-              </p>
-              <p
+                <p
+                  className={css({
+                    fontSize: "9px",
+                    fontWeight: "900",
+                    color: "gray.500",
+                    textTransform: "uppercase",
+                    mb: "1",
+                  })}
+                >
+                  ID Entreprise
+                </p>
+                <p
+                  className={css({
+                    fontSize: "xs",
+                    fontFamily: "mono",
+                    color: "gray.300",
+                    wordBreak: "break-all",
+                  })}
+                >
+                  {data.company_id}
+                </p>
+              </div>
+              <div
                 className={css({
-                  fontSize: "xs",
-                  fontFamily: "mono",
-                  color: "gray.300",
-                  wordBreak: "break-all",
+                  bg: "whiteAlpha.50",
+                  p: "4",
+                  borderRadius: "2xl",
+                  border: "1px solid",
+                  borderColor: "whiteAlpha.100",
                 })}
               >
-                {data.company_id}
-              </p>
+                <p
+                  className={css({
+                    fontSize: "9px",
+                    fontWeight: "900",
+                    color: "gray.500",
+                    textTransform: "uppercase",
+                    mb: "1",
+                  })}
+                >
+                  ID Propriétaire
+                </p>
+                <p
+                  className={css({
+                    fontSize: "xs",
+                    fontFamily: "mono",
+                    color: "gray.300",
+                    wordBreak: "break-all",
+                  })}
+                >
+                  {data.owner_id}
+                </p>
+              </div>
             </div>
-            <div
-              className={css({
-                bg: "whiteAlpha.50",
-                p: "4",
-                borderRadius: "2xl",
-                border: "1px solid",
-                borderColor: "whiteAlpha.100",
-              })}
-            >
-              <p
-                className={css({
-                  fontSize: "9px",
-                  fontWeight: "900",
-                  color: "gray.500",
-                  textTransform: "uppercase",
-                  mb: "1",
-                })}
-              >
-                ID Propriétaire
-              </p>
-              <p
-                className={css({
-                  fontSize: "xs",
-                  fontFamily: "mono",
-                  color: "gray.300",
-                  wordBreak: "break-all",
-                })}
-              >
-                {data.owner_id}
-              </p>
-            </div>
-          </div>
+          )}
         </div>
 
         <button
