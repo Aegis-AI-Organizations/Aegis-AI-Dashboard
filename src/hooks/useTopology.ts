@@ -15,23 +15,9 @@ const endpointCandidates = [
   "/infrastructure/topology",
 ];
 
-const buildFallbackTopology = () => ({
-  nodes: [
-    {
-      id: "api-route",
-      kind: "host" as const,
-      label: "api.aegis-ai.fr",
-      subtitle: "Route publique /api",
-      ipAddresses: [],
-      ports: [],
-      exposedPorts: [],
-      processes: [],
-      vulnerable: false,
-      highlighted: false,
-      vulnerabilityCount: 0,
-    },
-  ],
-  edges: [],
+const buildEmptyTopology = () => ({
+  nodes: [] as TopologyGraphNode[],
+  edges: [] as TopologyGraphEdge[],
 });
 
 const getNodeKind = (node: TopologyApiNode): "host" | "container" => {
@@ -179,16 +165,26 @@ const normalizeTopology = (payload: TopologyResponse) => {
     return normalizeHosts(hosts);
   }
 
-  return buildFallbackTopology();
+  return buildEmptyTopology();
 };
 
-export const useTopology = () => {
+const buildTopologyEndpoints = (companyId?: string) => {
+  const trimmedCompanyId = companyId?.trim();
+  const query = trimmedCompanyId
+    ? `?company_id=${encodeURIComponent(trimmedCompanyId)}`
+    : "";
+
+  return endpointCandidates.map((endpoint) => `${endpoint}${query}`);
+};
+
+export const useTopology = (companyId?: string) => {
   const [topology, setTopology] = useState<{
     nodes: TopologyGraphNode[];
     edges: TopologyGraphEdge[];
   }>({ nodes: [], edges: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const endpoints = useMemo(() => buildTopologyEndpoints(companyId), [companyId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -197,7 +193,7 @@ export const useTopology = () => {
       setIsLoading(true);
       setError(null);
 
-      for (const endpoint of endpointCandidates) {
+      for (const endpoint of endpoints) {
         try {
           const response = await api.get<TopologyResponse>(endpoint);
           if (isMounted) {
@@ -218,7 +214,7 @@ export const useTopology = () => {
       }
 
       if (isMounted) {
-        setTopology(buildFallbackTopology());
+        setTopology(buildEmptyTopology());
         setError(null);
       }
     };
@@ -232,7 +228,7 @@ export const useTopology = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [endpoints]);
 
   return useMemo(
     () => ({ ...topology, isLoading, error }),
