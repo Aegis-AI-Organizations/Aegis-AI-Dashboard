@@ -74,7 +74,12 @@ export const SetupPassword: React.FC = () => {
       });
 
       setAuth(data.access_token, meResponse.data);
-      setAgentToken(data.agent_token);
+      if (data.agent_token) {
+        setAgentToken(data.agent_token);
+        return;
+      }
+
+      navigate("/", { replace: true });
     } catch (err: any) {
       if (err.response?.status === 401) {
         setError("Le lien d'activation est invalide ou a expire.");
