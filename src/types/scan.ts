@@ -1,5 +1,8 @@
 export interface CreateScanRequest {
-  target_image: string;
+  target_image?: string;
+  scope?: "topology";
+  target_node_ids?: string[];
+  target_label?: string;
 }
 
 export interface CreateScanResponse {

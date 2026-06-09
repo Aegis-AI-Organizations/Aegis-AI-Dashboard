@@ -4,8 +4,10 @@ import { Dashboard } from "./pages/Dashboard";
 import { Vulnerabilities } from "./pages/Vulnerabilities";
 import { Users } from "./pages/Users";
 import { Settings } from "./pages/Settings";
+import { Agents } from "./pages/Agents";
 import { Billing } from "./pages/Billing";
 import { Audit } from "./pages/Audit";
+import { Topology } from "./pages/Topology";
 import { Login } from "./pages/Login";
 import { SetupPassword } from "./pages/SetupPassword";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -18,6 +20,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<SetupPassword />} />
         <Route path="/setup-password" element={<SetupPassword />} />
 
         {/* Protected Routes */}
@@ -27,7 +30,33 @@ function App() {
             <Route path="/vulnerabilities" element={<Vulnerabilities />} />
             <Route path="/monitoring/:scanId" element={<Dashboard />} />
 
+            <Route
+              element={
+                <RoleRoute
+                  allowedRoles={[
+                    "superadmin",
+                    "admin",
+                    "technicien",
+                    "support",
+                    "owner",
+                    "operateur",
+                    "viewer",
+                  ]}
+                />
+              }
+            >
+              <Route path="/topology" element={<Topology />} />
+            </Route>
+
             {/* Management Routes */}
+            <Route
+              element={
+                <RoleRoute allowedRoles={["superadmin", "admin", "owner"]} />
+              }
+            >
+              <Route path="/agents" element={<Agents />} />
+            </Route>
+
             <Route
               element={
                 <RoleRoute

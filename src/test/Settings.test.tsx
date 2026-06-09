@@ -53,6 +53,12 @@ describe("Settings Page", () => {
       accessToken: "fake-jwt",
       setAuth: mockSetAuth,
     };
+    vi.mocked(api.get).mockImplementation((url: string) => {
+      if (url === "/agents") {
+        return Promise.resolve({ data: { agents: [] } });
+      }
+      return Promise.reject(new Error("Not mocked"));
+    });
   });
 
   it("renders the profile tab by default", () => {
@@ -281,125 +287,15 @@ describe("Settings Page", () => {
     });
   });
 
-  it("rotates the agent token and displays it once", async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({
-      data: { agent_token: "ag_rotated-token" },
-    });
-
+  it("does not expose agent management tabs anymore", () => {
     render(
       <MemoryRouter>
         <Settings />
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText("Sécurité"));
-    fireEvent.click(screen.getByRole("button", { name: /Régénérer/i }));
-
-    await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith("/companies/me/agent-token/rotate");
-      expect(screen.getByText("ag_rotated-token")).toBeInTheDocument();
-      expect(
-        screen.getByText("Nouveau token généré. Copiez-le maintenant."),
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("copies the rotated agent token", async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({
-      data: { agent_token: "ag_rotated-token" },
-    });
-
-    render(
-      <MemoryRouter>
-        <Settings />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByText("Sécurité"));
-    fireEvent.click(screen.getByRole("button", { name: /Régénérer/i }));
-
-    await screen.findByText("ag_rotated-token");
-    fireEvent.click(screen.getByRole("button", { name: /Copier/i }));
-
-    await waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        "ag_rotated-token",
-      );
-      expect(screen.getByText("Token copié.")).toBeInTheDocument();
-    });
-  });
-
-  it("shows an error when agent token rotation fails", async () => {
-    vi.mocked(api.post).mockRejectedValueOnce({
-      response: { data: { error: "Rotation refusée" } },
-    });
-
-    render(
-      <MemoryRouter>
-        <Settings />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByText("Sécurité"));
-    fireEvent.click(screen.getByRole("button", { name: /Régénérer/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText("Rotation refusée")).toBeInTheDocument();
-    });
-  });
-
-  it("revokes the agent token", async () => {
-    vi.mocked(api.post).mockResolvedValueOnce({ data: {} });
-
-    render(
-      <MemoryRouter>
-        <Settings />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByText("Sécurité"));
-    fireEvent.click(screen.getByRole("button", { name: /Révoquer/i }));
-
-    await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith("/companies/me/agent-token/revoke");
-      expect(screen.getByText("Token agent révoqué.")).toBeInTheDocument();
-    });
-  });
-
-  it("shows an error when agent token revocation fails", async () => {
-    vi.mocked(api.post).mockRejectedValueOnce({
-      response: { data: { error: "Révocation refusée" } },
-    });
-
-    render(
-      <MemoryRouter>
-        <Settings />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByText("Sécurité"));
-    fireEvent.click(screen.getByRole("button", { name: /Révoquer/i }));
-
-    await waitFor(() => {
-      expect(screen.getByText("Révocation refusée")).toBeInTheDocument();
-    });
-  });
-
-  it("hides agent token controls for viewers", () => {
-    mockState.user.role = "viewer";
-
-    render(
-      <MemoryRouter>
-        <Settings />
-      </MemoryRouter>,
-    );
-
-    fireEvent.click(screen.getByText("Sécurité"));
-
-    expect(screen.queryByText("Token agent")).not.toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /Régénérer/i }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Agents & Token")).not.toBeInTheDocument();
+    expect(screen.queryByText("Agents clients")).not.toBeInTheDocument();
   });
 
   it("shows error when passwords do not match", async () => {

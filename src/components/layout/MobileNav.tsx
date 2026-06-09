@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   Terminal,
+  Server,
 } from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex } from "styled-system/patterns";
@@ -14,6 +15,7 @@ const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Shield, label: "Scans", path: "/vulnerabilities" },
   { icon: Users, label: "Équipes", path: "/users" },
+  { icon: Server, label: "Agents", path: "/agents" },
   { icon: Terminal, label: "Audit", path: "/audit" },
   { icon: Settings, label: "Paramètres", path: "/settings" },
 ];

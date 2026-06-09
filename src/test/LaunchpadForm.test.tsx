@@ -6,6 +6,8 @@ const createScan = vi.fn();
 
 let mockIsLoading = false;
 let mockError: string | null = null;
+const mockTopologyLoading = false;
+const mockTopologyError: string | null = null;
 
 vi.mock("../hooks/useCreateScan", () => ({
   useCreateScan: () => ({
@@ -13,6 +15,45 @@ vi.mock("../hooks/useCreateScan", () => ({
     isLoading: mockIsLoading,
     error: mockError,
   }),
+}));
+
+vi.mock("../hooks/useTopology", () => ({
+  useTopology: () => ({
+    nodes: [
+      {
+        id: "host-1",
+        kind: "host",
+        label: "server-1",
+        ipAddresses: ["10.0.0.1"],
+        ports: [],
+        exposedPorts: [],
+        processes: [],
+        vulnerable: false,
+        highlighted: false,
+        vulnerabilityCount: 0,
+      },
+      {
+        id: "container-1",
+        kind: "container",
+        label: "api",
+        subtitle: "nginx:latest",
+        image: "nginx:latest",
+        hostId: "host-1",
+        ipAddresses: [],
+        ports: [{ number: 80, protocol: "tcp" }],
+        exposedPorts: [],
+        processes: [],
+        vulnerable: false,
+        highlighted: false,
+        vulnerabilityCount: 0,
+      },
+    ],
+    edges: [],
+    isLoading: mockTopologyLoading,
+    error: mockTopologyError,
+  }),
+  formatTopologyPort: (port: { protocol?: string; number?: number }) =>
+    `${port.protocol || "tcp"}/${port.number}`,
 }));
 
 vi.mock("../components/ScanProgressTracker", () => ({
@@ -41,15 +82,16 @@ describe("LaunchpadForm", () => {
 
     render(<LaunchpadForm onScanUpdate={onScanUpdate} />);
 
-    fireEvent.change(screen.getByLabelText("Image Docker"), {
-      target: { value: "nginx:latest" },
-    });
+    fireEvent.click(screen.getByRole("button", { name: /api/i }));
     fireEvent.click(screen.getByRole("button", { name: "Lancer le Scan" }));
 
     await waitFor(() =>
       expect(screen.getByText("tracker-scan-99")).toBeInTheDocument(),
     );
-    expect(createScan).toHaveBeenCalledWith("nginx:latest");
+    expect(createScan).toHaveBeenCalledWith({
+      targetNodeIds: ["container-1"],
+      targetLabel: "1 cible(s) selectionnee(s)",
+    });
     expect(onScanUpdate).toHaveBeenCalledTimes(1);
   });
 
@@ -60,8 +102,6 @@ describe("LaunchpadForm", () => {
     });
     render(<LaunchpadForm />);
 
-    const input = screen.getByPlaceholderText("ex: nginx:latest");
-    fireEvent.change(input, { target: { value: "nginx:latest" } });
     fireEvent.click(screen.getByRole("button", { name: /Lancer le Scan/i }));
 
     await waitFor(() =>
@@ -71,8 +111,7 @@ describe("LaunchpadForm", () => {
     const resetButton = screen.getByText("reset-btn");
     fireEvent.click(resetButton);
 
-    expect(screen.getByPlaceholderText("ex: nginx:latest")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("ex: nginx:latest")).toHaveValue("");
+    expect(screen.getByText("Topologie detectee")).toBeInTheDocument();
   });
 
   it("displays error message", () => {

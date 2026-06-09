@@ -24,6 +24,7 @@ export const AuthHydrator: React.FC<AuthHydratorProps> = ({ children }) => {
   useEffect(() => {
     if (
       location.pathname === "/login" ||
+      location.pathname === "/register" ||
       location.pathname === "/setup-password"
     ) {
       setHydrating(false);

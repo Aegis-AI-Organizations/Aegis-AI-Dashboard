@@ -7,6 +7,7 @@ import {
   Box,
   ChevronRight,
   Clock,
+  ExternalLink,
   RadioTower,
   ShieldAlert,
   WifiOff,
@@ -14,6 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { STATUS_DETAILS } from "../constants/scan";
+import { config } from "../config";
 import { useAuthStore } from "../store/AuthStore";
 
 import { css, cx } from "styled-system/css";
@@ -38,6 +40,10 @@ export const Dashboard: React.FC = () => {
   const canScan = ["admin", "superadmin", "owner", "operateur"].includes(
     user?.role || "",
   );
+  const agentInstallDocsUrl = `${config.docsBaseUrl.replace(
+    /\/$/,
+    "",
+  )}/docs/Agent/install-infrastructure`;
 
   // Take the top 3 most recent scans
   const recentScans = scans.slice(0, 3);
@@ -200,9 +206,10 @@ export const Dashboard: React.FC = () => {
                           Installez une sonde pour remonter les heartbeats.
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        disabled
+                      <a
+                        href={agentInstallDocsUrl}
+                        target="_blank"
+                        rel="noreferrer"
                         className={css({
                           display: "inline-flex",
                           alignItems: "center",
@@ -217,12 +224,18 @@ export const Dashboard: React.FC = () => {
                           fontSize: "sm",
                           fontWeight: "bold",
                           whiteSpace: "nowrap",
-                          opacity: 0.65,
-                          cursor: "not-allowed",
+                          cursor: "pointer",
+                          textDecoration: "none",
+                          transition: "colors",
+                          _hover: { bg: "brand.accent" },
                         })}
                       >
                         Déployer son premier agent
-                      </button>
+                        <ExternalLink
+                          aria-hidden="true"
+                          className={css({ w: "4", h: "4" })}
+                        />
+                      </a>
                     </div>
                   </div>
                 )}
@@ -355,8 +368,8 @@ export const Dashboard: React.FC = () => {
                   mb: "6",
                 })}
               >
-                Entrez l'image Docker cible pour démarrer l'analyse de
-                vulnérabilités.
+                Sélectionnez les composants remontés par les agents, ou lancez
+                un pentest sur toute la topologie disponible.
               </p>
               <LaunchpadForm onScanUpdate={refetch} />
             </div>
