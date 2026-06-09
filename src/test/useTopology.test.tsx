@@ -87,7 +87,7 @@ describe("topology hooks", () => {
     });
   });
 
-  it("falls back to host-based topology and reports missing routes", async () => {
+  it("falls back to the public API route when no topology is available", async () => {
     vi.mocked(api.get)
       .mockRejectedValueOnce({ response: { status: 404 } })
       .mockRejectedValueOnce({ response: { status: 404 } })
@@ -100,10 +100,15 @@ describe("topology hooks", () => {
     expect(api.get).toHaveBeenNthCalledWith(1, "/topology");
     expect(api.get).toHaveBeenNthCalledWith(2, "/topology/latest");
     expect(api.get).toHaveBeenNthCalledWith(3, "/infrastructure/topology");
-    expect(result.current.nodes).toHaveLength(0);
-    expect(result.current.error).toBe(
-      "Aucune route de topologie n'est disponible sur l'API Gateway.",
-    );
+    expect(result.current.nodes).toHaveLength(1);
+    expect(result.current.edges).toHaveLength(0);
+    expect(result.current.error).toBeNull();
+    expect(result.current.nodes[0]).toMatchObject({
+      id: "api-route",
+      kind: "host",
+      label: "api.aegis-ai.fr",
+      subtitle: "Route publique /api",
+    });
   });
 
   it("exposes an SSE vulnerability event with target data", async () => {
