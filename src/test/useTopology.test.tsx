@@ -97,9 +97,18 @@ describe("topology hooks", () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(api.get).toHaveBeenNthCalledWith(1, "/topology?company_id=company-123");
-    expect(api.get).toHaveBeenNthCalledWith(2, "/topology/latest?company_id=company-123");
-    expect(api.get).toHaveBeenNthCalledWith(3, "/infrastructure/topology?company_id=company-123");
+    expect(api.get).toHaveBeenNthCalledWith(
+      1,
+      "/topology?company_id=company-123",
+    );
+    expect(api.get).toHaveBeenNthCalledWith(
+      2,
+      "/topology/latest?company_id=company-123",
+    );
+    expect(api.get).toHaveBeenNthCalledWith(
+      3,
+      "/infrastructure/topology?company_id=company-123",
+    );
   });
 
   it("returns an empty topology when no data is available", async () => {

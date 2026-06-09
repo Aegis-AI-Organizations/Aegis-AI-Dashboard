@@ -184,7 +184,10 @@ export const useTopology = (companyId?: string) => {
   }>({ nodes: [], edges: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const endpoints = useMemo(() => buildTopologyEndpoints(companyId), [companyId]);
+  const endpoints = useMemo(
+    () => buildTopologyEndpoints(companyId),
+    [companyId],
+  );
 
   useEffect(() => {
     let isMounted = true;

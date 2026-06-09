@@ -21,7 +21,11 @@ import {
 } from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
-import { button as buttonRecipe, pageSubtitle, pageTitle } from "styled-system/recipes";
+import {
+  button as buttonRecipe,
+  pageSubtitle,
+  pageTitle,
+} from "styled-system/recipes";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/Axios";
 import { useAuthStore } from "../store/AuthStore";
@@ -422,15 +426,17 @@ export const Topology: React.FC = () => {
       });
 
     return nodes.map((node, index) => {
-      const hostIndex = node.kind === "host"
-        ? hostIndexes.get(node.id) ?? 0
-        : hostIndexes.get(node.hostId || "") ?? index;
+      const hostIndex =
+        node.kind === "host"
+          ? hostIndexes.get(node.id) ?? 0
+          : hostIndexes.get(node.hostId || "") ?? index;
 
-      const siblingIndex = node.kind === "host"
-        ? 0
-        : containersByHost
-            .get(node.hostId || "")
-            ?.findIndex((candidate) => candidate.id === node.id) ?? 0;
+      const siblingIndex =
+        node.kind === "host"
+          ? 0
+          : containersByHost
+              .get(node.hostId || "")
+              ?.findIndex((candidate) => candidate.id === node.id) ?? 0;
 
       const clusterX = hostIndex * 560;
       const hostX = clusterX + 140;
@@ -590,7 +596,9 @@ export const Topology: React.FC = () => {
                 },
               })}
             >
-              {!selectedCompanyId && <option value="">Sélectionner une entreprise</option>}
+              {!selectedCompanyId && (
+                <option value="">Sélectionner une entreprise</option>
+              )}
               {companyOptions.map((company) => (
                 <option key={company.id} value={company.id}>
                   {company.name}
@@ -620,7 +628,13 @@ export const Topology: React.FC = () => {
               </div>
             )}
           </div>
-          <div className={flex({ gap: "3", flexWrap: "wrap", justify: { base: "flex-start", lg: "flex-end" } })}>
+          <div
+            className={flex({
+              gap: "3",
+              flexWrap: "wrap",
+              justify: { base: "flex-start", lg: "flex-end" },
+            })}
+          >
             <button
               type="button"
               onClick={() => window.location.reload()}
