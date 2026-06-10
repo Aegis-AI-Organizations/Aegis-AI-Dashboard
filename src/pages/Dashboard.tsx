@@ -337,7 +337,7 @@ export const Dashboard: React.FC = () => {
                     pt: "4",
                   })}
                 >
-                    <span>Dernière remontée</span>
+                  <span>Dernière remontée</span>
                   <span
                     className={css({
                       color: "text.bright",
