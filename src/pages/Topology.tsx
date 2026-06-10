@@ -37,6 +37,10 @@ import type { TopologyGraphNode } from "../types/topology";
 import type { Vulnerability } from "../types/vulnerability";
 
 const nodeWidth = 250;
+const containerColumnWidth = 320;
+const containerRowGap = 200;
+const containerTopOffset = 240;
+
 interface FlowNodeData extends TopologyGraphNode {
   [key: string]: unknown;
 }
@@ -68,7 +72,7 @@ const TopologyNode = memo(({ data }: NodeProps<Node<FlowNodeData>>) => {
     >
       <Handle
         type="target"
-        position={Position.Left}
+        position={Position.Top}
         className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
       />
       <div
@@ -173,7 +177,7 @@ const TopologyNode = memo(({ data }: NodeProps<Node<FlowNodeData>>) => {
       </div>
       <Handle
         type="source"
-        position={Position.Right}
+        position={Position.Bottom}
         className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
       />
     </div>
@@ -227,6 +231,14 @@ export const Topology: React.FC = () => {
       return null;
     }
 
+    if (selectedCompanyId === "all") {
+      return {
+        id: "all",
+        name: "Toutes les entreprises",
+        owner_email: "",
+      };
+    }
+
     return (
       companies.find((company) => company.id === selectedCompanyId) ?? {
         id: selectedCompanyId,
@@ -241,6 +253,10 @@ export const Topology: React.FC = () => {
   );
   const companyOptions = useMemo(() => {
     if (!selectedCompany) {
+      return companies;
+    }
+
+    if (selectedCompany.id === "all") {
       return companies;
     }
 
@@ -438,14 +454,28 @@ export const Topology: React.FC = () => {
               .get(node.hostId || "")
               ?.findIndex((candidate) => candidate.id === node.id) ?? 0;
 
-      const clusterX = hostIndex * 560;
-      const hostX = clusterX + 140;
-      const containerX = clusterX + (siblingIndex % 2) * 280;
-      const containerY = 220 + Math.floor(siblingIndex / 2) * 170;
+      const containerCount =
+        containersByHost.get(node.hostId || "")?.length ?? 0;
+      const containerColumns = Math.min(
+        3,
+        Math.max(1, Math.ceil(Math.sqrt(Math.max(containerCount, 1)))),
+      );
+      const clusterWidth = 3 * containerColumnWidth + 120;
+      const clusterX = hostIndex * (clusterWidth + 100);
+      const hostX = clusterX + (clusterWidth - nodeWidth) / 2;
+      const containerX =
+        clusterX +
+        40 +
+        (siblingIndex % containerColumns) * containerColumnWidth;
+      const containerY =
+        containerTopOffset +
+        Math.floor(siblingIndex / containerColumns) * containerRowGap;
 
       return {
         id: node.id,
         type: "topology",
+        sourcePosition: Position.Bottom,
+        targetPosition: Position.Top,
         position: {
           x: node.kind === "host" ? hostX : containerX,
           y: node.kind === "host" ? 0 : containerY,
@@ -464,6 +494,7 @@ export const Topology: React.FC = () => {
     () =>
       edges.map((edge) => ({
         id: edge.id,
+        type: "smoothstep",
         source: edge.source,
         target: edge.target,
         label: edge.label,
@@ -598,6 +629,9 @@ export const Topology: React.FC = () => {
             >
               {!selectedCompanyId && (
                 <option value="">Sélectionner une entreprise</option>
+              )}
+              {isInternalViewer && (
+                <option value="all">Toutes les entreprises</option>
               )}
               {companyOptions.map((company) => (
                 <option key={company.id} value={company.id}>
