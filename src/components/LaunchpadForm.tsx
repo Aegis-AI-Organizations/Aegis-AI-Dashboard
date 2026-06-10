@@ -45,8 +45,8 @@ export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
     e.preventDefault();
     const targetNodeIds = [...selectedTargetIds];
     const targetLabel = targetNodeIds.length
-      ? `${targetNodeIds.length} cible(s) selectionnee(s)`
-      : "Topologie complete";
+      ? `${targetNodeIds.length} cible(s) sélectionnée(s)`
+      : "Topologie complète";
     const data = await createScan({ targetNodeIds, targetLabel });
 
     if (data) {
@@ -130,7 +130,7 @@ export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
                   fontWeight: "bold",
                 })}
               >
-                Topologie detectee
+                Topologie détectée
               </p>
               <p
                 className={css({
@@ -209,7 +209,7 @@ export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
                   fontSize: "sm",
                 })}
               >
-                Aucune cible exploitable n'a encore ete remontee par les agents.
+                Aucune cible exploitable n'a encore été remontée par les agents.
               </div>
             ) : (
               containers.map((node) => {
@@ -330,8 +330,8 @@ export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
           })}
         >
           {selectedCount > 0
-            ? `${selectedCount} cible(s) seront clonees et testees.`
-            : "Aucune cible selectionnee: le scan utilisera toute la topologie disponible."}
+            ? `${selectedCount} cible(s) seront clonées et testées.`
+            : "Aucune cible sélectionnée : le scan utilisera toute la topologie disponible."}
         </p>
 
         {error && (

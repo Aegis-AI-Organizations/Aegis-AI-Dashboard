@@ -30,8 +30,8 @@ export const useCreateScan = () => {
       target_label:
         targetLabel ||
         (uniqueTargetIds.length
-          ? `${uniqueTargetIds.length} cible(s) selectionnee(s)`
-          : "Topologie complete"),
+          ? `${uniqueTargetIds.length} cible(s) sélectionnée(s)`
+          : "Topologie complète"),
     };
 
     try {

@@ -64,7 +64,7 @@ export const Dashboard: React.FC = () => {
   };
 
   const formatAgentLastSeen = (dateString?: string | null) => {
-    if (!dateString) return "Aucune remontee";
+    if (!dateString) return "Aucune remontée";
     return new Intl.DateTimeFormat("fr-FR", {
       dateStyle: "short",
       timeStyle: "short",
@@ -78,7 +78,7 @@ export const Dashboard: React.FC = () => {
   return (
     <div className={css({ "& > * + *": { mt: "sectionGap" } })}>
       <div>
-        <h1 className={pageTitle()}>Tableau de Bord Sécurité</h1>
+        <h1 className={pageTitle()}>Tableau de bord sécurité</h1>
         <p className={pageSubtitle()}>
           Aperçu complet de votre posture de sécurité et des opérations de
           pentest.
@@ -94,7 +94,7 @@ export const Dashboard: React.FC = () => {
       >
         <div className={css({ width: "full", maxWidth: "xl" })}>
           <div className={css({ mb: "2" })}>
-            <h2 className={sectionTitle()}>Etat des agents</h2>
+            <h2 className={sectionTitle()}>État des agents</h2>
           </div>
 
           <div className={card()}>
@@ -119,7 +119,7 @@ export const Dashboard: React.FC = () => {
                   py: "8",
                 })}
               >
-                Impossible de charger l'etat des agents.
+                Impossible de charger l&apos;état des agents.
               </div>
             ) : (
               <div className={css({ "& > * + *": { mt: "6" } })}>
@@ -139,7 +139,7 @@ export const Dashboard: React.FC = () => {
                         textTransform: "uppercase",
                       })}
                     >
-                      Agents deployes
+                      Agents déployés
                     </p>
                     <p
                       className={css({
@@ -337,7 +337,7 @@ export const Dashboard: React.FC = () => {
                     pt: "4",
                   })}
                 >
-                  <span>Derniere remontee</span>
+                    <span>Dernière remontée</span>
                   <span
                     className={css({
                       color: "text.bright",
@@ -357,7 +357,7 @@ export const Dashboard: React.FC = () => {
         {canScan && (
           <div className={css({ width: "full", maxWidth: "xl" })}>
             <div className={css({ mb: "2" })}>
-              <h2 className={sectionTitle()}>Nouvelle Analyse</h2>
+              <h2 className={sectionTitle()}>Nouvelle analyse</h2>
             </div>
 
             <div className={card()}>

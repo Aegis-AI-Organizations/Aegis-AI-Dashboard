@@ -140,7 +140,7 @@ describe("dashboard hooks", () => {
 
     await waitFor(() => {
       expect(result.current.error).toBe(
-        "Impossible de charger l'etat des agents.",
+        "Impossible de charger l'état des agents.",
       );
     });
     expect(result.current.summary.total_agents).toBe(0);
