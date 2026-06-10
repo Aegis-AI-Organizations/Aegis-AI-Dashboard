@@ -183,6 +183,21 @@ describe("dashboard hooks", () => {
       expect(response).toBeNull();
     });
     expect(result.current.error).toBe("API failure");
+
+    (api.post as any).mockRejectedValueOnce({
+      response: {
+        status: 500,
+        data: { error: "Topology scan refused" },
+      },
+    });
+
+    await act(async () => {
+      const response = await result.current.createScan({
+        targetNodeIds: ["container-a"],
+      });
+      expect(response).toBeNull();
+    });
+    expect(result.current.error).toBe("Topology scan refused");
   });
 
   it("downloads the report through a temporary anchor element", async () => {
