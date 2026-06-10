@@ -43,10 +43,36 @@ const containerTopOffset = 240;
 
 interface FlowNodeData extends TopologyGraphNode {
   [key: string]: unknown;
+  sourceHandles?: string[];
+  targetHandles?: string[];
 }
+
+const buildHandleIds = (
+  nodeId: string,
+  count: number,
+  prefix: "source" | "target",
+) =>
+  Array.from({ length: count }, (_, index) => `${prefix}-${nodeId}-${index}`);
+
+const handleOffsetStyle = (
+  count: number,
+  index: number,
+  anchor: "top" | "bottom",
+) => {
+  const slotCount = Math.max(count, 1);
+  const left = ((index + 1) / (slotCount + 1)) * 100;
+
+  return {
+    left: `${left}%`,
+    [anchor]: "-7px",
+    transform: "translateX(-50%)",
+  };
+};
 
 const TopologyNode = memo(({ data }: NodeProps<Node<FlowNodeData>>) => {
   const Icon = data.kind === "host" ? Server : Box;
+  const sourceHandles = data.sourceHandles || [];
+  const targetHandles = data.targetHandles || [];
 
   return (
     <div
@@ -70,11 +96,30 @@ const TopologyNode = memo(({ data }: NodeProps<Node<FlowNodeData>>) => {
         data.highlighted ? "topology-node-alert" : "",
       )}
     >
-      <Handle
-        type="target"
-        position={Position.Top}
-        className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
-      />
+      {targetHandles.length > 0 ? (
+        targetHandles.map((handleId, index) => (
+          <Handle
+            key={handleId}
+            id={handleId}
+            type="target"
+            position={Position.Top}
+            className={css({
+              bg: data.vulnerable ? "red.300" : "brand.primary",
+              w: "2",
+              h: "2",
+              border: "2px solid",
+              borderColor: "rgba(7, 11, 20, 0.9)",
+            })}
+            style={handleOffsetStyle(targetHandles.length, index, "top")}
+          />
+        ))
+      ) : (
+        <Handle
+          type="target"
+          position={Position.Top}
+          className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
+        />
+      )}
       <div
         className={flex({
           align: "center",
@@ -175,11 +220,30 @@ const TopologyNode = memo(({ data }: NodeProps<Node<FlowNodeData>>) => {
           {data.processes.length || "-"}
         </div>
       </div>
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
-      />
+      {sourceHandles.length > 0 ? (
+        sourceHandles.map((handleId, index) => (
+          <Handle
+            key={handleId}
+            id={handleId}
+            type="source"
+            position={Position.Bottom}
+            className={css({
+              bg: data.vulnerable ? "red.300" : "brand.primary",
+              w: "2",
+              h: "2",
+              border: "2px solid",
+              borderColor: "rgba(7, 11, 20, 0.9)",
+            })}
+            style={handleOffsetStyle(sourceHandles.length, index, "bottom")}
+          />
+        ))
+      ) : (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
+        />
+      )}
     </div>
   );
 });
@@ -431,6 +495,19 @@ export const Topology: React.FC = () => {
       hostOrder.map((host, index) => [host.id, index] as const),
     );
     const containersByHost = new Map<string, TopologyGraphNode[]>();
+    const incomingCounts = new Map<string, number>();
+    const outgoingCounts = new Map<string, number>();
+
+    edges.forEach((edge) => {
+      outgoingCounts.set(
+        edge.source,
+        (outgoingCounts.get(edge.source) || 0) + 1,
+      );
+      incomingCounts.set(
+        edge.target,
+        (incomingCounts.get(edge.target) || 0) + 1,
+      );
+    });
 
     nodes
       .filter((node) => node.kind === "container" && node.hostId)
@@ -457,10 +534,10 @@ export const Topology: React.FC = () => {
       const containerCount =
         containersByHost.get(node.hostId || "")?.length ?? 0;
       const containerColumns = Math.min(
-        3,
+        2,
         Math.max(1, Math.ceil(Math.sqrt(Math.max(containerCount, 1)))),
       );
-      const clusterWidth = 3 * containerColumnWidth + 120;
+      const clusterWidth = containerColumns * containerColumnWidth + 180;
       const clusterX = hostIndex * (clusterWidth + 100);
       const hostX = clusterX + (clusterWidth - nodeWidth) / 2;
       const containerX =
@@ -470,6 +547,16 @@ export const Topology: React.FC = () => {
       const containerY =
         containerTopOffset +
         Math.floor(siblingIndex / containerColumns) * containerRowGap;
+      const sourceHandles = buildHandleIds(
+        node.id,
+        outgoingCounts.get(node.id) || 0,
+        "source",
+      );
+      const targetHandles = buildHandleIds(
+        node.id,
+        incomingCounts.get(node.id) || 0,
+        "target",
+      );
 
       return {
         id: node.id,
@@ -485,18 +572,30 @@ export const Topology: React.FC = () => {
           vulnerable: Boolean(vulnerableNodes[node.id]),
           highlighted: highlightedNodes.has(node.id),
           vulnerabilityCount: vulnerableNodes[node.id] || 0,
+          sourceHandles,
+          targetHandles,
         },
       };
     });
-  }, [highlightedNodes, nodes, vulnerableNodes]);
+  }, [edges, highlightedNodes, nodes, vulnerableNodes]);
 
-  const flowEdges = useMemo<Edge[]>(
-    () =>
-      edges.map((edge) => ({
+  const flowEdges = useMemo<Edge[]>(() => {
+    const sourceSlots = new Map<string, number>();
+    const targetSlots = new Map<string, number>();
+
+    return edges.map((edge) => {
+      const sourceIndex = sourceSlots.get(edge.source) || 0;
+      const targetIndex = targetSlots.get(edge.target) || 0;
+      sourceSlots.set(edge.source, sourceIndex + 1);
+      targetSlots.set(edge.target, targetIndex + 1);
+
+      return {
         id: edge.id,
         type: "smoothstep",
         source: edge.source,
         target: edge.target,
+        sourceHandle: `source-${edge.source}-${sourceIndex}`,
+        targetHandle: `target-${edge.target}-${targetIndex}`,
         label: edge.label,
         animated:
           Boolean(vulnerableNodes[edge.source]) ||
@@ -507,11 +606,12 @@ export const Topology: React.FC = () => {
               ? "#f87171"
               : "#22d3ee",
           strokeWidth: 2,
+          strokeOpacity: 0.85,
         },
         labelStyle: { fill: "#94a3b8", fontSize: 11 },
-      })),
-    [edges, vulnerableNodes],
-  );
+      };
+    });
+  }, [edges, vulnerableNodes]);
 
   return (
     <div

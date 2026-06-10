@@ -15,6 +15,7 @@ vi.mock("../api/Axios", () => ({
 
 const topologyState = vi.fn();
 const topologyEventState = vi.fn();
+let lastReactFlowProps: any = null;
 const useAuthStoreMock = vi.mocked(useAuthStore);
 const mockTopologyResponse = {
   nodes: [
@@ -92,27 +93,33 @@ vi.mock("../hooks/useTopologySSE", () => ({
 }));
 
 vi.mock("@xyflow/react", () => ({
-  ReactFlow: ({ nodes, edges }: any) => (
-    <div data-testid="reactflow">
-      <div>nodes:{nodes.length}</div>
-      <div>edges:{edges.length}</div>
-      {nodes.map((node: any) => (
-        <div key={node.id}>
-          <span>{node.data.label}</span>
-          <span>{node.data.vulnerable ? "vulnerable" : "safe"}</span>
-        </div>
-      ))}
-    </div>
-  ),
+  ReactFlow: (props: any) => {
+    lastReactFlowProps = props;
+    const { nodes, edges } = props;
+
+    return (
+      <div data-testid="reactflow">
+        <div>nodes:{nodes.length}</div>
+        <div>edges:{edges.length}</div>
+        {nodes.map((node: any) => (
+          <div key={node.id}>
+            <span>{node.data.label}</span>
+            <span>{node.data.vulnerable ? "vulnerable" : "safe"}</span>
+          </div>
+        ))}
+      </div>
+    );
+  },
   Background: () => <div data-testid="background" />,
   Controls: () => <div data-testid="controls" />,
   MiniMap: () => <div data-testid="minimap" />,
   Handle: () => <div data-testid="handle" />,
-  Position: { Left: "left", Right: "right" },
+  Position: { Left: "left", Right: "right", Top: "top", Bottom: "bottom" },
 }));
 
 describe("Topology page", () => {
   beforeEach(() => {
+    lastReactFlowProps = null;
     useAuthStoreMock.mockReturnValue({
       user: {
         id: "u-1",
@@ -152,6 +159,13 @@ describe("Topology page", () => {
     await waitFor(() => {
       expect(screen.getByText("api")).toBeInTheDocument();
       expect(screen.getByText("vulnerable")).toBeInTheDocument();
+    });
+
+    expect(lastReactFlowProps.edges[0]).toMatchObject({
+      source: "host-1",
+      target: "container-1",
+      sourceHandle: "source-host-1-0",
+      targetHandle: "target-container-1-0",
     });
   });
 });
