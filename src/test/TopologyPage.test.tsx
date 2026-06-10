@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import { Topology } from "../pages/Topology";
@@ -95,7 +95,8 @@ vi.mock("../hooks/useTopologySSE", () => ({
 vi.mock("@xyflow/react", () => ({
   ReactFlow: (props: any) => {
     lastReactFlowProps = props;
-    const { nodes, edges } = props;
+    const { nodes, edges, nodeTypes } = props;
+    const TopologyNode = nodeTypes?.topology;
 
     return (
       <div data-testid="reactflow">
@@ -105,6 +106,7 @@ vi.mock("@xyflow/react", () => ({
           <div key={node.id}>
             <span>{node.data.label}</span>
             <span>{node.data.vulnerable ? "vulnerable" : "safe"}</span>
+            {TopologyNode ? <TopologyNode data={node.data} /> : null}
           </div>
         ))}
       </div>
@@ -156,10 +158,8 @@ describe("Topology page", () => {
     expect(screen.getByTestId("reactflow")).toBeInTheDocument();
     expect(topologyState).toHaveBeenCalledWith("company-2");
 
-    await waitFor(() => {
-      expect(screen.getByText("api")).toBeInTheDocument();
-      expect(screen.getByText("vulnerable")).toBeInTheDocument();
-    });
+    expect(screen.getByText("Container · nginx:latest")).toBeInTheDocument();
+    expect(screen.getByText("vulnerable")).toBeInTheDocument();
 
     expect(lastReactFlowProps.edges[0]).toMatchObject({
       source: "host-1",

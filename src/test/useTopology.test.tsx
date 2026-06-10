@@ -169,6 +169,21 @@ describe("topology hooks", () => {
     expect(result.current.error).toBeNull();
   });
 
+  it("returns an empty topology when the API response has no nodes or hosts", async () => {
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: {},
+    });
+
+    const { result } = renderHook(() => useTopology());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(api.get).toHaveBeenCalledWith("/topology");
+    expect(result.current.nodes).toHaveLength(0);
+    expect(result.current.edges).toHaveLength(0);
+    expect(result.current.error).toBeNull();
+  });
+
   it("formats topology ports with the expected precedence", () => {
     expect(formatTopologyPort({ protocol: "udp", container_port: 53 })).toBe(
       "udp/53",
