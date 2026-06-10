@@ -112,6 +112,45 @@ describe("topology hooks", () => {
     );
   });
 
+  it("trims the company filter before building fallback endpoints", async () => {
+    vi.mocked(api.get)
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockRejectedValueOnce({ response: { status: 404 } });
+
+    const { result } = renderHook(() => useTopology("  company-123  "));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(api.get).toHaveBeenNthCalledWith(
+      1,
+      "/topology?company_id=company-123",
+    );
+    expect(api.get).toHaveBeenNthCalledWith(
+      2,
+      "/topology/latest?company_id=company-123",
+    );
+    expect(api.get).toHaveBeenNthCalledWith(
+      3,
+      "/infrastructure/topology?company_id=company-123",
+    );
+  });
+
+  it("ignores blank company identifiers when building fallback endpoints", async () => {
+    vi.mocked(api.get)
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockRejectedValueOnce({ response: { status: 404 } });
+
+    const { result } = renderHook(() => useTopology("   "));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(api.get).toHaveBeenNthCalledWith(1, "/topology");
+    expect(api.get).toHaveBeenNthCalledWith(2, "/topology/latest");
+    expect(api.get).toHaveBeenNthCalledWith(3, "/infrastructure/topology");
+  });
+
   it("returns an empty topology when no data is available", async () => {
     vi.mocked(api.get)
       .mockRejectedValueOnce({ response: { status: 404 } })
