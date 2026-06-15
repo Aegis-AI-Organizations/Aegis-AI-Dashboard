@@ -51,4 +51,35 @@ describe("Sidebar Component", () => {
 
     expect(screen.queryByTitle("Déconnexion")).not.toBeInTheDocument();
   });
+
+  it("hides topology and billing from viewers", () => {
+    useAuthStore.getState().setAuth("token", { role: "viewer" } as any);
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Sidebar />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.queryByRole("link", { name: "Topologie" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Facturation" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows billing to owners", () => {
+    useAuthStore.getState().setAuth("token", { role: "owner" } as any);
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Sidebar />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Facturation" }),
+    ).toBeInTheDocument();
+  });
 });
