@@ -24,8 +24,8 @@ const navItems = [
       "technicien",
       "support",
       "owner",
-      "billing_client",
       "operateur",
+      "viewer",
       "viewer",
     ],
   },
@@ -40,7 +40,6 @@ const navItems = [
       "support",
       "owner",
       "operateur",
-      "viewer",
     ],
   },
   {
@@ -54,7 +53,6 @@ const navItems = [
       "support",
       "owner",
       "operateur",
-      "viewer",
     ],
   },
   {
@@ -73,7 +71,7 @@ const navItems = [
     icon: Shield,
     label: "Facturation",
     path: "/billing",
-    roles: ["superadmin", "admin", "billing_aegis", "owner", "billing_client"],
+    roles: ["superadmin", "owner"],
   },
   {
     icon: Terminal,
@@ -92,7 +90,6 @@ const navItems = [
       "technicien",
       "support",
       "owner",
-      "billing_client",
       "operateur",
       "viewer",
     ],

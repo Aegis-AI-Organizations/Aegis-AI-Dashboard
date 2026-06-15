@@ -16,6 +16,7 @@ import {
   X,
   Globe,
   Shield,
+  UserX,
 } from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
@@ -46,6 +47,7 @@ interface User {
   email: string;
   role: string;
   company_id: string;
+  is_active?: boolean;
   avatar_url?: string;
 }
 
@@ -59,6 +61,7 @@ export const Users: React.FC = () => {
   const expandedIdsRef = useRef<Set<string>>(expandedIds);
   expandedIdsRef.current = expandedIds;
   const [loading, setLoading] = useState(true);
+  const [memberActionId, setMemberActionId] = useState<string | null>(null);
 
   // Reference to prevent unnecessary refetches of members during company list updates
   const companiesRef = useRef<Company[]>([]);
@@ -84,39 +87,48 @@ export const Users: React.FC = () => {
     }
   }, [searchParams]);
 
-  const fetchCompanies = useCallback(async (query: string = "") => {
-    setLoading(true);
-    try {
-      const { data } = await api.get(`/admin/companies?search=${query}`);
-      const results = data || [];
+  const isAegisUser = ["superadmin", "admin"].includes(currentUser?.role || "");
+  const isTenantOwner = currentUser?.role === "owner";
 
-      // If searching, auto-expand all found companies
-      if (query && results.length > 0) {
-        const resultIds = results.map((c: Company) => c.id);
-        setExpandedIds((prev) => {
-          const next = new Set(prev);
-          resultIds.forEach((id: string) => next.add(id));
-          return next;
+  const fetchCompanies = useCallback(
+    async (query: string = "") => {
+      setLoading(true);
+      try {
+        const endpoint = isAegisUser
+          ? `/admin/companies?search=${query}`
+          : `/companies?search=${query}`;
+        const { data } = await api.get(endpoint);
+        const results = Array.isArray(data) ? data : data?.companies || [];
+
+        // If searching, auto-expand all found companies
+        if (query && results.length > 0) {
+          const resultIds = results.map((c: Company) => c.id);
+          setExpandedIds((prev) => {
+            const next = new Set(prev);
+            resultIds.forEach((id: string) => next.add(id));
+            return next;
+          });
+        }
+
+        setCompanies((prev) => {
+          return results.map((c: Company) => {
+            const old = prev.find((pc) => pc.id === c.id);
+            return {
+              ...c,
+              isExpanded: query ? true : expandedIdsRef.current.has(c.id),
+              members: old?.members,
+            };
+          });
         });
+      } catch (err) {
+        console.error("Failed to fetch companies", err);
+        setCompanies([]); // Clear results on error to avoid showing stale data
+      } finally {
+        setLoading(false);
       }
-
-      setCompanies((prev) => {
-        return results.map((c: Company) => {
-          const old = prev.find((pc) => pc.id === c.id);
-          return {
-            ...c,
-            isExpanded: query ? true : expandedIdsRef.current.has(c.id),
-            members: old?.members,
-          };
-        });
-      });
-    } catch (err) {
-      console.error("Failed to fetch companies", err);
-      setCompanies([]); // Clear results on error to avoid showing stale data
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [isAegisUser],
+  );
 
   // Sync search with URL
   useEffect(() => {
@@ -185,9 +197,23 @@ export const Users: React.FC = () => {
 
   const fetchMembers = async (companyId: string, query: string = "") => {
     try {
-      const { data } = await api.get(
-        `/admin/users?company_id=${companyId}&search=${query}`,
-      );
+      const endpoint = isTenantOwner
+        ? `/users?search=${query}`
+        : `/admin/users?company_id=${companyId}&search=${query}`;
+      let data;
+      try {
+        const response = await api.get(endpoint);
+        data = response.data;
+      } catch (err: any) {
+        if (!isTenantOwner || err.response?.status !== 404) {
+          throw err;
+        }
+
+        const fallbackResponse = await api.get(
+          `/admin/users?company_id=${companyId}&search=${query}`,
+        );
+        data = fallbackResponse.data;
+      }
       setCompanies((prev) =>
         prev.map((c) => (c.id === companyId ? { ...c, members: data } : c)),
       );
@@ -203,6 +229,83 @@ export const Users: React.FC = () => {
     navigator.clipboard.writeText(text);
   };
 
+  const refreshExpandedMembers = (companyId: string) => {
+    fetchMembers(companyId, searchQuery);
+  };
+
+  const updateMemberRole = async (
+    companyId: string,
+    memberId: string,
+    role: string,
+  ) => {
+    setMemberActionId(memberId);
+    try {
+      await api.patch(`/users/${memberId}/role`, {
+        role,
+        company_id: companyId,
+      });
+      setCompanies((prev) =>
+        prev.map((company) =>
+          company.id !== companyId
+            ? company
+            : {
+                ...company,
+                members: company.members?.map((member) =>
+                  member.id === memberId ? { ...member, role } : member,
+                ),
+              },
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to update member role", err);
+      refreshExpandedMembers(companyId);
+    } finally {
+      setMemberActionId(null);
+    }
+  };
+
+  const setMemberActive = async (
+    companyId: string,
+    memberId: string,
+    isActive: boolean,
+  ) => {
+    setMemberActionId(memberId);
+    try {
+      try {
+        await api.patch(`/users/${memberId}/status`, {
+          is_active: isActive,
+          company_id: companyId,
+        });
+      } catch (err: any) {
+        if (err.response?.status !== 404 || isActive) {
+          throw err;
+        }
+
+        await api.delete(`/users/${memberId}`);
+      }
+
+      setCompanies((prev) =>
+        prev.map((company) =>
+          company.id !== companyId
+            ? company
+            : {
+                ...company,
+                members: company.members?.map((member) =>
+                  member.id === memberId
+                    ? { ...member, is_active: isActive }
+                    : member,
+                ),
+              },
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to deactivate member", err);
+      refreshExpandedMembers(companyId);
+    } finally {
+      setMemberActionId(null);
+    }
+  };
+
   // RBAC Helpers - Consolidated management hub for Platform Admins and Organization Owners
   const canCreateCompany = ["superadmin", "admin"].includes(
     currentUser?.role || "",
@@ -210,6 +313,8 @@ export const Users: React.FC = () => {
   const canCreateUser = ["superadmin", "admin", "owner"].includes(
     currentUser?.role || "",
   );
+  const canManageTenantCollaborators =
+    isAegisUser || currentUser?.role === "owner";
 
   return (
     <div
@@ -561,117 +666,302 @@ export const Users: React.FC = () => {
                     className={css({
                       display: "grid",
                       gridTemplateColumns: {
-                        base: "1fr",
-                        md: "repeat(2, 1fr)",
-                        lg: "repeat(3, 1fr)",
+                        base: "minmax(min(82vw, 520px), 1fr)",
+                        md: "repeat(2, minmax(520px, 1fr))",
+                        lg: "repeat(3, minmax(520px, 1fr))",
                       },
+                      overflowX: "auto",
+                      overflowY: "hidden",
                       gap: "4",
+                      pb: "3",
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "rgba(0, 229, 255, 0.45) transparent",
+                      "&::-webkit-scrollbar": {
+                        height: "8px",
+                      },
+                      "&::-webkit-scrollbar-track": {
+                        bg: "whiteAlpha.50",
+                        borderRadius: "full",
+                      },
+                      "&::-webkit-scrollbar-thumb": {
+                        bg: "brand.primary/40",
+                        borderRadius: "full",
+                      },
+                      "&::-webkit-scrollbar-thumb:hover": {
+                        bg: "brand.primary/70",
+                      },
                     })}
                   >
                     {company.members ? (
-                      company.members.map((member) => (
-                        <div
-                          key={member.id}
-                          className={css({
-                            bg: "whiteAlpha.50",
-                            border: "1px solid",
-                            borderColor: "whiteAlpha.50",
-                            p: "4",
-                            borderRadius: "2xl",
-                            transition: "all",
-                            _hover: {
-                              borderColor: "brand.primary/30",
-                              bg: "whiteAlpha.100",
-                            },
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "4",
-                            minH: "80px",
-                          })}
-                        >
-                          <ProfileCircle
-                            size="md"
-                            avatarUrl={member.avatar_url}
-                            name={member.name}
-                          />
+                      company.members.map((member) => {
+                        const isCurrentUser = member.id === currentUser?.id;
+                        const isMemberActive = member.is_active !== false;
+                        const canEditMember =
+                          canManageTenantCollaborators &&
+                          !isCurrentUser &&
+                          isMemberActive;
+                        const canToggleMemberStatus =
+                          canManageTenantCollaborators && !isCurrentUser;
+
+                        return (
                           <div
+                            key={member.id}
                             className={css({
-                              flex: "1",
-                              minWidth: "0",
+                              bg: isMemberActive
+                                ? "whiteAlpha.50"
+                                : "whiteAlpha.25",
+                              border: "1px solid",
+                              borderColor: isMemberActive
+                                ? "whiteAlpha.50"
+                                : "red.500/20",
+                              p: "4",
+                              borderRadius: "2xl",
+                              transition: "all",
+                              opacity: isMemberActive ? 1 : 0.72,
+                              _hover: {
+                                borderColor: isMemberActive
+                                  ? "brand.primary/30"
+                                  : "red.500/30",
+                                bg: "whiteAlpha.100",
+                              },
                               display: "flex",
-                              flexDir: "column",
-                              justifyContent: "center",
-                              gap: "0.5",
+                              alignItems: "center",
+                              gap: "4",
+                              minH: "80px",
                             })}
                           >
+                            <ProfileCircle
+                              size="md"
+                              avatarUrl={member.avatar_url}
+                              name={member.name}
+                            />
                             <div
-                              className={flex({
-                                align: "center",
-                                gap: "2",
-                                flexWrap: "wrap",
-                              })}
-                            >
-                              <span
-                                className={css({
-                                  fontSize: "sm",
-                                  fontWeight: "900",
-                                  color: "white",
-                                  textOverflow: "ellipsis",
-                                  overflow: "hidden",
-                                  whiteSpace: "nowrap",
-                                  maxW: "full",
-                                })}
-                              >
-                                {member.name || "Utilisateur sans nom"}
-                              </span>
-                              <RoleBadge role={member.role} showIcon={false} />
-                            </div>
-                            {member.email && (
-                              <p
-                                className={css({
-                                  fontSize: "xs",
-                                  color: "text.muted",
-                                  fontWeight: "bold",
-                                  textOverflow: "ellipsis",
-                                  overflow: "hidden",
-                                  whiteSpace: "nowrap",
-                                  mb: "0.5",
-                                })}
-                              >
-                                {member.email}
-                              </p>
-                            )}
-                            <code
                               className={css({
-                                fontSize: "9px",
-                                fontFamily: "mono",
-                                color: "gray.600",
-                                display: "block",
-                                textOverflow: "ellipsis",
-                                overflow: "hidden",
-                                whiteSpace: "nowrap",
-                                mt: "0.5",
-                                fontWeight: "medium",
+                                flex: "1",
+                                minWidth: "0",
+                                display: "flex",
+                                flexDir: "column",
+                                justifyContent: "center",
+                                gap: "0.5",
                               })}
                             >
-                              ID: {member.id}
-                            </code>
+                              <div
+                                className={flex({
+                                  align: "center",
+                                  gap: "2",
+                                  flexWrap: "wrap",
+                                })}
+                              >
+                                <span
+                                  className={css({
+                                    fontSize: "sm",
+                                    fontWeight: "900",
+                                    color: "white",
+                                    textOverflow: "ellipsis",
+                                    overflow: "hidden",
+                                    whiteSpace: "nowrap",
+                                    maxW: "full",
+                                  })}
+                                >
+                                  {member.name || "Utilisateur sans nom"}
+                                </span>
+                                <RoleBadge
+                                  role={member.role}
+                                  showIcon={false}
+                                />
+                                {!isMemberActive && (
+                                  <span
+                                    className={css({
+                                      px: "3",
+                                      py: "1.5",
+                                      borderRadius: "full",
+                                      bg: "red.500/10",
+                                      border: "1px solid",
+                                      borderColor: "red.500/20",
+                                      color: "red.200",
+                                      fontSize: "10px",
+                                      fontWeight: "900",
+                                      textTransform: "uppercase",
+                                      letterSpacing: "0.08em",
+                                    })}
+                                  >
+                                    Désactivé
+                                  </span>
+                                )}
+                              </div>
+                              {member.email && (
+                                <p
+                                  className={css({
+                                    fontSize: "xs",
+                                    color: "text.muted",
+                                    fontWeight: "bold",
+                                    textOverflow: "ellipsis",
+                                    overflow: "hidden",
+                                    whiteSpace: "nowrap",
+                                    mb: "0.5",
+                                  })}
+                                >
+                                  {member.email}
+                                </p>
+                              )}
+                              <code
+                                className={css({
+                                  fontSize: "9px",
+                                  fontFamily: "mono",
+                                  color: "gray.600",
+                                  display: "block",
+                                  textOverflow: "ellipsis",
+                                  overflow: "hidden",
+                                  whiteSpace: "nowrap",
+                                  mt: "0.5",
+                                  fontWeight: "medium",
+                                })}
+                              >
+                                ID: {member.id}
+                              </code>
+                            </div>
+                            <button
+                              onClick={() => copyToClipboard(member.id)}
+                              className={css({
+                                p: "2",
+                                color: "gray.700",
+                                _hover: { color: "brand.primary" },
+                                transition: "colors",
+                                flexShrink: 0,
+                              })}
+                              title="Copier l'ID"
+                            >
+                              <Copy className={css({ w: "3.5", h: "3.5" })} />
+                            </button>
+                            {canManageTenantCollaborators && (
+                              <div
+                                className={css({
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "2",
+                                  flexShrink: 0,
+                                })}
+                              >
+                                <select
+                                  aria-label={`Modifier le rôle de ${member.name}`}
+                                  value={member.role}
+                                  disabled={
+                                    memberActionId === member.id ||
+                                    !canEditMember
+                                  }
+                                  onChange={(event) =>
+                                    updateMemberRole(
+                                      company.id,
+                                      member.id,
+                                      event.target.value,
+                                    )
+                                  }
+                                  className={css({
+                                    bg: "bg.main",
+                                    border: "1px solid",
+                                    borderColor: "whiteAlpha.100",
+                                    color: "white",
+                                    borderRadius: "xl",
+                                    px: "3",
+                                    py: "2",
+                                    fontSize: "xs",
+                                    fontWeight: "800",
+                                    _focus: {
+                                      borderColor: "brand.primary",
+                                      outline: "none",
+                                    },
+                                    _disabled: {
+                                      opacity: 0.5,
+                                      cursor: "wait",
+                                    },
+                                  })}
+                                >
+                                  <option value="viewer">Lecteur</option>
+                                  <option value="operateur">Opérateur</option>
+                                  <option value="owner">Propriétaire</option>
+                                </select>
+                                {canToggleMemberStatus && (
+                                  <button
+                                    type="button"
+                                    disabled={memberActionId === member.id}
+                                    onClick={() =>
+                                      setMemberActive(
+                                        company.id,
+                                        member.id,
+                                        !isMemberActive,
+                                      )
+                                    }
+                                    className={css({
+                                      p: "2",
+                                      color: isMemberActive
+                                        ? "red.300"
+                                        : "green.300",
+                                      border: "1px solid",
+                                      borderColor: isMemberActive
+                                        ? "red.500/20"
+                                        : "green.500/20",
+                                      borderRadius: "xl",
+                                      bg: isMemberActive
+                                        ? "red.500/5"
+                                        : "green.500/5",
+                                      _hover: {
+                                        color: isMemberActive
+                                          ? "red.200"
+                                          : "green.200",
+                                        bg: isMemberActive
+                                          ? "red.500/10"
+                                          : "green.500/10",
+                                      },
+                                      _disabled: {
+                                        opacity: 0.5,
+                                        cursor: "wait",
+                                      },
+                                    })}
+                                    title={
+                                      isMemberActive
+                                        ? "Désactiver le collaborateur"
+                                        : "Réactiver le collaborateur"
+                                    }
+                                    aria-label={`${
+                                      isMemberActive
+                                        ? "Désactiver"
+                                        : "Réactiver"
+                                    } ${member.name || member.email}`}
+                                  >
+                                    {memberActionId === member.id ? (
+                                      <Loader2
+                                        className={css({
+                                          w: "3.5",
+                                          h: "3.5",
+                                          animation: "spin 1s linear infinite",
+                                        })}
+                                      />
+                                    ) : (
+                                      <>
+                                        {isMemberActive ? (
+                                          <UserX
+                                            className={css({
+                                              w: "3.5",
+                                              h: "3.5",
+                                            })}
+                                          />
+                                        ) : (
+                                          <CheckCircle2
+                                            className={css({
+                                              w: "3.5",
+                                              h: "3.5",
+                                            })}
+                                          />
+                                        )}
+                                      </>
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <button
-                            onClick={() => copyToClipboard(member.id)}
-                            className={css({
-                              p: "2",
-                              color: "gray.700",
-                              _hover: { color: "brand.primary" },
-                              transition: "colors",
-                              flexShrink: 0,
-                            })}
-                            title="Copier l'ID"
-                          >
-                            <Copy className={css({ w: "3.5", h: "3.5" })} />
-                          </button>
-                        </div>
-                      ))
+                        );
+                      })
                     ) : (
                       <div
                         className={flex({
@@ -1151,7 +1441,29 @@ export const CreateUserModal: React.FC<{
     setLoading(true);
     setError(null);
     try {
-      const { data } = await api.post("/admin/users", formData);
+      const isTenantOwner = currentUser?.role === "owner";
+      const payload = isTenantOwner
+        ? {
+            name: formData.name,
+            email: formData.email,
+            role: formData.role,
+          }
+        : formData;
+      let data;
+      try {
+        const response = await api.post(
+          isTenantOwner ? "/users/invitations" : "/admin/users",
+          payload,
+        );
+        data = response.data;
+      } catch (err: any) {
+        if (!isTenantOwner || err.response?.status !== 404) {
+          throw err;
+        }
+
+        const fallbackResponse = await api.post("/admin/users", formData);
+        data = fallbackResponse.data;
+      }
       onSuccess({
         type: "user_invitation",
         ...data,
