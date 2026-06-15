@@ -90,7 +90,7 @@ describe("LaunchpadForm", () => {
     );
     expect(createScan).toHaveBeenCalledWith({
       targetNodeIds: ["container-1"],
-      targetLabel: "1 cible(s) sélectionnée(s)",
+      targetLabel: "api",
     });
     expect(onScanUpdate).toHaveBeenCalledTimes(1);
   });

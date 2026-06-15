@@ -15,6 +15,7 @@ export interface ScanStatusResponse {
   id: string;
   temporal_workflow_id: string;
   target_image: string;
+  target_label?: string;
   status: string;
   started_at?: string;
   completed_at?: string;

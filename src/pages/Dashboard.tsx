@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { STATUS_DETAILS } from "../constants/scan";
 import { config } from "../config";
 import { useAuthStore } from "../store/AuthStore";
+import { formatScanTargetName } from "../utils/scanDisplay";
 
 import { css, cx } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
@@ -565,7 +566,7 @@ export const Dashboard: React.FC = () => {
                           mb: "0.5",
                         })}
                       >
-                        {scan.target_image}
+                        {formatScanTargetName(scan)}
                       </p>
                       <div className={flex({ align: "center", gap: "2" })}>
                         <p

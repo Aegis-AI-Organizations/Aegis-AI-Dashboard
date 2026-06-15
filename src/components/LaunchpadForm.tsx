@@ -44,8 +44,17 @@ export const LaunchpadForm: React.FC<LaunchpadFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const targetNodeIds = [...selectedTargetIds];
+    const selectedNames = containers
+      .filter((node) => selectedTargetIds.has(node.id))
+      .map((node) => node.label.trim())
+      .filter(Boolean)
+      .sort();
     const targetLabel = targetNodeIds.length
-      ? `${targetNodeIds.length} cible(s) sélectionnée(s)`
+      ? selectedNames.length === 1
+        ? selectedNames[0]
+        : selectedNames.length <= 3
+          ? selectedNames.join(", ")
+          : `${targetNodeIds.length} cibles sélectionnées`
       : "Topologie complète";
     const data = await createScan({ targetNodeIds, targetLabel });
 
