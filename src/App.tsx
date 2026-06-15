@@ -40,7 +40,6 @@ function App() {
                     "support",
                     "owner",
                     "operateur",
-                    "viewer",
                   ]}
                 />
               }
@@ -59,18 +58,15 @@ function App() {
 
             <Route
               element={
-                <RoleRoute
-                  allowedRoles={[
-                    "admin",
-                    "superadmin",
-                    "owner",
-                    "billing_aegis",
-                    "billing_client",
-                  ]}
-                />
+                <RoleRoute allowedRoles={["admin", "superadmin", "owner"]} />
               }
             >
               <Route path="/users" element={<Users />} />
+            </Route>
+
+            <Route
+              element={<RoleRoute allowedRoles={["superadmin", "owner"]} />}
+            >
               <Route path="/billing" element={<Billing />} />
               <Route path="/audit" element={<Audit />} />
             </Route>

@@ -90,7 +90,7 @@ describe("LaunchpadForm", () => {
     );
     expect(createScan).toHaveBeenCalledWith({
       targetNodeIds: ["container-1"],
-      targetLabel: "1 cible(s) selectionnee(s)",
+      targetLabel: "1 cible(s) sélectionnée(s)",
     });
     expect(onScanUpdate).toHaveBeenCalledTimes(1);
   });
@@ -111,7 +111,7 @@ describe("LaunchpadForm", () => {
     const resetButton = screen.getByText("reset-btn");
     fireEvent.click(resetButton);
 
-    expect(screen.getByText("Topologie detectee")).toBeInTheDocument();
+    expect(screen.getByText("Topologie détectée")).toBeInTheDocument();
   });
 
   it("displays error message", () => {

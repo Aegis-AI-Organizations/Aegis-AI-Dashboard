@@ -64,8 +64,8 @@ describe("Dashboard page", () => {
     );
 
     expect(screen.getByText("Aucun scan récent trouvé.")).toBeInTheDocument();
-    expect(screen.getByText("Etat des agents")).toBeInTheDocument();
-    expect(screen.getByText("Agents deployes")).toBeInTheDocument();
+    expect(screen.getByText("État des agents")).toBeInTheDocument();
+    expect(screen.getByText("Agents déployés")).toBeInTheDocument();
     expect(screen.getByText("Actifs")).toBeInTheDocument();
     expect(screen.getByText("Inactifs")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();

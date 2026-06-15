@@ -15,6 +15,11 @@ const endpointCandidates = [
   "/infrastructure/topology",
 ];
 
+const buildEmptyTopology = () => ({
+  nodes: [] as TopologyGraphNode[],
+  edges: [] as TopologyGraphEdge[],
+});
+
 const getNodeKind = (node: TopologyApiNode): "host" | "container" => {
   const rawKind = (node.kind || node.type || "").toLowerCase();
   return rawKind === "host" ? "host" : "container";
@@ -155,16 +160,34 @@ const normalizeTopology = (payload: TopologyResponse) => {
     return normalizeNodes(payload.nodes, payload.edges);
   }
 
-  return normalizeHosts(payload.hosts || []);
+  const hosts = payload.hosts || [];
+  if (hosts.length > 0) {
+    return normalizeHosts(hosts);
+  }
+
+  return buildEmptyTopology();
 };
 
-export const useTopology = () => {
+const buildTopologyEndpoints = (companyId?: string) => {
+  const trimmedCompanyId = companyId?.trim();
+  const query = trimmedCompanyId
+    ? `?company_id=${encodeURIComponent(trimmedCompanyId)}`
+    : "";
+
+  return endpointCandidates.map((endpoint) => `${endpoint}${query}`);
+};
+
+export const useTopology = (companyId?: string) => {
   const [topology, setTopology] = useState<{
     nodes: TopologyGraphNode[];
     edges: TopologyGraphEdge[];
   }>({ nodes: [], edges: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const endpoints = useMemo(
+    () => buildTopologyEndpoints(companyId),
+    [companyId],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -173,7 +196,7 @@ export const useTopology = () => {
       setIsLoading(true);
       setError(null);
 
-      for (const endpoint of endpointCandidates) {
+      for (const endpoint of endpoints) {
         try {
           const response = await api.get<TopologyResponse>(endpoint);
           if (isMounted) {
@@ -194,9 +217,8 @@ export const useTopology = () => {
       }
 
       if (isMounted) {
-        setError(
-          "Aucune route de topologie n'est disponible sur l'API Gateway.",
-        );
+        setTopology(buildEmptyTopology());
+        setError(null);
       }
     };
 
@@ -209,7 +231,7 @@ export const useTopology = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [endpoints]);
 
   return useMemo(
     () => ({ ...topology, isLoading, error }),

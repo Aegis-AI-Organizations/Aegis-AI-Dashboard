@@ -29,7 +29,7 @@ export const useAgentStatus = () => {
       });
     } catch (err) {
       console.error("Erreur lors de la récupération du statut agents :", err);
-      setError("Impossible de charger l'etat des agents.");
+      setError("Impossible de charger l'état des agents.");
       setSummary(EMPTY_AGENT_STATUS);
     } finally {
       setIsLoading(false);

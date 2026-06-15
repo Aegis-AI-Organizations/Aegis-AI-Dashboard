@@ -30,18 +30,22 @@ export const useCreateScan = () => {
       target_label:
         targetLabel ||
         (uniqueTargetIds.length
-          ? `${uniqueTargetIds.length} cible(s) selectionnee(s)`
-          : "Topologie complete"),
+          ? `${uniqueTargetIds.length} cible(s) sélectionnée(s)`
+          : "Topologie complète"),
     };
 
     try {
       const response = await api.post<CreateScanResponse>("/scans", payload);
       return response.data;
     } catch (err: unknown) {
-      const errorData = (err as { response?: { data?: { message?: string } } })
-        .response?.data;
+      const errorData = (
+        err as {
+          response?: { data?: { message?: string; error?: string } };
+        }
+      ).response?.data;
       setError(
         errorData?.message ||
+          errorData?.error ||
           "Erreur réseau. Impossible de contacter le serveur.",
       );
       return null;

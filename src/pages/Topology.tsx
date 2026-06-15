@@ -11,26 +11,68 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { AlertTriangle, Box, Network, Server } from "lucide-react";
+import {
+  AlertTriangle,
+  Box,
+  Building2,
+  Network,
+  RefreshCw,
+  Server,
+} from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex, grid } from "styled-system/patterns";
-import { pageSubtitle, pageTitle } from "styled-system/recipes";
+import {
+  button as buttonRecipe,
+  pageSubtitle,
+  pageTitle,
+} from "styled-system/recipes";
+import { useSearchParams } from "react-router-dom";
 import { api } from "../api/Axios";
+import { useAuthStore } from "../store/AuthStore";
 import { useTopology, getNodeMatcher } from "../hooks/useTopology";
 import { useTopologySSE } from "../hooks/useTopologySSE";
+import { useCompanies } from "../hooks/useCompanies";
+import type { Company } from "../hooks/useCompanies";
 import type { TopologyGraphNode } from "../types/topology";
 import type { Vulnerability } from "../types/vulnerability";
 
 const nodeWidth = 250;
-const hostColumnGap = 360;
-const containerRowGap = 150;
+const containerColumnWidth = 320;
+const containerRowGap = 200;
+const containerTopOffset = 240;
 
 interface FlowNodeData extends TopologyGraphNode {
   [key: string]: unknown;
+  sourceHandles?: string[];
+  targetHandles?: string[];
 }
+
+const buildHandleIds = (
+  nodeId: string,
+  count: number,
+  prefix: "source" | "target",
+) =>
+  Array.from({ length: count }, (_, index) => `${prefix}-${nodeId}-${index}`);
+
+const handleOffsetStyle = (
+  count: number,
+  index: number,
+  anchor: "top" | "bottom",
+) => {
+  const slotCount = Math.max(count, 1);
+  const left = ((index + 1) / (slotCount + 1)) * 100;
+
+  return {
+    left: `${left}%`,
+    [anchor]: "-7px",
+    transform: "translateX(-50%)",
+  };
+};
 
 const TopologyNode = memo(({ data }: NodeProps<Node<FlowNodeData>>) => {
   const Icon = data.kind === "host" ? Server : Box;
+  const sourceHandles = data.sourceHandles || [];
+  const targetHandles = data.targetHandles || [];
 
   return (
     <div
@@ -54,11 +96,30 @@ const TopologyNode = memo(({ data }: NodeProps<Node<FlowNodeData>>) => {
         data.highlighted ? "topology-node-alert" : "",
       )}
     >
-      <Handle
-        type="target"
-        position={Position.Left}
-        className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
-      />
+      {targetHandles.length > 0 ? (
+        targetHandles.map((handleId, index) => (
+          <Handle
+            key={handleId}
+            id={handleId}
+            type="target"
+            position={Position.Top}
+            className={css({
+              bg: data.vulnerable ? "red.300" : "brand.primary",
+              w: "2",
+              h: "2",
+              border: "2px solid",
+              borderColor: "rgba(7, 11, 20, 0.9)",
+            })}
+            style={handleOffsetStyle(targetHandles.length, index, "top")}
+          />
+        ))
+      ) : (
+        <Handle
+          type="target"
+          position={Position.Top}
+          className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
+        />
+      )}
       <div
         className={flex({
           align: "center",
@@ -159,11 +220,30 @@ const TopologyNode = memo(({ data }: NodeProps<Node<FlowNodeData>>) => {
           {data.processes.length || "-"}
         </div>
       </div>
-      <Handle
-        type="source"
-        position={Position.Right}
-        className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
-      />
+      {sourceHandles.length > 0 ? (
+        sourceHandles.map((handleId, index) => (
+          <Handle
+            key={handleId}
+            id={handleId}
+            type="source"
+            position={Position.Bottom}
+            className={css({
+              bg: data.vulnerable ? "red.300" : "brand.primary",
+              w: "2",
+              h: "2",
+              border: "2px solid",
+              borderColor: "rgba(7, 11, 20, 0.9)",
+            })}
+            style={handleOffsetStyle(sourceHandles.length, index, "bottom")}
+          />
+        ))
+      ) : (
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          className={css({ bg: data.vulnerable ? "red.300" : "brand.primary" })}
+        />
+      )}
     </div>
   );
 });
@@ -197,7 +277,63 @@ const matchEventToNodes = (
 };
 
 export const Topology: React.FC = () => {
-  const { nodes, edges, isLoading, error } = useTopology();
+  const { user } = useAuthStore();
+  const isInternalViewer = ["superadmin", "admin"].includes(user?.role || "");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialCompanyId = searchParams.get("company_id")?.trim() || "";
+  const [companySearch, setCompanySearch] = useState("");
+  const [selectedCompanyId, setSelectedCompanyId] = useState(
+    initialCompanyId || user?.company_id || "",
+  );
+  const {
+    companies,
+    isLoading: isCompaniesLoading,
+    error: companiesError,
+  } = useCompanies(companySearch);
+  const fallbackSelectedCompany = useMemo<Company | null>(() => {
+    if (!selectedCompanyId) {
+      return null;
+    }
+
+    if (selectedCompanyId === "all") {
+      return {
+        id: "all",
+        name: "Toutes les entreprises",
+        owner_email: "",
+      };
+    }
+
+    return (
+      companies.find((company) => company.id === selectedCompanyId) ?? {
+        id: selectedCompanyId,
+        name: selectedCompanyId,
+        owner_email: "",
+      }
+    );
+  }, [companies, selectedCompanyId]);
+  const selectedCompany = useMemo(
+    () => fallbackSelectedCompany,
+    [fallbackSelectedCompany],
+  );
+  const companyOptions = useMemo(() => {
+    if (!selectedCompany) {
+      return companies;
+    }
+
+    if (selectedCompany.id === "all") {
+      return companies;
+    }
+
+    if (companies.some((company) => company.id === selectedCompany.id)) {
+      return companies;
+    }
+
+    return [selectedCompany, ...companies];
+  }, [companies, selectedCompany]);
+  const effectiveCompanyId = isInternalViewer
+    ? selectedCompanyId || user?.company_id || undefined
+    : undefined;
+  const { nodes, edges, isLoading, error } = useTopology(effectiveCompanyId);
   const lastVulnerability = useTopologySSE();
   const [vulnerableNodes, setVulnerableNodes] = useState<
     Record<string, number>
@@ -205,6 +341,38 @@ export const Topology: React.FC = () => {
   const [highlightedNodes, setHighlightedNodes] = useState<Set<string>>(
     new Set(),
   );
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    if (!isInternalViewer) {
+      setSelectedCompanyId(user.company_id);
+      return;
+    }
+
+    if (initialCompanyId) {
+      setSelectedCompanyId(initialCompanyId);
+      return;
+    }
+
+    if (!selectedCompanyId) {
+      setSelectedCompanyId(user.company_id);
+    }
+  }, [initialCompanyId, isInternalViewer, selectedCompanyId, user]);
+
+  useEffect(() => {
+    if (!isInternalViewer || !selectedCompanyId) {
+      return;
+    }
+
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("company_id", selectedCompanyId);
+    if (searchParams.get("company_id") !== selectedCompanyId) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [isInternalViewer, searchParams, selectedCompanyId, setSearchParams]);
 
   useEffect(() => {
     if (!lastVulnerability || nodes.length === 0) {
@@ -322,48 +490,112 @@ export const Topology: React.FC = () => {
   }, [nodes]);
 
   const flowNodes = useMemo<Node<FlowNodeData>[]>(() => {
-    const hostIndexes = new Map<string, number>();
+    const hostOrder = nodes.filter((node) => node.kind === "host");
+    const hostIndexes = new Map(
+      hostOrder.map((host, index) => [host.id, index] as const),
+    );
+    const containersByHost = new Map<string, TopologyGraphNode[]>();
+    const incomingCounts = new Map<string, number>();
+    const outgoingCounts = new Map<string, number>();
+
+    edges.forEach((edge) => {
+      outgoingCounts.set(
+        edge.source,
+        (outgoingCounts.get(edge.source) || 0) + 1,
+      );
+      incomingCounts.set(
+        edge.target,
+        (incomingCounts.get(edge.target) || 0) + 1,
+      );
+    });
+
+    nodes
+      .filter((node) => node.kind === "container" && node.hostId)
+      .forEach((node) => {
+        const hostId = node.hostId!;
+        const current = containersByHost.get(hostId) || [];
+        current.push(node);
+        containersByHost.set(hostId, current);
+      });
 
     return nodes.map((node, index) => {
       const hostIndex =
         node.kind === "host"
-          ? hostIndexes.set(node.id, hostIndexes.size).get(node.id) || 0
+          ? hostIndexes.get(node.id) ?? 0
           : hostIndexes.get(node.hostId || "") ?? index;
 
       const siblingIndex =
         node.kind === "host"
           ? 0
-          : nodes
-              .filter(
-                (candidate) =>
-                  candidate.kind === "container" &&
-                  candidate.hostId === node.hostId,
-              )
-              .findIndex((candidate) => candidate.id === node.id) + 1;
+          : containersByHost
+              .get(node.hostId || "")
+              ?.findIndex((candidate) => candidate.id === node.id) ?? 0;
+
+      const containerCount =
+        containersByHost.get(node.hostId || "")?.length ?? 0;
+      const containerColumns = Math.min(
+        2,
+        Math.max(1, Math.ceil(Math.sqrt(Math.max(containerCount, 1)))),
+      );
+      const clusterWidth = containerColumns * containerColumnWidth + 180;
+      const clusterX = hostIndex * (clusterWidth + 100);
+      const hostX = clusterX + (clusterWidth - nodeWidth) / 2;
+      const containerX =
+        clusterX +
+        40 +
+        (siblingIndex % containerColumns) * containerColumnWidth;
+      const containerY =
+        containerTopOffset +
+        Math.floor(siblingIndex / containerColumns) * containerRowGap;
+      const sourceHandles = buildHandleIds(
+        node.id,
+        outgoingCounts.get(node.id) || 0,
+        "source",
+      );
+      const targetHandles = buildHandleIds(
+        node.id,
+        incomingCounts.get(node.id) || 0,
+        "target",
+      );
 
       return {
         id: node.id,
         type: "topology",
+        sourcePosition: Position.Bottom,
+        targetPosition: Position.Top,
         position: {
-          x: hostIndex * hostColumnGap,
-          y: node.kind === "host" ? 0 : siblingIndex * containerRowGap,
+          x: node.kind === "host" ? hostX : containerX,
+          y: node.kind === "host" ? 0 : containerY,
         },
         data: {
           ...node,
           vulnerable: Boolean(vulnerableNodes[node.id]),
           highlighted: highlightedNodes.has(node.id),
           vulnerabilityCount: vulnerableNodes[node.id] || 0,
+          sourceHandles,
+          targetHandles,
         },
       };
     });
-  }, [highlightedNodes, nodes, vulnerableNodes]);
+  }, [edges, highlightedNodes, nodes, vulnerableNodes]);
 
-  const flowEdges = useMemo<Edge[]>(
-    () =>
-      edges.map((edge) => ({
+  const flowEdges = useMemo<Edge[]>(() => {
+    const sourceSlots = new Map<string, number>();
+    const targetSlots = new Map<string, number>();
+
+    return edges.map((edge) => {
+      const sourceIndex = sourceSlots.get(edge.source) || 0;
+      const targetIndex = targetSlots.get(edge.target) || 0;
+      sourceSlots.set(edge.source, sourceIndex + 1);
+      targetSlots.set(edge.target, targetIndex + 1);
+
+      return {
         id: edge.id,
+        type: "smoothstep",
         source: edge.source,
         target: edge.target,
+        sourceHandle: `source-${edge.source}-${sourceIndex}`,
+        targetHandle: `target-${edge.target}-${targetIndex}`,
         label: edge.label,
         animated:
           Boolean(vulnerableNodes[edge.source]) ||
@@ -374,11 +606,12 @@ export const Topology: React.FC = () => {
               ? "#f87171"
               : "#22d3ee",
           strokeWidth: 2,
+          strokeOpacity: 0.85,
         },
         labelStyle: { fill: "#94a3b8", fontSize: 11 },
-      })),
-    [edges, vulnerableNodes],
-  );
+      };
+    });
+  }, [edges, vulnerableNodes]);
 
   return (
     <div
@@ -423,6 +656,131 @@ export const Topology: React.FC = () => {
         </div>
       </div>
 
+      {isInternalViewer && (
+        <div
+          className={css({
+            display: "grid",
+            gridTemplateColumns: { base: "1fr", lg: "minmax(0, 420px) auto" },
+            gap: "4",
+            alignItems: "end",
+          })}
+        >
+          <div
+            className={css({
+              display: "grid",
+              gap: "3",
+              p: "4",
+              borderRadius: "lg",
+              border: "1px solid",
+              borderColor: "whiteAlpha.100",
+              bg: "whiteAlpha.50",
+            })}
+          >
+            <div
+              className={flex({
+                align: "center",
+                gap: "2",
+                color: "text.muted",
+                fontSize: "sm",
+              })}
+            >
+              <Building2 size={16} />
+              Entreprise consultée
+            </div>
+            <input
+              type="search"
+              value={companySearch}
+              onChange={(event) => setCompanySearch(event.target.value)}
+              placeholder="Rechercher une entreprise..."
+              className={css({
+                width: "100%",
+                bg: "blackAlpha.300",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+                color: "white",
+                borderRadius: "md",
+                px: "3",
+                py: "2.5",
+                outline: "none",
+                _focusVisible: {
+                  borderColor: "brand.primary",
+                  boxShadow: "0 0 0 1px var(--colors-brand-primary)",
+                },
+              })}
+            />
+            <select
+              value={selectedCompanyId}
+              onChange={(event) => setSelectedCompanyId(event.target.value)}
+              className={css({
+                width: "100%",
+                bg: "blackAlpha.300",
+                border: "1px solid",
+                borderColor: "whiteAlpha.100",
+                color: "white",
+                borderRadius: "md",
+                px: "3",
+                py: "2.5",
+                outline: "none",
+                _focusVisible: {
+                  borderColor: "brand.primary",
+                  boxShadow: "0 0 0 1px var(--colors-brand-primary)",
+                },
+              })}
+            >
+              {!selectedCompanyId && (
+                <option value="">Sélectionner une entreprise</option>
+              )}
+              {isInternalViewer && (
+                <option value="all">Toutes les entreprises</option>
+              )}
+              {companyOptions.map((company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </select>
+            <div
+              className={css({
+                color: "text.muted",
+                fontSize: "sm",
+              })}
+            >
+              {selectedCompany?.name
+                ? `Entreprise active: ${selectedCompany.name}`
+                : selectedCompanyId
+                  ? `Entreprise active: ${selectedCompanyId}`
+                  : "Aucune entreprise sélectionnée"}
+            </div>
+            {isCompaniesLoading && (
+              <div className={css({ color: "text.muted", fontSize: "sm" })}>
+                Chargement des entreprises...
+              </div>
+            )}
+            {companiesError && (
+              <div className={css({ color: "red.200", fontSize: "sm" })}>
+                {companiesError}
+              </div>
+            )}
+          </div>
+          <div
+            className={flex({
+              gap: "3",
+              flexWrap: "wrap",
+              justify: { base: "flex-start", lg: "flex-end" },
+            })}
+          >
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className={buttonRecipe({ variant: "secondary" })}
+            >
+              <RefreshCw className={css({ w: "4", h: "4", mr: "2" })} />
+              Rafraîchir
+            </button>
+          </div>
+        </div>
+      )}
+
       <div
         className={css({
           position: "relative",
@@ -435,6 +793,29 @@ export const Topology: React.FC = () => {
           bg: "rgba(5, 8, 16, 0.7)",
         })}
       >
+        {!isLoading && !error && nodes.length === 0 && (
+          <div
+            className={flex({
+              align: "center",
+              justify: "center",
+              direction: "column",
+              gap: "2",
+              h: "full",
+              color: "text.muted",
+              textAlign: "center",
+              px: "6",
+            })}
+          >
+            <div className={css({ fontWeight: "700", color: "text.main" })}>
+              Aucune topologie détectée pour cette entreprise.
+            </div>
+            <div className={css({ maxW: "lg" })}>
+              Lancez un scan ou changez d&apos;entreprise pour afficher les
+              hosts, conteneurs et connexions détectés.
+            </div>
+          </div>
+        )}
+
         {isLoading && (
           <div
             className={flex({
