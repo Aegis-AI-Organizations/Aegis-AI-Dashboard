@@ -15,6 +15,7 @@ import type { ScanStatusResponse } from "../types/scan";
 import { useScans } from "../hooks/useScans";
 import { PentestAccordion } from "../components/PentestAccordion";
 import { VulnerabilityDetailsDrawer } from "../components/VulnerabilityDetailsDrawer";
+import { formatScanTargetName } from "../utils/scanDisplay";
 
 export const Vulnerabilities: React.FC = () => {
   const { scans, isLoading, error } = useScans();
@@ -40,7 +41,9 @@ export const Vulnerabilities: React.FC = () => {
   const filteredScans = useMemo(() => {
     return scans.filter((s: ScanStatusResponse) => {
       const query = searchQuery.toLowerCase();
+      const targetName = formatScanTargetName(s).toLowerCase();
       return (
+        targetName.includes(query) ||
         s.target_image?.toLowerCase().includes(query) ||
         s.id?.toLowerCase().includes(query) ||
         (s.company_name && s.company_name.toLowerCase().includes(query))
