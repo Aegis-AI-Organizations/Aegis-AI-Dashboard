@@ -158,6 +158,38 @@ describe("Users Page", () => {
     ).toBeGreaterThan(0);
   });
 
+  it("uses admin user action routes for internal administrators", async () => {
+    render(
+      <MemoryRouter>
+        <Users />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => screen.getByText("Client Corp"), { timeout: 5000 });
+    fireEvent.click(screen.getByText("Client Corp"));
+
+    await waitFor(() => screen.getByText("John Doe"), { timeout: 5000 });
+    fireEvent.change(screen.getByLabelText("Modifier le rôle de John Doe"), {
+      target: { value: "operateur" },
+    });
+
+    await waitFor(() => {
+      expect(api.patch).toHaveBeenCalledWith("/admin/users/u-1/role", {
+        role: "operateur",
+        company_id: "comp-2",
+      });
+    });
+
+    fireEvent.click(screen.getAllByTitle("Désactiver le collaborateur")[0]);
+
+    await waitFor(() => {
+      expect(api.patch).toHaveBeenCalledWith("/admin/users/u-1/status", {
+        is_active: false,
+        company_id: "comp-2",
+      });
+    });
+  });
+
   it("shows creation buttons for superadmin (consolidated hub)", () => {
     render(
       <MemoryRouter>

@@ -240,7 +240,10 @@ export const Users: React.FC = () => {
   ) => {
     setMemberActionId(memberId);
     try {
-      await api.patch(`/users/${memberId}/role`, {
+      const endpoint = isAegisUser
+        ? `/admin/users/${memberId}/role`
+        : `/users/${memberId}/role`;
+      await api.patch(endpoint, {
         role,
         company_id: companyId,
       });
@@ -272,7 +275,10 @@ export const Users: React.FC = () => {
     setMemberActionId(memberId);
     try {
       try {
-        await api.patch(`/users/${memberId}/status`, {
+        const endpoint = isAegisUser
+          ? `/admin/users/${memberId}/status`
+          : `/users/${memberId}/status`;
+        await api.patch(endpoint, {
           is_active: isActive,
           company_id: companyId,
         });
