@@ -94,6 +94,7 @@ export const Billing: React.FC = () => {
         <div className={flex({ gap: "3" })}>
           {(selectedCompany || initialCompanyId) && (
             <button
+              type="button"
               onClick={handleClearSelection}
               className={buttonRecipe({ variant: "secondary" })}
             >
@@ -101,6 +102,7 @@ export const Billing: React.FC = () => {
             </button>
           )}
           <button
+            type="button"
             onClick={() => refresh()}
             className={buttonRecipe({ variant: "secondary" })}
           >
@@ -299,6 +301,7 @@ export const Billing: React.FC = () => {
               <div className={flex({ mt: "10", gap: "4" })}>
                 {(!isInternal || selectedCompany) && (
                   <button
+                    type="button"
                     onClick={() =>
                       isInternal ? setIsAdjustModalOpen(true) : null
                     }
@@ -314,7 +317,10 @@ export const Billing: React.FC = () => {
                     )}
                   </button>
                 )}
-                <button className={buttonRecipe({ variant: "secondary" })}>
+                <button
+                  type="button"
+                  className={buttonRecipe({ variant: "secondary" })}
+                >
                   Voir les Factures
                 </button>
               </div>
@@ -376,6 +382,7 @@ export const Billing: React.FC = () => {
                   Renouvellement automatique le 24 Mai 2026.
                 </p>
                 <button
+                  type="button"
                   className={cx(
                     buttonRecipe({ variant: "secondary" }),
                     css({ w: "full" }),

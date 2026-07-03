@@ -76,7 +76,7 @@ export const useBilling = (targetCompanyId?: string) => {
       reason,
     });
     // Refresh data after adjustment
-    fetchBillingData();
+    await fetchBillingData();
   };
 
   useEffect(() => {

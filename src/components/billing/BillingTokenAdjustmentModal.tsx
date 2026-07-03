@@ -82,6 +82,7 @@ export const BillingTokenAdjustmentModal: React.FC<Props> = ({
           >
             <h3 className={sectionTitle()}>Ajustement de Tokens</h3>
             <button
+              type="button"
               onClick={onClose}
               className={css({
                 color: "text.muted",
