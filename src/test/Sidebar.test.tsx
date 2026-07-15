@@ -82,4 +82,18 @@ describe("Sidebar Component", () => {
       screen.getByRole("link", { name: "Facturation" }),
     ).toBeInTheDocument();
   });
+
+  it("shows billing to billing staff", () => {
+    useAuthStore.getState().setAuth("token", { role: "billing_aegis" } as any);
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <Sidebar />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Facturation" }),
+    ).toBeInTheDocument();
+  });
 });

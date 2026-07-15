@@ -17,6 +17,9 @@ vi.mock("../pages/Users", () => ({ Users: () => <div>users-page</div> }));
 vi.mock("../pages/Settings", () => ({
   Settings: () => <div>settings-page</div>,
 }));
+vi.mock("../pages/Billing", () => ({
+  Billing: () => <div>billing-page</div>,
+}));
 vi.mock("../pages/Login", () => ({
   Login: () => <div>login-page</div>,
 }));
@@ -51,6 +54,7 @@ describe("App routes", () => {
     ["/vulnerabilities", "vulnerabilities-page"],
     ["/agents", "agents-page"],
     ["/users", "users-page"],
+    ["/billing", "billing-page"],
     ["/settings", "settings-page"],
     ["/monitoring/scan-1", "dashboard-page"],
   ])("renders %s when authenticated", (entry, expectedText) => {
@@ -69,6 +73,23 @@ describe("App routes", () => {
     );
 
     expect(screen.getByText(expectedText)).toBeInTheDocument();
+  });
+
+  it("allows billing_aegis users to open billing", () => {
+    useAuthStore.getState().setAuth("fake-token", {
+      id: "1",
+      name: "Billing User",
+      email: "billing@aegis.ai",
+      role: "billing_aegis",
+    } as any);
+
+    render(
+      <MemoryRouter initialEntries={["/billing"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("billing-page")).toBeInTheDocument();
   });
 
   it("renders setup-password as a public route", () => {

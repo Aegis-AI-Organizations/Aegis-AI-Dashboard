@@ -65,9 +65,18 @@ function App() {
             </Route>
 
             <Route
-              element={<RoleRoute allowedRoles={["superadmin", "owner"]} />}
+              element={
+                <RoleRoute
+                  allowedRoles={["superadmin", "admin", "billing_aegis", "owner"]}
+                />
+              }
             >
               <Route path="/billing" element={<Billing />} />
+            </Route>
+
+            <Route
+              element={<RoleRoute allowedRoles={["superadmin", "owner"]} />}
+            >
               <Route path="/audit" element={<Audit />} />
             </Route>
 

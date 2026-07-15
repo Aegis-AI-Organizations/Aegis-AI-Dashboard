@@ -71,7 +71,7 @@ const navItems = [
     icon: Shield,
     label: "Facturation",
     path: "/billing",
-    roles: ["superadmin", "owner"],
+    roles: ["superadmin", "admin", "billing_aegis", "owner"],
   },
   {
     icon: Terminal,
