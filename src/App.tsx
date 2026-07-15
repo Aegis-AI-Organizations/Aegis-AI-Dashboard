@@ -67,7 +67,12 @@ function App() {
             <Route
               element={
                 <RoleRoute
-                  allowedRoles={["superadmin", "admin", "billing_aegis", "owner"]}
+                  allowedRoles={[
+                    "superadmin",
+                    "admin",
+                    "billing_aegis",
+                    "owner",
+                  ]}
                 />
               }
             >
