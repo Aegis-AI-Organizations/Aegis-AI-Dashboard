@@ -20,4 +20,5 @@ export interface ScanStatusResponse {
   started_at?: string;
   completed_at?: string;
   company_name?: string;
+  debug_bundle?: string;
 }
