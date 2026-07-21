@@ -9,6 +9,7 @@ import {
   Terminal,
   Network,
   Server,
+  Building2,
 } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
 
@@ -66,6 +67,12 @@ const navItems = [
     label: "Agents",
     path: "/agents",
     roles: ["superadmin", "admin", "owner"],
+  },
+  {
+    icon: Building2,
+    label: "Entreprise",
+    path: "/company-settings",
+    roles: ["owner"],
   },
   {
     icon: Shield,

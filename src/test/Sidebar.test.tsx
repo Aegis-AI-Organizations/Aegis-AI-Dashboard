@@ -67,6 +67,9 @@ describe("Sidebar Component", () => {
     expect(
       screen.queryByRole("link", { name: "Facturation" }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Entreprise" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows billing to owners", () => {
@@ -80,6 +83,9 @@ describe("Sidebar Component", () => {
 
     expect(
       screen.getByRole("link", { name: "Facturation" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Entreprise" }),
     ).toBeInTheDocument();
   });
 

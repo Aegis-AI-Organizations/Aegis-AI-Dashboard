@@ -8,6 +8,7 @@ import { Agents } from "./pages/Agents";
 import { Billing } from "./pages/Billing";
 import { Audit } from "./pages/Audit";
 import { Topology } from "./pages/Topology";
+import { CompanySettings } from "./pages/CompanySettings";
 import { Login } from "./pages/Login";
 import { SetupPassword } from "./pages/SetupPassword";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -83,6 +84,10 @@ function App() {
               element={<RoleRoute allowedRoles={["superadmin", "owner"]} />}
             >
               <Route path="/audit" element={<Audit />} />
+            </Route>
+
+            <Route element={<RoleRoute allowedRoles={["owner"]} />}>
+              <Route path="/company-settings" element={<CompanySettings />} />
             </Route>
 
             {/* All except Viewer for Settings */}
