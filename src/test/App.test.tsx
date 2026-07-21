@@ -17,6 +17,9 @@ vi.mock("../pages/Users", () => ({ Users: () => <div>users-page</div> }));
 vi.mock("../pages/Settings", () => ({
   Settings: () => <div>settings-page</div>,
 }));
+vi.mock("../pages/CompanySettings", () => ({
+  CompanySettings: () => <div>company-settings-page</div>,
+}));
 vi.mock("../pages/Billing", () => ({
   Billing: () => <div>billing-page</div>,
 }));
@@ -90,6 +93,23 @@ describe("App routes", () => {
     );
 
     expect(screen.getByText("billing-page")).toBeInTheDocument();
+  });
+
+  it("allows owners to open company settings", () => {
+    useAuthStore.getState().setAuth("fake-token", {
+      id: "1",
+      name: "Owner User",
+      email: "owner@aegis.ai",
+      role: "owner",
+    } as any);
+
+    render(
+      <MemoryRouter initialEntries={["/company-settings"]}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("company-settings-page")).toBeInTheDocument();
   });
 
   it("renders setup-password as a public route", () => {

@@ -7,20 +7,79 @@ import {
   Settings,
   Terminal,
   Server,
+  Building2,
 } from "lucide-react";
 import { css, cx } from "styled-system/css";
 import { flex } from "styled-system/patterns";
+import { useAuthStore } from "../../store/AuthStore";
+import type { UserRole } from "../../types/auth";
 
-const navItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Shield, label: "Scans", path: "/vulnerabilities" },
-  { icon: Users, label: "Équipes", path: "/users" },
-  { icon: Server, label: "Agents", path: "/agents" },
-  { icon: Terminal, label: "Audit", path: "/audit" },
-  { icon: Settings, label: "Paramètres", path: "/settings" },
+const allRoles: UserRole[] = [
+  "superadmin",
+  "admin",
+  "billing_aegis",
+  "technicien",
+  "support",
+  "owner",
+  "operateur",
+  "viewer",
+];
+
+type MobileNavItem = {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  path: string;
+  roles: UserRole[];
+};
+
+const navItems: MobileNavItem[] = [
+  { icon: LayoutDashboard, label: "Dashboard", path: "/", roles: allRoles },
+  {
+    icon: Shield,
+    label: "Scans",
+    path: "/vulnerabilities",
+    roles: [
+      "superadmin",
+      "admin",
+      "technicien",
+      "support",
+      "owner",
+      "operateur",
+    ],
+  },
+  {
+    icon: Users,
+    label: "Équipes",
+    path: "/users",
+    roles: ["superadmin", "admin", "owner"],
+  },
+  {
+    icon: Server,
+    label: "Agents",
+    path: "/agents",
+    roles: ["superadmin", "admin", "owner"],
+  },
+  {
+    icon: Building2,
+    label: "Entreprise",
+    path: "/company-settings",
+    roles: ["owner"],
+  },
+  {
+    icon: Terminal,
+    label: "Audit",
+    path: "/audit",
+    roles: ["superadmin", "owner"],
+  },
+  { icon: Settings, label: "Paramètres", path: "/settings", roles: allRoles },
 ];
 
 export const MobileNav: React.FC = () => {
+  const user = useAuthStore((s) => s.user);
+  const visibleItems = navItems.filter(
+    (item) => user && item.roles.includes(user.role),
+  );
+
   return (
     <nav
       className={css({
@@ -42,7 +101,7 @@ export const MobileNav: React.FC = () => {
           px: "2",
         })}
       >
-        {navItems.map((item) => (
+        {visibleItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
