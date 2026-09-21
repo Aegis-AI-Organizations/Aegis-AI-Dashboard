@@ -93,4 +93,42 @@ describe("useBilling Hook", () => {
     // 3 calls initially + 3 calls after adjustment
     await waitFor(() => expect(api.get).toHaveBeenCalledTimes(6));
   });
+
+  it("keeps existing billing view visible while refreshing after token adjustment", async () => {
+    const mockBalance = { data: { balance: 1000 } };
+    const mockLedger = { data: { entries: [] } };
+    const mockStats = { data: { days: [] } };
+
+    let resolveRefreshBalance: (value: typeof mockBalance) => void = () => {};
+    const pendingRefreshBalance = new Promise<typeof mockBalance>((resolve) => {
+      resolveRefreshBalance = resolve;
+    });
+
+    (api.get as any)
+      .mockResolvedValueOnce(mockBalance)
+      .mockResolvedValueOnce(mockLedger)
+      .mockResolvedValueOnce(mockStats)
+      .mockReturnValueOnce(pendingRefreshBalance)
+      .mockResolvedValueOnce(mockLedger)
+      .mockResolvedValueOnce(mockStats);
+
+    (api.post as any).mockResolvedValue({ data: { success: true } });
+
+    const { result } = renderHook(() => useBilling());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let adjustment: Promise<void> | undefined;
+    act(() => {
+      adjustment = result.current.adjustTokens("company-1", 500, "Bonus");
+    });
+
+    await waitFor(() => expect(api.get).toHaveBeenCalledTimes(6));
+
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      resolveRefreshBalance(mockBalance);
+      await adjustment;
+    });
+  });
 });

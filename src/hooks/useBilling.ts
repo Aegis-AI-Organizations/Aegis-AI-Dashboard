@@ -27,7 +27,7 @@ export const useBilling = (targetCompanyId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBillingData = useCallback(async () => {
+  const fetchBillingData = useCallback(async (showLoading = true) => {
     // If we're an admin but no targetCompanyId is provided yet, don't fetch anything
     // (the selection view handles this)
     if (
@@ -40,7 +40,9 @@ export const useBilling = (targetCompanyId?: string) => {
       return;
     }
 
-    setIsLoading(true);
+    if (showLoading) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const baseUrl = targetCompanyId
@@ -76,7 +78,7 @@ export const useBilling = (targetCompanyId?: string) => {
       reason,
     });
     // Refresh data after adjustment
-    await fetchBillingData();
+    await fetchBillingData(false);
   };
 
   useEffect(() => {

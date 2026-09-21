@@ -20,7 +20,7 @@ interface AuditLog {
 export const parseDetails = (detailsStr: string) => {
   try {
     return JSON.parse(detailsStr);
-  } catch (e) {
+  } catch {
     return detailsStr;
   }
 };

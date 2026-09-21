@@ -47,7 +47,7 @@ export const AuthHydrator: React.FC<AuthHydratorProps> = ({ children }) => {
                 headers: { Authorization: `Bearer ${data.access_token}` },
               });
               setAuth(data.access_token, userResponse.data);
-            } catch (userErr) {
+            } catch {
               // Fallback to basic auth state if /me fails but refresh worked
               useAuthStore.setState({
                 accessToken: data.access_token,
@@ -58,7 +58,7 @@ export const AuthHydrator: React.FC<AuthHydratorProps> = ({ children }) => {
             setAuth(data.access_token, data.user);
           }
         }
-      } catch (err) {
+      } catch {
         // Suppress expected 401s during hydration
       } finally {
         setHydrating(false);

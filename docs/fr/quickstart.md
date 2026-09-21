@@ -1,57 +1,71 @@
-# Quickstart | Aegis-AI-Dashboard
+# 🚀 Quickstart : Dashboard Analyste
 
-Document initialisé pour les tests de récupération Docusaurus par le plugin remote-content.
+Le Dashboard Aegis est une application React 18 + Vite. Il consomme les endpoints
+REST/SSE de l'API Gateway et laisse toutes les décisions métier au backend.
 
-## Lancer le Dashboard en local
+---
 
-Le dashboard Aegis est une application React/Vite. Pour le lancer en environnement de développement :
+## Prérequis
 
-### Pré-requis
+- Node.js 18+
+- npm (ou yarn / pnpm)
 
-- Node.js (v18+)
-- npm, yarn ou pnpm
-
-### Installation
-
-1. Cloner le dépôt et se placer dans le dossier :
-
-   ```bash
-   git clone git@github.com:Aegis-AI-Organizations/Aegis-AI-Dashboard.git
-   cd Aegis-AI-Dashboard
-   ```
-
-2. Installer les dépendances :
-
-   ```bash
-   npm install
-   ```
-
-3. Configuration :
-   Copier le fichier d'exemple et configurer les variables :
-   ```bash
-   cp .env.example .env
-   ```
-   _Assurez-vous que `VITE_API_URL` pointe bien vers votre instance locale de l'API (ex: `http://localhost:8080/api`)._
-
-### Lancement
-
-Démarrer le serveur de développement avec Hot-Reload :
+## Développement local
 
 ```bash
+npm install
+cp .env.example .env      # définir VITE_API_URL, ex. http://localhost:8080/api
 npm run dev
 ```
 
-Le dashboard sera accessible sur `http://localhost:5173` avec Vite, ou sur `http://localhost:3000` via le `local-dev` Docker Compose.
+Le serveur de dev tourne sur `http://localhost:5173` (Vite) ou
+`http://localhost:3000` via la stack Docker Compose `Aegis-AI-Infra/local-dev`.
 
-Le tableau de bord consomme aussi `GET /api/agents/status` pour afficher la carte d'état des agents avec le total, les agents actifs, les agents inactifs et la dernière remontée.
+Pointez les boutons de documentation vers une instance Docusaurus locale si
+besoin :
 
-### Lancement via Docker
+```bash
+VITE_DOCS_URL=http://localhost:3000/Aegis-AI-Documentation npm run dev
+```
 
-Si vous préférez utiliser Docker, vous pouvez construire et lancer l'image :
+## Build de production
+
+```bash
+npm run build
+```
+
+Le build exécute la génération Panda CSS, la compilation TypeScript et le bundling
+Vite.
+
+## Docker
 
 ```bash
 docker build -t aegis-dashboard .
 docker run -p 3001:80 aegis-dashboard
 ```
 
-Le dashboard sera alors accessible sur `http://localhost:3001`.
+---
+
+## Configuration runtime
+
+Le frontend lit d'abord `window.__RUNTIME_CONFIG__`, puis les variables Vite :
+
+| Clé                                | Objectif                                 |
+| ---------------------------------- | ------------------------------------- |
+| `API_GATEWAY_URL` / `VITE_API_URL` | URL de base de la Gateway               |
+| `DOCS_BASE_URL` / `VITE_DOCS_URL`  | URL de base Docusaurus pour les boutons de documentation |
+
+## Onboarding d'un agent depuis le Dashboard
+
+1. Activez le compte owner ou faites une rotation du token agent depuis
+   **Paramètres**.
+2. Copiez immédiatement le token de déploiement `ag_...` (affiché une seule fois).
+3. Ouvrez le tableau de bord sécurité.
+4. Si aucun agent n'est configuré, cliquez sur **Déployer le premier agent** pour
+   ouvrir le guide d'installation.
+5. Attendez que `Agents déployés`, `Actifs` et `Vu pour la dernière fois` se
+   mettent à jour. Le panneau est alimenté par `GET /api/agents/status`.
+
+---
+
+*Ingénierie Frontend Aegis AI — 2026*

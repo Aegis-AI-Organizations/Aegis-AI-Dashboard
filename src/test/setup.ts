@@ -22,7 +22,7 @@ Object.defineProperty(window, "matchMedia", {
 
 // Mock EventSource for Vitest/jsdom
 if (typeof window !== "undefined") {
-  (window as any).EventSource = vi.fn().mockImplementation((_url: string) => ({
+  (window as any).EventSource = vi.fn().mockImplementation(() => ({
     onmessage: null,
     onerror: null,
     close: vi.fn(),
