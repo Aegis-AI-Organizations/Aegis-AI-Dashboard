@@ -47,4 +47,20 @@ Lorsqu'un analyste lance un scan, le Dashboard entre dans un état de surveillan
 
 ---
 
+## 🗂️ Paramètres de l'entreprise
+
+Les owners et admins gèrent le profil de leur organisation depuis un écran dédié
+**Paramètres de l'entreprise** (`src/pages/CompanySettings.tsx`, accessible
+depuis la Sidebar et la navigation mobile) :
+
+- Lit le profil du tenant via `GET /api/companies/me` (nom, avatar, taille et
+  type d'organisation, nombre de membres, email du owner, solde de tokens).
+- Enregistre les modifications via `PUT /api/companies/me` ; la taille et le
+  type d'organisation sont contraints aux valeurs d'énumération du backend pour
+  garder l'UI synchronisée avec le Brain.
+- Utilise les recipes Panda CSS partagées `card` / `pageTitle` / `button`,
+  cohérentes avec le reste de la console.
+
+---
+
 _Expérience Utilisateur et Ingénierie Frontend Aegis AI — 2026_

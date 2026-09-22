@@ -47,4 +47,19 @@ When an analyst initiates a scan, the Dashboard enters a high-intensity monitori
 
 ---
 
+## 🗂️ Company Settings
+
+Owners and admins manage their organization profile from a dedicated
+**Company Settings** screen (`src/pages/CompanySettings.tsx`, reachable from the
+Sidebar and mobile nav):
+
+- Reads the tenant profile via `GET /api/companies/me` (name, avatar, org size,
+  org type, member count, owner email, token balance).
+- Saves edits via `PUT /api/companies/me`; org size and org type are
+  constrained to the backend enum values so the UI and the Brain stay in sync.
+- Uses the shared Panda CSS `card` / `pageTitle` / `button` recipes, consistent
+  with the rest of the console.
+
+---
+
 _Aegis AI User Experience & Frontend Engineering — 2026_
