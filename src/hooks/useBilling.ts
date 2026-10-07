@@ -27,46 +27,49 @@ export const useBilling = (targetCompanyId?: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBillingData = useCallback(async (showLoading = true) => {
-    // If we're an admin but no targetCompanyId is provided yet, don't fetch anything
-    // (the selection view handles this)
-    if (
-      !targetCompanyId &&
-      ["admin", "superadmin", "billing_aegis"].includes(
-        useAuthStore.getState().user?.role || "",
-      )
-    ) {
-      setIsLoading(false);
-      return;
-    }
+  const fetchBillingData = useCallback(
+    async (showLoading = true) => {
+      // If we're an admin but no targetCompanyId is provided yet, don't fetch anything
+      // (the selection view handles this)
+      if (
+        !targetCompanyId &&
+        ["admin", "superadmin", "billing_aegis"].includes(
+          useAuthStore.getState().user?.role || "",
+        )
+      ) {
+        setIsLoading(false);
+        return;
+      }
 
-    if (showLoading) {
-      setIsLoading(true);
-    }
-    setError(null);
-    try {
-      const baseUrl = targetCompanyId
-        ? `/admin/companies/${targetCompanyId}/billing`
-        : "/billing";
+      if (showLoading) {
+        setIsLoading(true);
+      }
+      setError(null);
+      try {
+        const baseUrl = targetCompanyId
+          ? `/admin/companies/${targetCompanyId}/billing`
+          : "/billing";
 
-      const [balanceRes, ledgerRes, statsRes] = await Promise.all([
-        api.get<Balance>(`${baseUrl}/balance`),
-        api.get<{ entries: LedgerEntry[] }>(`${baseUrl}/ledger`),
-        api.get<{ days: UsageDay[] }>(`${baseUrl}/stats`),
-      ]);
+        const [balanceRes, ledgerRes, statsRes] = await Promise.all([
+          api.get<Balance>(`${baseUrl}/balance`),
+          api.get<{ entries: LedgerEntry[] }>(`${baseUrl}/ledger`),
+          api.get<{ days: UsageDay[] }>(`${baseUrl}/stats`),
+        ]);
 
-      setBalance(balanceRes.data.balance);
-      setLedger(ledgerRes.data.entries || []);
-      setStats(statsRes.data.days || []);
-    } catch (err: any) {
-      setError(
-        err.response?.data?.error ||
-          "Erreur lors du chargement des données de facturation",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [targetCompanyId]);
+        setBalance(balanceRes.data.balance);
+        setLedger(ledgerRes.data.entries || []);
+        setStats(statsRes.data.days || []);
+      } catch (err: any) {
+        setError(
+          err.response?.data?.error ||
+            "Erreur lors du chargement des données de facturation",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [targetCompanyId],
+  );
 
   const adjustTokens = async (
     companyId: string,

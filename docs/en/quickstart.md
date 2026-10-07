@@ -48,10 +48,10 @@ docker run -p 3001:80 aegis-dashboard
 
 The frontend reads `window.__RUNTIME_CONFIG__` first, then Vite env vars:
 
-| Key                                | Purpose                                  |
-| ---------------------------------- | ------------------------------------- |
-| `API_GATEWAY_URL` / `VITE_API_URL` | Gateway base URL                        |
-| `DOCS_BASE_URL` / `VITE_DOCS_URL`  | Docusaurus base URL for doc buttons    |
+| Key                                | Purpose                             |
+| ---------------------------------- | ----------------------------------- |
+| `API_GATEWAY_URL` / `VITE_API_URL` | Gateway base URL                    |
+| `DOCS_BASE_URL` / `VITE_DOCS_URL`  | Docusaurus base URL for doc buttons |
 
 ## Agent onboarding from the Dashboard
 
@@ -64,4 +64,4 @@ The frontend reads `window.__RUNTIME_CONFIG__` first, then Vite env vars:
 
 ---
 
-*Aegis AI Frontend Engineering — 2026*
+_Aegis AI Frontend Engineering — 2026_

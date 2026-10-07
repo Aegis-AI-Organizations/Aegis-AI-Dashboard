@@ -7,13 +7,13 @@ que sur de l'analytics côté client.
 
 ## Signaux visibles par l'utilisateur
 
-| Signal                             | Source                                                                          |
-| ---------------------------------- | --------------------------------------------------------------------------- |
-| Compteurs d'agents et dernier heartbeat | `GET /api/agents/status`                                                  |
-| Liste des scans et statuts         | `GET /api/scans`, flux SSE de scan                                             |
-| Détails de vulnérabilité           | `GET /api/scans/{id}/vulnerabilities`, `GET /api/vulnerabilities/{id}/evidences` |
-| Solde et ledger de facturation     | Routes de l'API de facturation                                                 |
-| Activité d'audit                   | Route d'audit admin                                                            |
+| Signal                                  | Source                                                                           |
+| --------------------------------------- | -------------------------------------------------------------------------------- |
+| Compteurs d'agents et dernier heartbeat | `GET /api/agents/status`                                                         |
+| Liste des scans et statuts              | `GET /api/scans`, flux SSE de scan                                               |
+| Détails de vulnérabilité                | `GET /api/scans/{id}/vulnerabilities`, `GET /api/vulnerabilities/{id}/evidences` |
+| Solde et ledger de facturation          | Routes de l'API de facturation                                                   |
+| Activité d'audit                        | Route d'audit admin                                                              |
 
 ---
 
@@ -35,4 +35,4 @@ déploiement, secrets agent — ne doivent jamais être loguées.
 
 ---
 
-*Ingénierie Frontend Aegis AI — 2026*
+_Ingénierie Frontend Aegis AI — 2026_

@@ -50,9 +50,9 @@ docker run -p 3001:80 aegis-dashboard
 
 Le frontend lit d'abord `window.__RUNTIME_CONFIG__`, puis les variables Vite :
 
-| Clé                                | Objectif                                 |
-| ---------------------------------- | ------------------------------------- |
-| `API_GATEWAY_URL` / `VITE_API_URL` | URL de base de la Gateway               |
+| Clé                                | Objectif                                                 |
+| ---------------------------------- | -------------------------------------------------------- |
+| `API_GATEWAY_URL` / `VITE_API_URL` | URL de base de la Gateway                                |
 | `DOCS_BASE_URL` / `VITE_DOCS_URL`  | URL de base Docusaurus pour les boutons de documentation |
 
 ## Onboarding d'un agent depuis le Dashboard
@@ -68,4 +68,4 @@ Le frontend lit d'abord `window.__RUNTIME_CONFIG__`, puis les variables Vite :
 
 ---
 
-*Ingénierie Frontend Aegis AI — 2026*
+_Ingénierie Frontend Aegis AI — 2026_

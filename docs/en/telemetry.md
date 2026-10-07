@@ -7,13 +7,13 @@ analytics.
 
 ## User-visible signals
 
-| Signal                          | Source                                                                          |
-| ------------------------------- | --------------------------------------------------------------------------- |
-| Agent counts and last heartbeat | `GET /api/agents/status`                                                       |
-| Scan list and statuses          | `GET /api/scans`, scan SSE streams                                             |
+| Signal                          | Source                                                                           |
+| ------------------------------- | -------------------------------------------------------------------------------- |
+| Agent counts and last heartbeat | `GET /api/agents/status`                                                         |
+| Scan list and statuses          | `GET /api/scans`, scan SSE streams                                               |
 | Vulnerability details           | `GET /api/scans/{id}/vulnerabilities`, `GET /api/vulnerabilities/{id}/evidences` |
-| Billing balance and ledger      | Billing API routes                                                             |
-| Audit activity                  | Admin audit route                                                              |
+| Billing balance and ledger      | Billing API routes                                                               |
+| Audit activity                  | Admin audit route                                                                |
 
 ---
 
@@ -35,4 +35,4 @@ never be logged.
 
 ---
 
-*Aegis AI Frontend Engineering — 2026*
+_Aegis AI Frontend Engineering — 2026_
