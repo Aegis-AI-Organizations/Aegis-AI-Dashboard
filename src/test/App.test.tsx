@@ -43,13 +43,13 @@ describe("App routes", () => {
     useAuthStore.getState().setHydrating(false);
   });
 
-  it("should redirect to login when unauthenticated", () => {
+  it("should redirect to login when unauthenticated", async () => {
     render(
       <MemoryRouter initialEntries={["/"]}>
         <App />
       </MemoryRouter>,
     );
-    expect(screen.getByText("login-page")).toBeInTheDocument();
+    expect(await screen.findByText("login-page")).toBeInTheDocument();
   });
 
   it.each([
@@ -60,7 +60,7 @@ describe("App routes", () => {
     ["/billing", "billing-page"],
     ["/settings", "settings-page"],
     ["/monitoring/scan-1", "dashboard-page"],
-  ])("renders %s when authenticated", (entry, expectedText) => {
+  ])("renders %s when authenticated", async (entry, expectedText) => {
     // Set authenticated state
     useAuthStore.getState().setAuth("fake-token", {
       id: "1",
@@ -75,10 +75,10 @@ describe("App routes", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText(expectedText)).toBeInTheDocument();
+    expect(await screen.findByText(expectedText)).toBeInTheDocument();
   });
 
-  it("allows billing_aegis users to open billing", () => {
+  it("allows billing_aegis users to open billing", async () => {
     useAuthStore.getState().setAuth("fake-token", {
       id: "1",
       name: "Billing User",
@@ -92,10 +92,10 @@ describe("App routes", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("billing-page")).toBeInTheDocument();
+    expect(await screen.findByText("billing-page")).toBeInTheDocument();
   });
 
-  it("allows owners to open company settings", () => {
+  it("allows owners to open company settings", async () => {
     useAuthStore.getState().setAuth("fake-token", {
       id: "1",
       name: "Owner User",
@@ -109,26 +109,28 @@ describe("App routes", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("company-settings-page")).toBeInTheDocument();
+    expect(
+      await screen.findByText("company-settings-page"),
+    ).toBeInTheDocument();
   });
 
-  it("renders setup-password as a public route", () => {
+  it("renders setup-password as a public route", async () => {
     render(
       <MemoryRouter initialEntries={["/setup-password?token=aegis_inv_valid"]}>
         <App />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("setup-password-page")).toBeInTheDocument();
+    expect(await screen.findByText("setup-password-page")).toBeInTheDocument();
   });
 
-  it("renders register as a public route", () => {
+  it("renders register as a public route", async () => {
     render(
       <MemoryRouter initialEntries={["/register?token=aegis_inv_valid"]}>
         <App />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("setup-password-page")).toBeInTheDocument();
+    expect(await screen.findByText("setup-password-page")).toBeInTheDocument();
   });
 });

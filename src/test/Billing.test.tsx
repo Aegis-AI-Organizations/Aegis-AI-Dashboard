@@ -25,12 +25,12 @@ vi.mock("../store/AuthStore", () => ({
 // Mock Recharts to avoid JSDOM errors
 vi.mock("recharts", () => ({
   ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
-  AreaChart: ({ children }: any) => <div>{children}</div>,
-  Area: () => <div />,
-  XAxis: () => <div />,
-  YAxis: () => <div />,
-  CartesianGrid: () => <div />,
-  Tooltip: () => <div />,
+  AreaChart: ({ children }: any) => <svg>{children}</svg>,
+  Area: () => <g />,
+  XAxis: () => <g />,
+  YAxis: () => <g />,
+  CartesianGrid: () => <g />,
+  Tooltip: () => <g />,
 }));
 
 describe("Billing Page", () => {
