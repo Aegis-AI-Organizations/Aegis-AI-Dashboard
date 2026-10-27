@@ -1,6 +1,6 @@
 # Optimized Dockerfile for React/Vite project
 # Stage 1: Build
-FROM public.ecr.aws/docker/library/node:20-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 COPY panda.config.ts ./
@@ -9,7 +9,7 @@ COPY . .
 
 RUN npm run build
 
-FROM public.ecr.aws/nginx/nginx:alpine-slim
+FROM nginx:alpine-slim
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY entrypoint.sh /entrypoint.sh
