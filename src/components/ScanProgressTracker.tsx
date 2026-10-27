@@ -5,6 +5,7 @@ import { flex } from "styled-system/patterns";
 import { useScanPolling } from "../hooks/useScanPolling";
 import { useScanStream } from "../hooks/useScanStream";
 import { STATUS_DETAILS } from "../constants/scan";
+import { ScanPipelineGraph } from "./ScanPipelineGraph";
 
 interface ScanProgressTrackerProps {
   scanId: string;
@@ -69,7 +70,7 @@ export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
         borderRadius: "xl",
         p: "6",
         boxShadow: "xl",
-        maxW: "md",
+        maxW: "xl",
         w: "full",
         fontFamily: "sans",
         color: "text.main",
@@ -240,6 +241,10 @@ export const ScanProgressTracker: React.FC<ScanProgressTrackerProps> = ({
           >
             {currentStatusDetail.progress}% terminé
           </p>
+        </div>
+
+        <div className={css({ w: "full" })}>
+          <ScanPipelineGraph scanStatus={scanStatus} />
         </div>
       </div>
 
