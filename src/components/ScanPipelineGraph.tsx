@@ -1,10 +1,5 @@
 import { memo, useMemo } from "react";
-import {
-  ReactFlow,
-  type Edge,
-  type Node,
-  type NodeProps,
-} from "@xyflow/react";
+import { ReactFlow, type Edge, type Node, type NodeProps } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Bot, Monitor, Server, Target as TargetIcon } from "lucide-react";
 import { css } from "styled-system/css";
@@ -137,7 +132,11 @@ export const ScanPipelineGraph: React.FC<ScanPipelineGraphProps> = ({
 
   return (
     <div
-      className={css({ w: "full", h: "36", "--xy-background-color": "transparent" })}
+      className={css({
+        w: "full",
+        h: "36",
+        "--xy-background-color": "transparent",
+      })}
     >
       <ReactFlow
         nodes={nodes}

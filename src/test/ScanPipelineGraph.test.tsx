@@ -14,7 +14,9 @@ vi.mock("@xyflow/react", () => ({
       <div data-testid="reactflow">
         {nodes.map((node: any) => (
           <div key={node.id} data-testid={`node-${node.id}`}>
-            {PipelineNode ? <PipelineNode id={node.id} data={node.data} /> : null}
+            {PipelineNode ? (
+              <PipelineNode id={node.id} data={node.data} />
+            ) : null}
           </div>
         ))}
         {edges.map((edge: any) => (
@@ -65,23 +67,21 @@ describe("ScanPipelineGraph", () => {
   it("marks every node active with a success tone when COMPLETED", () => {
     render(<ScanPipelineGraph scanStatus="COMPLETED" />);
 
-    expect(
-      lastReactFlowProps.nodes.every((n: any) => n.data.active),
-    ).toBe(true);
+    expect(lastReactFlowProps.nodes.every((n: any) => n.data.active)).toBe(
+      true,
+    );
     expect(
       lastReactFlowProps.nodes.every((n: any) => n.data.tone === "success"),
     ).toBe(true);
     // Terminal state: edges are not animated even though they're active.
-    expect(lastReactFlowProps.edges.every((e: any) => !e.animated)).toBe(
-      true,
-    );
+    expect(lastReactFlowProps.edges.every((e: any) => !e.animated)).toBe(true);
   });
 
   it("falls back to an idle, inactive graph for an unknown status", () => {
     render(<ScanPipelineGraph scanStatus="SOME_UNKNOWN_STATUS" />);
 
-    expect(
-      lastReactFlowProps.nodes.every((n: any) => !n.data.active),
-    ).toBe(true);
+    expect(lastReactFlowProps.nodes.every((n: any) => !n.data.active)).toBe(
+      true,
+    );
   });
 });

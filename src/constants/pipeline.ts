@@ -23,12 +23,14 @@ export const PIPELINE_NODES: PipelineNodeDefinition[] = [
   {
     id: "api",
     label: "API",
-    description: "Brain — orchestre le workflow Temporal, persiste les résultats.",
+    description:
+      "Brain — orchestre le workflow Temporal, persiste les résultats.",
   },
   {
     id: "agent",
     label: "Agent",
-    description: "Worker Pentest — exécute les probes offensifs (SQLi, XSS...).",
+    description:
+      "Worker Pentest — exécute les probes offensifs (SQLi, XSS...).",
   },
   {
     id: "target",
