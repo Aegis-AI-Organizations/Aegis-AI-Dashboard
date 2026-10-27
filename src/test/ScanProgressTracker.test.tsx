@@ -8,6 +8,10 @@ vi.mock("../hooks/useScanPolling", () => ({
   useScanPolling: (...args: unknown[]) => useScanPolling(...args),
 }));
 
+vi.mock("@xyflow/react", () => ({
+  ReactFlow: () => <div data-testid="reactflow" />,
+}));
+
 describe("ScanProgressTracker", () => {
   it("shows running progress details", () => {
     useScanPolling.mockReturnValue({ scanStatus: "ATTACKING" });
