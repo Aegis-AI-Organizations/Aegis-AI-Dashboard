@@ -15,12 +15,12 @@ describe("AdminLayout", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getAllByText("Tableau de Bord")[0]).toBeInTheDocument();
+    expect(screen.getAllByText("Tableau de bord")[0]).toBeInTheDocument();
     expect(screen.getByText("nested-dashboard")).toBeInTheDocument();
 
     const aside = screen.getByRole("complementary");
     fireEvent.mouseEnter(aside);
-    expect(screen.getAllByText("Tableau de Bord")[0]).toBeInTheDocument();
+    expect(screen.getAllByText("Tableau de bord")[0]).toBeInTheDocument();
   });
 
   it("handles image error in Sidebar", () => {

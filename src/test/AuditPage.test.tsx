@@ -9,7 +9,7 @@ vi.mock("../components/AuditTrail", () => ({
 describe("Audit Page", () => {
   it("renders the audit page with title and trail component", () => {
     render(<Audit />);
-    expect(screen.getByText("Logs d'Audit")).toBeInTheDocument();
+    expect(screen.getByText("Journal d'audit")).toBeInTheDocument();
     expect(screen.getByTestId("audit-trail")).toBeInTheDocument();
   });
 });

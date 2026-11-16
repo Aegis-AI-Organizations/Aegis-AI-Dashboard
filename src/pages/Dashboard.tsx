@@ -79,7 +79,7 @@ export const Dashboard: React.FC = () => {
   return (
     <div className={css({ "& > * + *": { mt: "sectionGap" } })}>
       <div>
-        <h1 className={pageTitle()}>Tableau de bord sécurité</h1>
+        <h1 className={pageTitle()}>Tableau de bord</h1>
         <p className={pageSubtitle()}>
           Aperçu complet de votre posture de sécurité et des opérations de
           pentest.
