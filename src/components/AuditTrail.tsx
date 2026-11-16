@@ -4,6 +4,13 @@ import { api } from "../api/Axios";
 import { css, cx } from "styled-system/css";
 import { flex } from "styled-system/patterns";
 import { card, sectionTitle } from "styled-system/recipes";
+import { useAuthStore } from "../store/AuthStore";
+import {
+  auditActionLabel,
+  formatAuditDate,
+  formatAuditIp,
+  type AuditTimestamp,
+} from "../utils/auditDisplay";
 
 interface AuditLog {
   id: string;
@@ -14,7 +21,7 @@ interface AuditLog {
   target_id: string;
   details: string; // JSON string
   ip_address: string;
-  timestamp: string;
+  timestamp: AuditTimestamp;
 }
 
 export const parseDetails = (detailsStr: string) => {
@@ -38,6 +45,7 @@ export const AuditTrail: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [limit] = useState(50);
   const [offset, setOffset] = useState(0);
+  const currentUserId = useAuthStore((s) => s.user?.id);
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -244,150 +252,161 @@ export const AuditTrail: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                logs.map((log) => (
-                  <tr
-                    key={log.id}
-                    className={css({
-                      _hover: { bg: "whiteAlpha.50" },
-                      transition: "colors",
-                    })}
-                  >
-                    <td className={css({ px: "8", py: "6" })}>
-                      <div className={flex({ flexDir: "column" })}>
-                        <span
-                          className={css({
-                            fontSize: "sm",
-                            fontWeight: "bold",
-                            color: "gray.300",
-                          })}
-                        >
-                          {new Date(log.timestamp).toLocaleDateString()}
-                        </span>
-                        <span
-                          className={css({
-                            fontSize: "[10px]",
-                            fontWeight: "black",
-                            color: "gray.600",
-                            textTransform: "uppercase",
-                          })}
-                        >
-                          {new Date(log.timestamp).toLocaleTimeString()}
-                        </span>
-                      </div>
-                    </td>
-                    <td className={css({ px: "8", py: "6" })}>
-                      <div className={flex({ align: "center", gap: "3" })}>
-                        <div
-                          className={flex({
-                            w: "8",
-                            h: "8",
-                            borderRadius: "lg",
-                            bg: "bg.main",
-                            border: "1px solid",
-                            borderColor: "whiteAlpha.100",
-                            align: "center",
-                            justify: "center",
-                            color: "gray.500",
-                          })}
-                        >
-                          <User className={css({ w: "4", h: "4" })} />
+                logs.map((log) => {
+                  const when = formatAuditDate(log.timestamp);
+                  return (
+                    <tr
+                      key={log.id}
+                      className={css({
+                        _hover: { bg: "whiteAlpha.50" },
+                        transition: "colors",
+                      })}
+                    >
+                      <td className={css({ px: "8", py: "6" })}>
+                        <div className={flex({ flexDir: "column" })}>
+                          <span
+                            className={css({
+                              fontSize: "sm",
+                              fontWeight: "bold",
+                              color: "gray.300",
+                            })}
+                          >
+                            {when.date}
+                          </span>
+                          <span
+                            className={css({
+                              fontSize: "[10px]",
+                              fontWeight: "black",
+                              color: "gray.600",
+                              textTransform: "uppercase",
+                            })}
+                          >
+                            {when.time}
+                          </span>
                         </div>
+                      </td>
+                      <td className={css({ px: "8", py: "6" })}>
+                        <div className={flex({ align: "center", gap: "3" })}>
+                          <div
+                            className={flex({
+                              w: "8",
+                              h: "8",
+                              borderRadius: "lg",
+                              bg: "bg.main",
+                              border: "1px solid",
+                              borderColor: "whiteAlpha.100",
+                              align: "center",
+                              justify: "center",
+                              color: "gray.500",
+                            })}
+                          >
+                            <User className={css({ w: "4", h: "4" })} />
+                          </div>
+                          <div className={flex({ flexDir: "column" })}>
+                            <span
+                              className={css({
+                                fontSize: "xs",
+                                fontWeight: "black",
+                                color: "white",
+                                fontFamily: "mono",
+                              })}
+                            >
+                              {log.user_id === currentUserId
+                                ? "Vous"
+                                : `${log.user_id.substring(0, 8)}…`}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className={css({ px: "8", py: "6" })}>
+                        <span
+                          className={css({
+                            px: "3",
+                            py: "1",
+                            borderRadius: "full",
+                            fontSize: "[9px]",
+                            fontWeight: "black",
+                            textTransform: "uppercase",
+                            letterSpacing: "widest",
+                            border: "1px solid",
+                            borderColor: `${getActionColor(log.action)}/20`,
+                            bg: `${getActionColor(log.action)}/10`,
+                            color: getActionColor(log.action),
+                          })}
+                        >
+                          {auditActionLabel(log.action)}
+                        </span>
+                      </td>
+                      <td className={css({ px: "8", py: "6" })}>
                         <div className={flex({ flexDir: "column" })}>
                           <span
                             className={css({
                               fontSize: "xs",
-                              fontWeight: "black",
-                              color: "white",
-                              fontFamily: "mono",
+                              fontWeight: "bold",
+                              color: "gray.400",
                             })}
                           >
-                            {log.user_id.substring(0, 8)}...
+                            {log.target_type}
+                          </span>
+                          <span
+                            className={css({
+                              fontSize: "[10px]",
+                              fontFamily: "mono",
+                              color: "gray.600",
+                            })}
+                          >
+                            {log.target_id.substring(0, 12)}...
                           </span>
                         </div>
-                      </div>
-                    </td>
-                    <td className={css({ px: "8", py: "6" })}>
-                      <span
-                        className={css({
-                          px: "3",
-                          py: "1",
-                          borderRadius: "full",
-                          fontSize: "[9px]",
-                          fontWeight: "black",
-                          textTransform: "uppercase",
-                          letterSpacing: "widest",
-                          border: "1px solid",
-                          borderColor: `${getActionColor(log.action)}/20`,
-                          bg: `${getActionColor(log.action)}/10`,
-                          color: getActionColor(log.action),
-                        })}
-                      >
-                        {log.action.replace(/_/g, " ")}
-                      </span>
-                    </td>
-                    <td className={css({ px: "8", py: "6" })}>
-                      <div className={flex({ flexDir: "column" })}>
+                      </td>
+                      <td className={css({ px: "8", py: "6" })}>
                         <span
                           className={css({
                             fontSize: "xs",
-                            fontWeight: "bold",
-                            color: "gray.400",
-                          })}
-                        >
-                          {log.target_type}
-                        </span>
-                        <span
-                          className={css({
-                            fontSize: "[10px]",
                             fontFamily: "mono",
-                            color: "gray.600",
+                            color: "gray.500",
                           })}
                         >
-                          {log.target_id.substring(0, 12)}...
+                          {log.ip_address
+                            ? formatAuditIp(log.ip_address)
+                            : "Interne"}
                         </span>
-                      </div>
-                    </td>
-                    <td className={css({ px: "8", py: "6" })}>
-                      <span
+                      </td>
+                      <td
                         className={css({
-                          fontSize: "xs",
-                          fontFamily: "mono",
-                          color: "gray.500",
+                          px: "8",
+                          py: "6",
+                          textAlign: "right",
                         })}
                       >
-                        {log.ip_address || "Internal"}
-                      </span>
-                    </td>
-                    <td
-                      className={css({
-                        px: "8",
-                        py: "6",
-                        textAlign: "right",
-                      })}
-                    >
-                      <button
-                        className={css({
-                          p: "2",
-                          color: "gray.600",
-                          _hover: {
-                            color: "brand.primary",
-                            bg: "brand.primary/10",
-                          },
-                          borderRadius: "xl",
-                          transition: "all",
-                        })}
-                        title="Voir les détails JSON"
-                        onClick={() =>
-                          alert(
-                            JSON.stringify(parseDetails(log.details), null, 2),
-                          )
-                        }
-                      >
-                        <Info className={css({ w: "4", h: "4" })} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                        <button
+                          className={css({
+                            p: "2",
+                            color: "gray.600",
+                            _hover: {
+                              color: "brand.primary",
+                              bg: "brand.primary/10",
+                            },
+                            borderRadius: "xl",
+                            transition: "all",
+                          })}
+                          title="Voir les détails JSON"
+                          onClick={() =>
+                            alert(
+                              JSON.stringify(
+                                parseDetails(log.details),
+                                null,
+                                2,
+                              ),
+                            )
+                          }
+                        >
+                          <Info className={css({ w: "4", h: "4" })} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

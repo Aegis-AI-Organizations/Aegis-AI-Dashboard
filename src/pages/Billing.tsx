@@ -82,8 +82,8 @@ export const Billing: React.FC = () => {
         <div className={css({ "& > * + *": { mt: "2" } })}>
           <h1 className={pageTitle()}>
             {selectedCompany
-              ? `Billing: ${selectedCompany.name}`
-              : "Facturation & Licences"}
+              ? `Facturation · ${selectedCompany.name}`
+              : "Facturation"}
           </h1>
           <p className={pageSubtitle()}>
             {isInternal

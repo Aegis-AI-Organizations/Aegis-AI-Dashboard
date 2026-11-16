@@ -87,7 +87,7 @@ export const Vulnerabilities: React.FC = () => {
         })}
       >
         <div>
-          <h1 className={pageTitle()}>Historique des Scans</h1>
+          <h1 className={pageTitle()}>Scans</h1>
           <p className={pageSubtitle()}>
             Naviguez à travers l'historique complet de vos analyses et examinez
             les détails.

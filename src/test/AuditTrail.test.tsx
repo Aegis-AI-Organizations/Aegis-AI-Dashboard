@@ -73,7 +73,7 @@ describe("AuditTrail Component", () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText("START SCAN")).toBeInTheDocument();
+        expect(screen.getByText("Scan lancé")).toBeInTheDocument();
       },
       { timeout: 5000 },
     );
@@ -106,7 +106,7 @@ describe("AuditTrail Component", () => {
 
     await waitFor(
       () => {
-        expect(screen.getByText("START SCAN")).toBeInTheDocument();
+        expect(screen.getByText("Scan lancé")).toBeInTheDocument();
       },
       { timeout: 5000 },
     );

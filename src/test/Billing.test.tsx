@@ -73,7 +73,7 @@ describe("Billing Page", () => {
     );
 
     // Check for title
-    expect(screen.getByText("Facturation & Licences")).toBeInTheDocument();
+    expect(screen.getByText("Facturation")).toBeInTheDocument();
 
     // Check for token balance
     expect(screen.getByText("Jetons disponibles")).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe("Billing Page", () => {
     fireEvent.click(companyCard);
 
     // After selection, it should show the billing info for that company
-    expect(screen.getByText("Billing: Client A")).toBeInTheDocument();
+    expect(screen.getByText("Facturation · Client A")).toBeInTheDocument();
     expect(screen.getByText("1,500")).toBeInTheDocument();
   });
 
