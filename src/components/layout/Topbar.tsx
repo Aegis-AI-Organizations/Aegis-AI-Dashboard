@@ -1,9 +1,10 @@
-import { Search, Bell, LogOut } from "lucide-react";
+import { Search, LogOut } from "lucide-react";
 import { useAuthStore } from "../../store/AuthStore";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfirmationModal } from "../ui/ConfirmationModal";
 import { ProfileCircle } from "../ui/ProfileCircle";
+import { CommandPalette } from "./CommandPalette";
 
 import { css } from "styled-system/css";
 import { flex } from "styled-system/patterns";
@@ -12,6 +13,22 @@ export const Topbar: React.FC = () => {
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const navigate = useNavigate();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const shortcutLabel =
+    typeof navigator !== "undefined" && /Mac/i.test(navigator.platform)
+      ? "⌘K"
+      : "Ctrl K";
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setIsPaletteOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const handleLogout = () => {
     clearAuth();
@@ -62,111 +79,49 @@ export const Topbar: React.FC = () => {
       </div>
 
       <div className={flex({ align: "center", gap: { base: "4", sm: "6" } })}>
-        <div
+        <button
+          type="button"
+          onClick={() => setIsPaletteOpen(true)}
+          aria-keyshortcuts="Meta+K Control+K"
           className={css({
-            position: "relative",
-            display: { base: "none", sm: "block" },
+            display: { base: "none", sm: "flex" },
+            alignItems: "center",
+            gap: "3",
+            w: { lg: "64", base: "48" },
+            bg: "whiteAlpha.50",
+            border: "1px solid",
+            borderColor: "whiteAlpha.100",
+            fontSize: "sm",
+            borderRadius: "lg",
+            px: "3",
+            py: "1.5",
+            color: "gray.500",
+            cursor: "pointer",
+            transition: "colors",
+            _hover: { borderColor: "whiteAlpha.200", color: "text.muted" },
           })}
         >
-          <div
+          <Search className={css({ w: "4", h: "4" })} />
+          <span className={css({ flex: 1, textAlign: "left" })}>
+            Aller à une page…
+          </span>
+          <kbd
             className={css({
-              position: "absolute",
-              insetY: "0",
-              left: "0",
-              pl: "3",
-              display: "flex",
-              alignItems: "center",
-              pointerEvents: "none",
-            })}
-          >
-            <Search
-              className={css({
-                w: "4",
-                h: "4",
-                color: "gray.500",
-                _focusWithin: { color: "brand.primary" },
-                transition: "colors",
-              })}
-            />
-          </div>
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            className={css({
-              w: { lg: "64", base: "48" },
-              bg: "whiteAlpha.50",
+              fontSize: "xs",
+              color: "gray.500",
+              bg: "whiteAlpha.100",
+              px: "1.5",
+              py: "0.5",
+              borderRadius: "xs",
               border: "1px solid",
               borderColor: "whiteAlpha.100",
-              fontSize: "sm",
-              borderRadius: "lg",
-              pl: "10",
-              pr: "10",
-              py: "1.5",
-              color: "text.main",
-              _focus: {
-                outline: "none",
-                borderColor: "brand.primary",
-                boxShadow: "0 0 0 1px {colors.brand.primary}",
-              },
-              transition: "all",
-              _placeholder: { color: "gray.600" },
-            })}
-          />
-          <div
-            className={css({
-              position: "absolute",
-              insetY: "0",
-              right: "0",
-              pr: "2",
-              display: "flex",
-              alignItems: "center",
-              pointerEvents: "none",
             })}
           >
-            <span
-              className={css({
-                fontSize: "xs",
-                color: "gray.600",
-                fontWeight: "medium",
-                bg: "whiteAlpha.100",
-                px: "1.5",
-                py: "0.5",
-                borderRadius: "xs",
-                border: "1px solid",
-                borderColor: "whiteAlpha.100",
-              })}
-            >
-              K
-            </span>
-          </div>
-        </div>
+            {shortcutLabel}
+          </kbd>
+        </button>
 
         <div className={flex({ align: "center", gap: "4" })}>
-          <button
-            className={css({
-              position: "relative",
-              p: "2",
-              color: "text.muted",
-              _hover: { color: "white" },
-              transition: "colors",
-            })}
-          >
-            <Bell className={css({ w: "5", h: "5" })} />
-            <span
-              className={css({
-                position: "absolute",
-                top: "1.5",
-                right: "1.5",
-                w: "2",
-                h: "2",
-                bg: "red.500",
-                border: "2px solid",
-                borderColor: "bg.card",
-                borderRadius: "full",
-              })}
-            ></span>
-          </button>
-
           <div
             className={flex({ align: "center", gap: "2", cursor: "pointer" })}
           >
@@ -188,6 +143,10 @@ export const Topbar: React.FC = () => {
         </div>
       </div>
 
+      <CommandPalette
+        open={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+      />
       <ConfirmationModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
